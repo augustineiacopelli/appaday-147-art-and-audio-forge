@@ -1,0 +1,6 @@
+{
+  "name": "appaday-147-tests",
+  "private": true,
+  "description": "Execution workspace tests for Day 147. Run npm install here once, then node phase0.js and node phase1.js.",
+  "dependencies": { "jsdom": "^24.1.3" }
+}

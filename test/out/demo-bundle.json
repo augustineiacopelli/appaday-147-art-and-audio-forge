@@ -1,0 +1,3552 @@
+{
+  "kit": {
+    "format": "saga-bundle",
+    "schemaVersion": 1,
+    "bundleId": "bnd_ambj39rvralg",
+    "title": "Demo Saga",
+    "createdAt": "2026-10-01T18:12:57.020Z",
+    "updatedAt": "2026-10-01T18:12:57.106Z",
+    "contentHash": "62e5937e3d373e12ca980c07b64cb06eb7e4b27d086876af980682f15db9847f",
+    "opened": [
+      "charter",
+      "rules"
+    ],
+    "forges": {
+      "146": {
+        "status": "final",
+        "exportedAt": "2026-10-01T18:12:57.142Z",
+        "charterVersion": 1
+      }
+    }
+  },
+  "charter": {
+    "version": 1,
+    "locked": true,
+    "lockedAt": "2026-10-01T18:12:57.059Z",
+    "sections": {
+      "premise": {
+        "title": "Demo Saga",
+        "premise": "A small company of travelers carries a sealed message across two lands to the one person who can read it.",
+        "setting": "Two neighboring lands joined by a single mountain pass.",
+        "tone": "Earnest and warm",
+        "techLevel": "Unspecified; reads as any era"
+      },
+      "magic": {
+        "magicSystem": "Four elements answer anyone who studies them, at the cost of stamina.",
+        "weatherTie": "Rain strengthens water, snow weakens fire."
+      },
+      "villain": {
+        "villain": "The Warden, keeper of the pass.",
+        "motive": "Believes the message will start a war."
+      },
+      "protagonist": {
+        "protagonist": "The Courier, who promised to deliver the message."
+      },
+      "party": {
+        "members": [
+          {
+            "name": "Courier",
+            "past": "Ran messages between villages for ten years."
+          },
+          {
+            "name": "Scholar",
+            "past": "Studied the elements at a quiet school."
+          },
+          {
+            "name": "Guard",
+            "past": "Served a town watch until it disbanded."
+          }
+        ]
+      },
+      "chapters": [
+        {
+          "id": "chp_the_lowlands_auem",
+          "name": "The Lowlands",
+          "continentLabel": "Westland",
+          "summary": "The message is handed over and the journey begins.",
+          "targetMinutes": 60,
+          "charterVersion": 0
+        },
+        {
+          "id": "chp_the_far_shore_izf4",
+          "name": "The Far Shore",
+          "continentLabel": "Eastland",
+          "summary": "Across the pass, the message finds its reader.",
+          "targetMinutes": 60,
+          "charterVersion": 0
+        }
+      ],
+      "endings": {
+        "endings": [
+          {
+            "name": "Delivered",
+            "concept": "The message is read aloud."
+          },
+          {
+            "name": "Kept",
+            "concept": "The Courier keeps the message sealed."
+          }
+        ]
+      },
+      "themes": {
+        "themes": [
+          "keeping promises",
+          "trust between strangers"
+        ]
+      }
+    },
+    "specs": {
+      "tileSize": 16,
+      "resolution": {
+        "w": 256,
+        "h": 224
+      },
+      "paletteSize": 64,
+      "mobileControls": "dpad"
+    },
+    "quotas": {
+      "towns": 2,
+      "dungeons": 2,
+      "enemyFamilies": 3,
+      "bosses": 1,
+      "targetPlayHours": 2
+    },
+    "canon": [
+      {
+        "statement": "Only one mountain pass joins the two lands.",
+        "id": "can_e2290v7y"
+      }
+    ],
+    "glossary": [
+      {
+        "term": "Warden",
+        "category": "person",
+        "definition": "Keeper of the pass."
+      }
+    ],
+    "ruleset": {
+      "preset": "saga",
+      "battleEngine": "turn.atb",
+      "scheduler": "atb",
+      "schedulerConfig": {
+        "gaugeMax": 65536
+      },
+      "progression": "materia",
+      "stats": [
+        {
+          "key": "hp",
+          "label": "HP",
+          "min": 1,
+          "max": 9999
+        },
+        {
+          "key": "mp",
+          "label": "MP",
+          "min": 0,
+          "max": 999
+        },
+        {
+          "key": "str",
+          "label": "Strength",
+          "min": 1,
+          "max": 99
+        },
+        {
+          "key": "mag",
+          "label": "Magic",
+          "min": 1,
+          "max": 99
+        },
+        {
+          "key": "def",
+          "label": "Defense",
+          "min": 0,
+          "max": 255
+        },
+        {
+          "key": "mdef",
+          "label": "Magic Defense",
+          "min": 0,
+          "max": 255
+        },
+        {
+          "key": "spd",
+          "label": "Speed",
+          "min": 1,
+          "max": 99
+        },
+        {
+          "key": "luck",
+          "label": "Luck",
+          "min": 0,
+          "max": 99
+        }
+      ],
+      "elements": [
+        {
+          "key": "fire",
+          "label": "Fire",
+          "color": "#e4572e"
+        },
+        {
+          "key": "water",
+          "label": "Water",
+          "color": "#3a86c8"
+        },
+        {
+          "key": "earth",
+          "label": "Earth",
+          "color": "#8a6a3d"
+        },
+        {
+          "key": "air",
+          "label": "Air",
+          "color": "#9ad1d4"
+        }
+      ],
+      "elementRelations": [
+        {
+          "a": "fire",
+          "b": "water",
+          "kind": "opposed"
+        },
+        {
+          "a": "earth",
+          "b": "air",
+          "kind": "opposed"
+        }
+      ],
+      "taxonomy": {
+        "label": "Type",
+        "values": [
+          "fire",
+          "water",
+          "earth",
+          "air",
+          "beast"
+        ],
+        "inverts": []
+      },
+      "formulaSet": {
+        "phys": "phys.ff6",
+        "mag": "mag.ff6",
+        "heal": "heal.std",
+        "exp": "exp.curve",
+        "ap": "ap.curve",
+        "atb": "atb.fill",
+        "var": "var.std"
+      },
+      "savePolicy": {
+        "slots": 4,
+        "mode": "savepoint",
+        "suspend": true
+      },
+      "battle": {
+        "waitMode": true,
+        "tickRate": 30
+      }
+    },
+    "amendments": [],
+    "lockFingerprint": {
+      "version": 1,
+      "at": "2026-10-01T18:12:57.059Z",
+      "map": {
+        "charter.sections.premise.title": "f87af910b3",
+        "charter.sections.premise.premise": "2d27e023fa",
+        "charter.sections.premise.setting": "36187f235e",
+        "charter.sections.premise.tone": "e57b5028c5",
+        "charter.sections.premise.techLevel": "ac6a51f106",
+        "charter.sections.magic.magicSystem": "677aae3834",
+        "charter.sections.magic.weatherTie": "845ddeb927",
+        "charter.sections.villain.villain": "cddf2a6aa6",
+        "charter.sections.villain.motive": "6300066e6c",
+        "charter.sections.protagonist.protagonist": "e8b3b304c2",
+        "charter.sections.party.members[0].name": "13bd9edc20",
+        "charter.sections.party.members[0].past": "2c68b8491f",
+        "charter.sections.party.members[1].name": "b366562120",
+        "charter.sections.party.members[1].past": "43480ed1bd",
+        "charter.sections.party.members[2].name": "4972a0e68d",
+        "charter.sections.party.members[2].past": "0088be39c7",
+        "charter.sections.chapters[chp_the_lowlands_auem].id": "23c3231f0b",
+        "charter.sections.chapters[chp_the_lowlands_auem].name": "9ff31717ac",
+        "charter.sections.chapters[chp_the_lowlands_auem].continentLabel": "4d10da6754",
+        "charter.sections.chapters[chp_the_lowlands_auem].summary": "f24b3f3732",
+        "charter.sections.chapters[chp_the_lowlands_auem].targetMinutes": "39fa9ec190",
+        "charter.sections.chapters[chp_the_lowlands_auem].charterVersion": "5feceb66ff",
+        "charter.sections.chapters[chp_the_far_shore_izf4].id": "d439b88c70",
+        "charter.sections.chapters[chp_the_far_shore_izf4].name": "469cb7b85b",
+        "charter.sections.chapters[chp_the_far_shore_izf4].continentLabel": "2430b394e2",
+        "charter.sections.chapters[chp_the_far_shore_izf4].summary": "46b78c8a26",
+        "charter.sections.chapters[chp_the_far_shore_izf4].targetMinutes": "39fa9ec190",
+        "charter.sections.chapters[chp_the_far_shore_izf4].charterVersion": "5feceb66ff",
+        "charter.sections.endings.endings[0].name": "94ec408278",
+        "charter.sections.endings.endings[0].concept": "2ecc7f0877",
+        "charter.sections.endings.endings[1].name": "1bbdbb2861",
+        "charter.sections.endings.endings[1].concept": "3400aa3ff0",
+        "charter.sections.themes.themes[0]": "d31a96fa13",
+        "charter.sections.themes.themes[1]": "a5c41823fc",
+        "charter.specs.tileSize": "b17ef6d19c",
+        "charter.specs.resolution.w": "51e8ea280b",
+        "charter.specs.resolution.h": "84a5092e4a",
+        "charter.specs.paletteSize": "a68b412c42",
+        "charter.specs.mobileControls": "5baa46744f",
+        "charter.quotas.towns": "d4735e3a26",
+        "charter.quotas.dungeons": "d4735e3a26",
+        "charter.quotas.enemyFamilies": "4e07408562",
+        "charter.quotas.bosses": "6b86b273ff",
+        "charter.quotas.targetPlayHours": "d4735e3a26",
+        "charter.canon[0].statement": "221b967a18",
+        "charter.glossary[0].term": "f78156e845",
+        "charter.glossary[0].category": "4e1d81205c",
+        "charter.glossary[0].definition": "392b5a5e9b",
+        "charter.ruleset.preset": "832ece6136",
+        "charter.ruleset.battleEngine": "309629d8cc",
+        "charter.ruleset.scheduler": "1e3fdcb5db",
+        "charter.ruleset.schedulerConfig.gaugeMax": "0f255ec164",
+        "charter.ruleset.progression": "728df2c4ed",
+        "charter.ruleset.stats[0].key": "e6f783b354",
+        "charter.ruleset.stats[0].label": "728e761b3c",
+        "charter.ruleset.stats[0].min": "6b86b273ff",
+        "charter.ruleset.stats[0].max": "888df25ae3",
+        "charter.ruleset.stats[1].key": "02a6597758",
+        "charter.ruleset.stats[1].label": "698d5a1a30",
+        "charter.ruleset.stats[1].min": "5feceb66ff",
+        "charter.ruleset.stats[1].max": "83cf8b609d",
+        "charter.ruleset.stats[2].key": "72495b0e1f",
+        "charter.ruleset.stats[2].label": "538fd08e76",
+        "charter.ruleset.stats[2].min": "6b86b273ff",
+        "charter.ruleset.stats[2].max": "8c1f104621",
+        "charter.ruleset.stats[3].key": "83520b76ff",
+        "charter.ruleset.stats[3].label": "1dc460c1a2",
+        "charter.ruleset.stats[3].min": "6b86b273ff",
+        "charter.ruleset.stats[3].max": "8c1f104621",
+        "charter.ruleset.stats[4].key": "985a01eec0",
+        "charter.ruleset.stats[4].label": "1c69bff37e",
+        "charter.ruleset.stats[4].min": "5feceb66ff",
+        "charter.ruleset.stats[4].max": "9556b82499",
+        "charter.ruleset.stats[5].key": "a03aefacc5",
+        "charter.ruleset.stats[5].label": "04c709f96a",
+        "charter.ruleset.stats[5].min": "5feceb66ff",
+        "charter.ruleset.stats[5].max": "9556b82499",
+        "charter.ruleset.stats[6].key": "204d1f0a5c",
+        "charter.ruleset.stats[6].label": "3b006be0b1",
+        "charter.ruleset.stats[6].min": "6b86b273ff",
+        "charter.ruleset.stats[6].max": "8c1f104621",
+        "charter.ruleset.stats[7].key": "e4bb490543",
+        "charter.ruleset.stats[7].label": "ffb4a996f9",
+        "charter.ruleset.stats[7].min": "5feceb66ff",
+        "charter.ruleset.stats[7].max": "8c1f104621",
+        "charter.ruleset.elements[0].key": "bdeeba03d0",
+        "charter.ruleset.elements[0].label": "30b9028d32",
+        "charter.ruleset.elements[0].color": "e333a089a7",
+        "charter.ruleset.elements[1].key": "052fdc2847",
+        "charter.ruleset.elements[1].label": "04e2fe221a",
+        "charter.ruleset.elements[1].color": "440998d80c",
+        "charter.ruleset.elements[2].key": "994a8d3209",
+        "charter.ruleset.elements[2].label": "1f8048d41c",
+        "charter.ruleset.elements[2].color": "18863b96cf",
+        "charter.ruleset.elements[3].key": "79f6fbbfd3",
+        "charter.ruleset.elements[3].label": "a886619d15",
+        "charter.ruleset.elements[3].color": "17aed382ae",
+        "charter.ruleset.elementRelations[0].a": "bdeeba03d0",
+        "charter.ruleset.elementRelations[0].b": "052fdc2847",
+        "charter.ruleset.elementRelations[0].kind": "140ad89972",
+        "charter.ruleset.elementRelations[1].a": "994a8d3209",
+        "charter.ruleset.elementRelations[1].b": "79f6fbbfd3",
+        "charter.ruleset.elementRelations[1].kind": "140ad89972",
+        "charter.ruleset.taxonomy.label": "c44f7ab8bb",
+        "charter.ruleset.taxonomy.values[0]": "bdeeba03d0",
+        "charter.ruleset.taxonomy.values[1]": "052fdc2847",
+        "charter.ruleset.taxonomy.values[2]": "994a8d3209",
+        "charter.ruleset.taxonomy.values[3]": "79f6fbbfd3",
+        "charter.ruleset.taxonomy.values[4]": "81873bd8d3",
+        "charter.ruleset.taxonomy.inverts": "4f53cda18c",
+        "charter.ruleset.formulaSet.phys": "16ba758069",
+        "charter.ruleset.formulaSet.mag": "90af10aaca",
+        "charter.ruleset.formulaSet.heal": "e46bd8cba5",
+        "charter.ruleset.formulaSet.exp": "5854eee759",
+        "charter.ruleset.formulaSet.ap": "ecda80db77",
+        "charter.ruleset.formulaSet.atb": "622f74e3d5",
+        "charter.ruleset.formulaSet.var": "c65e7b21c2",
+        "charter.ruleset.savePolicy.slots": "4b227777d4",
+        "charter.ruleset.savePolicy.mode": "a6a83b169f",
+        "charter.ruleset.savePolicy.suspend": "b5bea41b6c",
+        "charter.ruleset.battle.waitMode": "b5bea41b6c",
+        "charter.ruleset.battle.tickRate": "624b60c58c"
+      }
+    }
+  },
+  "codex": {
+    "version": 1,
+    "generatedFromCharter": 1,
+    "prefixes": {
+      "abl_": {
+        "type": "Ability",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "anm_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "bst_": {
+        "type": "BossStrategy",
+        "ns": "rules",
+        "forge": 146,
+        "module": "living",
+        "active": true
+      },
+      "chp_": {
+        "type": "Chapter",
+        "ns": "charter",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "chr_": {
+        "type": "Character",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "cls_": {
+        "type": null,
+        "ns": "rules",
+        "forge": 146,
+        "module": "classes",
+        "active": false
+      },
+      "dgn_": {
+        "type": null,
+        "ns": "world",
+        "forge": 148,
+        "module": null,
+        "active": true
+      },
+      "dlg_": {
+        "type": null,
+        "ns": "story",
+        "forge": 149,
+        "module": null,
+        "active": true
+      },
+      "end_": {
+        "type": null,
+        "ns": "story",
+        "forge": 149,
+        "module": null,
+        "active": true
+      },
+      "enm_": {
+        "type": "Enemy",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "eps_": {
+        "type": "ExpectedPartyState",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "eqp_": {
+        "type": "Equipment",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "evt_": {
+        "type": null,
+        "ns": "story",
+        "forge": 149,
+        "module": null,
+        "active": true
+      },
+      "fam_": {
+        "type": "Family",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "flg_": {
+        "type": null,
+        "ns": "story",
+        "forge": 149,
+        "module": null,
+        "active": true
+      },
+      "frm_": {
+        "type": "Formula",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "gmb_": {
+        "type": "Gambit",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "ico_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "itm_": {
+        "type": "Item",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "job_": {
+        "type": null,
+        "ns": "rules",
+        "forge": 146,
+        "module": "jobs",
+        "active": false
+      },
+      "lim_": {
+        "type": "Limit",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "map_": {
+        "type": null,
+        "ns": "world",
+        "forge": 148,
+        "module": null,
+        "active": true
+      },
+      "mat_": {
+        "type": "Materia",
+        "ns": "rules",
+        "forge": 146,
+        "module": "materia",
+        "active": true
+      },
+      "mus_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "npc_": {
+        "type": null,
+        "ns": "world",
+        "forge": 148,
+        "module": null,
+        "active": true
+      },
+      "por_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "qst_": {
+        "type": null,
+        "ns": "story",
+        "forge": 149,
+        "module": null,
+        "active": true
+      },
+      "reg_": {
+        "type": null,
+        "ns": "world",
+        "forge": 148,
+        "module": null,
+        "active": true
+      },
+      "rmr_": {
+        "type": "Rumor",
+        "ns": "rules",
+        "forge": 146,
+        "module": "living",
+        "active": true
+      },
+      "sdq_": {
+        "type": "SideQuest",
+        "ns": "rules",
+        "forge": 146,
+        "module": "living",
+        "active": true
+      },
+      "sfx_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "shp_": {
+        "type": "Shop",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "spr_": {
+        "type": null,
+        "ns": "art",
+        "forge": 147,
+        "module": null,
+        "active": true
+      },
+      "sta_": {
+        "type": "Status",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "trp_": {
+        "type": "Troop",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      },
+      "twn_": {
+        "type": null,
+        "ns": "world",
+        "forge": 148,
+        "module": null,
+        "active": true
+      },
+      "wth_": {
+        "type": "Weather",
+        "ns": "rules",
+        "forge": 146,
+        "module": null,
+        "active": true
+      }
+    },
+    "types": {
+      "Character": {
+        "name": "Character",
+        "prefix": "chr_",
+        "label": "Character",
+        "group": "core",
+        "dependsOn": [
+          "charter.sections.party",
+          "charter.ruleset.stats"
+        ],
+        "fields": [
+          {
+            "key": "weaponClass",
+            "label": "Weapon class",
+            "type": "text",
+            "max": 30,
+            "help": "For example sword, staff, or claw. Equipment with the same class can be worn."
+          },
+          {
+            "key": "statLeanings",
+            "label": "Stat leanings",
+            "type": "table",
+            "rowsFrom": "charter.ruleset.stats",
+            "cell": "num",
+            "min": 0,
+            "max": 5,
+            "rowLabel": "Stat",
+            "valueLabel": "Lean",
+            "help": "Relative strengths. One is average, two is double."
+          },
+          {
+            "key": "baseStats",
+            "label": "Base stats",
+            "type": "table",
+            "required": true,
+            "rowsFrom": "charter.ruleset.stats",
+            "cell": "int",
+            "min": 0,
+            "max": 99999,
+            "rowLabel": "Stat",
+            "valueLabel": "Level 1"
+          },
+          {
+            "key": "growth",
+            "label": "Growth per level",
+            "type": "table",
+            "rowsFrom": "charter.ruleset.stats",
+            "cell": "num",
+            "min": 0,
+            "max": 9999,
+            "rowLabel": "Stat",
+            "valueLabel": "Per level"
+          },
+          {
+            "key": "limitTree",
+            "label": "Limit tree",
+            "type": "refList",
+            "refPrefix": "lim_",
+            "help": "Limit breaks in unlock order."
+          },
+          {
+            "key": "portrait",
+            "label": "Portrait",
+            "type": "ref",
+            "refPrefix": "por_",
+            "forward": true
+          },
+          {
+            "key": "leitmotif",
+            "label": "Leitmotif",
+            "type": "ref",
+            "refPrefix": "mus_",
+            "forward": true
+          },
+          {
+            "key": "relationshipHooks",
+            "label": "Relationship hooks",
+            "type": "list",
+            "itemLabel": "Hook",
+            "of": [
+              {
+                "key": "chr",
+                "label": "Character",
+                "type": "ref",
+                "required": true,
+                "refPrefix": "chr_"
+              },
+              {
+                "key": "note",
+                "label": "Note",
+                "type": "text",
+                "required": true,
+                "max": 200
+              }
+            ]
+          },
+          {
+            "key": "bStoryline",
+            "label": "B storyline",
+            "type": "longtext",
+            "help": "The personal subplot that runs under the main story."
+          },
+          {
+            "key": "move",
+            "label": "Move",
+            "type": "int",
+            "min": 1,
+            "max": 12,
+            "help": "Optional tactics seam: tiles per turn."
+          }
+        ],
+        "codex": 1
+      },
+      "Ability": {
+        "name": "Ability",
+        "prefix": "abl_",
+        "label": "Ability",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.elements",
+          "charter.ruleset.formulaSet"
+        ],
+        "fields": [
+          {
+            "key": "kind",
+            "label": "Kind",
+            "type": "enum",
+            "required": true,
+            "values": [
+              {
+                "key": "attack",
+                "label": "Attack (physical)"
+              },
+              {
+                "key": "magic",
+                "label": "Magic"
+              },
+              {
+                "key": "heal",
+                "label": "Heal"
+              },
+              {
+                "key": "status",
+                "label": "Status"
+              },
+              {
+                "key": "summon",
+                "label": "Summon"
+              },
+              {
+                "key": "command",
+                "label": "Command"
+              },
+              {
+                "key": "limit",
+                "label": "Limit"
+              },
+              {
+                "key": "enemy",
+                "label": "Enemy skill"
+              },
+              {
+                "key": "passive",
+                "label": "Passive"
+              }
+            ]
+          },
+          {
+            "key": "element",
+            "label": "Element",
+            "type": "enum",
+            "enumFrom": "charter.ruleset.elements",
+            "help": "Empty means non elemental."
+          },
+          {
+            "key": "power",
+            "label": "Power",
+            "type": "int",
+            "min": 0,
+            "max": 9999
+          },
+          {
+            "key": "cost",
+            "label": "Cost",
+            "type": "object",
+            "of": [
+              {
+                "key": "mp",
+                "label": "MP",
+                "type": "int",
+                "min": 0,
+                "max": 9999
+              },
+              {
+                "key": "ap",
+                "label": "AP",
+                "type": "int",
+                "min": 0,
+                "max": 9999
+              },
+              {
+                "key": "item",
+                "label": "Item consumed",
+                "type": "ref",
+                "refPrefix": "itm_"
+              }
+            ]
+          },
+          {
+            "key": "targeting",
+            "label": "Targeting",
+            "type": "object",
+            "required": true,
+            "of": [
+              {
+                "key": "side",
+                "label": "Side",
+                "type": "enum",
+                "required": true,
+                "values": [
+                  "foe",
+                  "ally",
+                  "self",
+                  "any"
+                ]
+              },
+              {
+                "key": "scope",
+                "label": "Scope",
+                "type": "enum",
+                "required": true,
+                "values": [
+                  "single",
+                  "all",
+                  "row",
+                  "random"
+                ]
+              }
+            ]
+          },
+          {
+            "key": "chargeTicks",
+            "label": "Charge ticks",
+            "type": "int",
+            "min": 0,
+            "max": 65536,
+            "help": "Wind up before the action lands. Zero is instant."
+          },
+          {
+            "key": "formula",
+            "label": "Formula",
+            "type": "ref",
+            "refPrefix": "frm_",
+            "help": "Empty uses the ruleset formula set for this kind."
+          },
+          {
+            "key": "statusEffects",
+            "label": "Status effects",
+            "type": "list",
+            "itemLabel": "Effect",
+            "of": [
+              {
+                "key": "sta",
+                "label": "Status",
+                "type": "ref",
+                "required": true,
+                "refPrefix": "sta_"
+              },
+              {
+                "key": "chance",
+                "label": "Chance",
+                "type": "num",
+                "min": 0,
+                "max": 1,
+                "help": "Zero to one."
+              }
+            ]
+          },
+          {
+            "key": "range",
+            "label": "Range",
+            "type": "int",
+            "min": 0,
+            "max": 20,
+            "help": "Optional tactics seam."
+          },
+          {
+            "key": "area",
+            "label": "Area",
+            "type": "int",
+            "min": 0,
+            "max": 10,
+            "help": "Optional tactics seam."
+          },
+          {
+            "key": "animation",
+            "label": "Animation",
+            "type": "ref",
+            "refPrefix": "anm_",
+            "forward": true
+          },
+          {
+            "key": "sfx",
+            "label": "Sound effect",
+            "type": "ref",
+            "refPrefix": "sfx_",
+            "forward": true
+          },
+          {
+            "key": "icon",
+            "label": "Icon",
+            "type": "ref",
+            "refPrefix": "ico_",
+            "forward": true
+          }
+        ],
+        "codex": 1
+      },
+      "Item": {
+        "name": "Item",
+        "prefix": "itm_",
+        "label": "Item",
+        "group": "core",
+        "dependsOn": [],
+        "fields": [
+          {
+            "key": "kind",
+            "label": "Kind",
+            "type": "enum",
+            "required": true,
+            "values": [
+              "consumable",
+              "key",
+              "material"
+            ]
+          },
+          {
+            "key": "price",
+            "label": "Price",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          },
+          {
+            "key": "effect",
+            "label": "Effect",
+            "type": "ref",
+            "refPrefix": "abl_",
+            "help": "The ability that fires when the item is used."
+          },
+          {
+            "key": "icon",
+            "label": "Icon",
+            "type": "ref",
+            "refPrefix": "ico_",
+            "forward": true
+          }
+        ],
+        "codex": 1
+      },
+      "Equipment": {
+        "name": "Equipment",
+        "prefix": "eqp_",
+        "label": "Equipment",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.stats"
+        ],
+        "fields": [
+          {
+            "key": "slot",
+            "label": "Slot",
+            "type": "enum",
+            "required": true,
+            "values": [
+              "weapon",
+              "armor",
+              "accessory"
+            ]
+          },
+          {
+            "key": "weaponClass",
+            "label": "Weapon class",
+            "type": "text",
+            "max": 30,
+            "help": "Weapons only. Matches a character weapon class."
+          },
+          {
+            "key": "tier",
+            "label": "Gear tier",
+            "type": "int",
+            "min": 1,
+            "max": 20,
+            "help": "Compared with the Expected Party State gear tier."
+          },
+          {
+            "key": "price",
+            "label": "Price",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          },
+          {
+            "key": "stats",
+            "label": "Stat bonuses",
+            "type": "table",
+            "rowsFrom": "charter.ruleset.stats",
+            "cell": "int",
+            "min": -9999,
+            "max": 9999,
+            "rowLabel": "Stat",
+            "valueLabel": "Bonus"
+          },
+          {
+            "key": "slotLayout",
+            "label": "Slot layout",
+            "type": "object",
+            "of": [
+              {
+                "key": "count",
+                "label": "Slots",
+                "type": "int",
+                "min": 0,
+                "max": 8
+              },
+              {
+                "key": "links",
+                "label": "Links",
+                "type": "list",
+                "itemLabel": "Link",
+                "help": "Each link is a pair of slot numbers counted from zero, such as 0 and 1.",
+                "of": {
+                  "type": "list",
+                  "of": {
+                    "type": "int",
+                    "min": 0,
+                    "max": 7
+                  },
+                  "min": 2,
+                  "max": 2
+                }
+              }
+            ]
+          },
+          {
+            "key": "icon",
+            "label": "Icon",
+            "type": "ref",
+            "refPrefix": "ico_",
+            "forward": true
+          }
+        ],
+        "codex": 1
+      },
+      "Status": {
+        "name": "Status",
+        "prefix": "sta_",
+        "label": "Status",
+        "group": "core",
+        "dependsOn": [],
+        "fields": [
+          {
+            "key": "gauge",
+            "label": "Gauge effect",
+            "type": "enum",
+            "required": true,
+            "values": [
+              "normal",
+              "freeze",
+              "empty"
+            ],
+            "help": "Freeze stops the gauge. Empty resets it each tick."
+          },
+          {
+            "key": "tickEffect",
+            "label": "Tick effect",
+            "type": "object",
+            "of": [
+              {
+                "key": "kind",
+                "label": "Kind",
+                "type": "enum",
+                "values": [
+                  "none",
+                  "damage",
+                  "heal",
+                  "mpDrain"
+                ]
+              },
+              {
+                "key": "percent",
+                "label": "Percent of max",
+                "type": "num",
+                "min": 0,
+                "max": 100
+              }
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration in turns",
+            "type": "int",
+            "min": 0,
+            "max": 99,
+            "help": "Zero lasts until cured."
+          },
+          {
+            "key": "cure",
+            "label": "Cure",
+            "type": "object",
+            "of": [
+              {
+                "key": "battleEnd",
+                "label": "Ends with battle",
+                "type": "bool"
+              },
+              {
+                "key": "onHit",
+                "label": "Ends when hit",
+                "type": "bool"
+              },
+              {
+                "key": "curedBy",
+                "label": "Cured by",
+                "type": "refList",
+                "refPrefix": [
+                  "itm_",
+                  "abl_"
+                ]
+              }
+            ]
+          }
+        ],
+        "codex": 1
+      },
+      "Formula": {
+        "name": "Formula",
+        "prefix": "frm_",
+        "label": "Formula",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.formulaSet",
+          "charter.ruleset.stats"
+        ],
+        "fields": [
+          {
+            "key": "template",
+            "label": "Template",
+            "type": "enum",
+            "values": [
+              "phys.ff6",
+              "mag.ff6",
+              "phys.sub",
+              "mag.flat",
+              "heal.std",
+              "var.std",
+              "exp.curve",
+              "ap.curve",
+              "atb.fill"
+            ],
+            "help": "A built in template. Leave empty to write an expression."
+          },
+          {
+            "key": "expr",
+            "label": "Expression",
+            "type": "formula",
+            "help": "Used when no template is chosen. Variables: a.<stat>, a.level, t.<stat>, t.level, power, p.<param>."
+          },
+          {
+            "key": "params",
+            "label": "Parameters",
+            "type": "table",
+            "cell": "num",
+            "rowLabel": "Param",
+            "valueLabel": "Value",
+            "help": "Read in expressions as p.<name>."
+          }
+        ],
+        "codex": 1
+      },
+      "Family": {
+        "name": "Family",
+        "prefix": "fam_",
+        "label": "Enemy family",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.taxonomy",
+          "charter.ruleset.elements",
+          "charter.ruleset.elementRelations"
+        ],
+        "fields": [
+          {
+            "key": "type",
+            "label": "Type",
+            "type": "enum",
+            "required": true,
+            "enumFrom": "charter.ruleset.taxonomy"
+          },
+          {
+            "key": "palette",
+            "label": "Palette",
+            "type": "object",
+            "of": [
+              {
+                "key": "base",
+                "label": "Base",
+                "type": "color"
+              },
+              {
+                "key": "accent",
+                "label": "Accent",
+                "type": "color"
+              }
+            ]
+          },
+          {
+            "key": "absorbsOwnType",
+            "label": "Absorbs its own type",
+            "type": "bool",
+            "help": "Its own element heals it instead of being resisted."
+          },
+          {
+            "key": "defaultAffinity",
+            "label": "Default affinity",
+            "type": "table",
+            "derived": "familyAffinity",
+            "rowsFrom": "charter.ruleset.elements",
+            "cell": "text",
+            "rowLabel": "Element",
+            "valueLabel": "Affinity",
+            "help": "Computed from the type and the relation table: its own type is resisted and its opposite is the weakness."
+          },
+          {
+            "key": "sprite",
+            "label": "Sprite",
+            "type": "ref",
+            "refPrefix": "spr_",
+            "forward": true
+          }
+        ],
+        "codex": 1
+      },
+      "Enemy": {
+        "name": "Enemy",
+        "prefix": "enm_",
+        "label": "Enemy",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.stats",
+          "charter.ruleset.elements"
+        ],
+        "fields": [
+          {
+            "key": "family",
+            "label": "Family",
+            "type": "ref",
+            "required": true,
+            "refPrefix": "fam_"
+          },
+          {
+            "key": "tier",
+            "label": "Tier",
+            "type": "int",
+            "min": 1,
+            "max": 9
+          },
+          {
+            "key": "level",
+            "label": "Level",
+            "type": "int",
+            "min": 1,
+            "max": 99
+          },
+          {
+            "key": "stats",
+            "label": "Stats",
+            "type": "table",
+            "required": true,
+            "rowsFrom": "charter.ruleset.stats",
+            "cell": "int",
+            "min": 0,
+            "max": 999999,
+            "rowLabel": "Stat",
+            "valueLabel": "Value"
+          },
+          {
+            "key": "affinityOverrides",
+            "label": "Affinity overrides",
+            "type": "table",
+            "rowsFrom": "charter.ruleset.elements",
+            "cell": "enum",
+            "cellValues": [
+              {
+                "key": "weak",
+                "label": "Weak"
+              },
+              {
+                "key": "normal",
+                "label": "Normal"
+              },
+              {
+                "key": "resist",
+                "label": "Resist"
+              },
+              {
+                "key": "immune",
+                "label": "Immune"
+              },
+              {
+                "key": "absorb",
+                "label": "Absorb"
+              }
+            ],
+            "cellPlaceholder": "(family default)",
+            "rowLabel": "Element",
+            "valueLabel": "Override"
+          },
+          {
+            "key": "gambits",
+            "label": "Gambits",
+            "type": "ref",
+            "refPrefix": "gmb_"
+          },
+          {
+            "key": "drops",
+            "label": "Drops",
+            "type": "list",
+            "itemLabel": "Drop",
+            "of": [
+              {
+                "key": "item",
+                "label": "Item",
+                "type": "ref",
+                "required": true,
+                "refPrefix": [
+                  "itm_",
+                  "eqp_",
+                  "mat_"
+                ]
+              },
+              {
+                "key": "chance",
+                "label": "Chance",
+                "type": "num",
+                "min": 0,
+                "max": 1
+              }
+            ]
+          },
+          {
+            "key": "steal",
+            "label": "Steal",
+            "type": "list",
+            "itemLabel": "Steal",
+            "of": [
+              {
+                "key": "item",
+                "label": "Item",
+                "type": "ref",
+                "required": true,
+                "refPrefix": [
+                  "itm_",
+                  "eqp_",
+                  "mat_"
+                ]
+              },
+              {
+                "key": "chance",
+                "label": "Chance",
+                "type": "num",
+                "min": 0,
+                "max": 1
+              }
+            ]
+          },
+          {
+            "key": "gil",
+            "label": "Gil",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          },
+          {
+            "key": "exp",
+            "label": "EXP",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          },
+          {
+            "key": "ap",
+            "label": "AP",
+            "type": "int",
+            "min": 0,
+            "max": 99999
+          },
+          {
+            "key": "isBoss",
+            "label": "Boss",
+            "type": "bool"
+          }
+        ],
+        "codex": 1
+      },
+      "Gambit": {
+        "name": "Gambit",
+        "prefix": "gmb_",
+        "label": "Gambit set",
+        "group": "core",
+        "dependsOn": [],
+        "fields": [
+          {
+            "key": "rules",
+            "label": "Rules",
+            "type": "list",
+            "required": true,
+            "itemLabel": "Rule",
+            "help": "Checked top to bottom. The first rule whose condition holds acts.",
+            "of": [
+              {
+                "key": "condition",
+                "label": "Condition",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "kind",
+                    "label": "Kind",
+                    "type": "enum",
+                    "required": true,
+                    "values": [
+                      {
+                        "key": "always",
+                        "label": "Always"
+                      },
+                      {
+                        "key": "selfHpBelow",
+                        "label": "Own HP below fraction"
+                      },
+                      {
+                        "key": "selfHpAbove",
+                        "label": "Own HP above fraction"
+                      },
+                      {
+                        "key": "allyHpBelow",
+                        "label": "An ally below HP fraction"
+                      },
+                      {
+                        "key": "targetHpBelow",
+                        "label": "Target HP below fraction"
+                      },
+                      {
+                        "key": "targetHasStatus",
+                        "label": "Target has status"
+                      },
+                      {
+                        "key": "targetLacksStatus",
+                        "label": "Target lacks status"
+                      },
+                      {
+                        "key": "turnEvery",
+                        "label": "Every N turns"
+                      },
+                      {
+                        "key": "enemyCountBelow",
+                        "label": "Fewer foes than N"
+                      },
+                      {
+                        "key": "allyCountBelow",
+                        "label": "Fewer allies than N"
+                      },
+                      {
+                        "key": "chance",
+                        "label": "Random chance"
+                      }
+                    ]
+                  },
+                  {
+                    "key": "param",
+                    "label": "Parameter",
+                    "type": "text",
+                    "max": 40,
+                    "help": "A fraction such as 0.35, a count such as 2, or a status ID for status conditions."
+                  }
+                ]
+              },
+              {
+                "key": "target",
+                "label": "Target",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "selector",
+                    "label": "Selector",
+                    "type": "enum",
+                    "required": true,
+                    "values": [
+                      {
+                        "key": "self",
+                        "label": "Self"
+                      },
+                      {
+                        "key": "randomFoe",
+                        "label": "Random foe"
+                      },
+                      {
+                        "key": "lowestHpFoe",
+                        "label": "Foe with lowest HP"
+                      },
+                      {
+                        "key": "highestHpFoe",
+                        "label": "Foe with highest HP"
+                      },
+                      {
+                        "key": "allFoes",
+                        "label": "All foes"
+                      },
+                      {
+                        "key": "randomAlly",
+                        "label": "Random ally"
+                      },
+                      {
+                        "key": "lowestHpAlly",
+                        "label": "Ally with lowest HP"
+                      },
+                      {
+                        "key": "allAllies",
+                        "label": "All allies"
+                      },
+                      {
+                        "key": "attacker",
+                        "label": "The attacker (counters)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "action",
+                "label": "Action",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "abl",
+                    "label": "Ability",
+                    "type": "ref",
+                    "required": true,
+                    "refPrefix": "abl_"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "counters",
+            "label": "Counters",
+            "type": "list",
+            "itemLabel": "Counter",
+            "of": [
+              {
+                "key": "trigger",
+                "label": "Trigger",
+                "type": "enum",
+                "required": true,
+                "values": [
+                  {
+                    "key": "onPhysical",
+                    "label": "Hit by a physical attack"
+                  },
+                  {
+                    "key": "onMagic",
+                    "label": "Hit by magic"
+                  },
+                  {
+                    "key": "onDamaged",
+                    "label": "Takes any damage"
+                  },
+                  {
+                    "key": "onAllyKo",
+                    "label": "An ally is KO"
+                  },
+                  {
+                    "key": "onLowHp",
+                    "label": "Falls below a quarter HP"
+                  },
+                  {
+                    "key": "onStatus",
+                    "label": "Receives a status"
+                  }
+                ]
+              },
+              {
+                "key": "action",
+                "label": "Action",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "abl",
+                    "label": "Ability",
+                    "type": "ref",
+                    "required": true,
+                    "refPrefix": "abl_"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "codex": 1
+      },
+      "Troop": {
+        "name": "Troop",
+        "prefix": "trp_",
+        "label": "Troop",
+        "group": "core",
+        "dependsOn": [
+          "charter.sections.chapters"
+        ],
+        "fields": [
+          {
+            "key": "members",
+            "label": "Members",
+            "type": "list",
+            "required": true,
+            "min": 1,
+            "max": 8,
+            "itemLabel": "Member",
+            "of": [
+              {
+                "key": "enm",
+                "label": "Enemy",
+                "type": "ref",
+                "required": true,
+                "refPrefix": "enm_"
+              },
+              {
+                "key": "row",
+                "label": "Row",
+                "type": "enum",
+                "values": [
+                  "front",
+                  "back"
+                ]
+              }
+            ]
+          },
+          {
+            "key": "chapter",
+            "label": "Chapter",
+            "type": "ref",
+            "refPrefix": "chp_"
+          },
+          {
+            "key": "flags",
+            "label": "Flags",
+            "type": "object",
+            "of": [
+              {
+                "key": "noEscape",
+                "label": "No escape",
+                "type": "bool"
+              },
+              {
+                "key": "preemptiveChance",
+                "label": "Preemptive chance",
+                "type": "num",
+                "min": 0,
+                "max": 1
+              }
+            ]
+          }
+        ],
+        "codex": 1
+      },
+      "Shop": {
+        "name": "Shop",
+        "prefix": "shp_",
+        "label": "Shop",
+        "group": "core",
+        "dependsOn": [
+          "charter.sections.chapters"
+        ],
+        "fields": [
+          {
+            "key": "inventory",
+            "label": "Inventory",
+            "type": "list",
+            "itemLabel": "Stock",
+            "of": [
+              {
+                "key": "item",
+                "label": "Item",
+                "type": "ref",
+                "required": true,
+                "refPrefix": [
+                  "itm_",
+                  "eqp_",
+                  "mat_"
+                ]
+              },
+              {
+                "key": "priceOverride",
+                "label": "Price override",
+                "type": "int",
+                "min": 0,
+                "max": 9999999
+              }
+            ]
+          },
+          {
+            "key": "chapterAvailable",
+            "label": "Available from chapter",
+            "type": "ref",
+            "refPrefix": "chp_"
+          }
+        ],
+        "codex": 1
+      },
+      "Weather": {
+        "name": "Weather",
+        "prefix": "wth_",
+        "label": "Weather state",
+        "group": "core",
+        "dependsOn": [
+          "charter.ruleset.elements",
+          "charter.sections.magic"
+        ],
+        "fields": [
+          {
+            "key": "realWorld",
+            "label": "Real world phenomenon",
+            "type": "text",
+            "required": true,
+            "max": 80,
+            "help": "For example supercell thunderstorm or radiation fog."
+          },
+          {
+            "key": "elementMultipliers",
+            "label": "Element multipliers",
+            "type": "table",
+            "rowsFrom": "charter.ruleset.elements",
+            "cell": "num",
+            "min": 0,
+            "max": 5,
+            "rowLabel": "Element",
+            "valueLabel": "Multiplier"
+          },
+          {
+            "key": "encounterModifiers",
+            "label": "Encounter modifiers",
+            "type": "object",
+            "of": [
+              {
+                "key": "rate",
+                "label": "Encounter rate",
+                "type": "num",
+                "min": 0,
+                "max": 5,
+                "help": "One is normal."
+              },
+              {
+                "key": "familyWeights",
+                "label": "Family weights",
+                "type": "list",
+                "itemLabel": "Weight",
+                "of": [
+                  {
+                    "key": "fam",
+                    "label": "Family",
+                    "type": "ref",
+                    "required": true,
+                    "refPrefix": "fam_"
+                  },
+                  {
+                    "key": "weight",
+                    "label": "Weight",
+                    "type": "num",
+                    "min": 0,
+                    "max": 10
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "codex": 1
+      },
+      "Limit": {
+        "name": "Limit",
+        "prefix": "lim_",
+        "label": "Limit break",
+        "group": "core",
+        "dependsOn": [],
+        "fields": [
+          {
+            "key": "level",
+            "label": "Limit level",
+            "type": "int",
+            "required": true,
+            "min": 1,
+            "max": 4
+          },
+          {
+            "key": "unlock",
+            "label": "Unlock",
+            "type": "object",
+            "of": [
+              {
+                "key": "uses",
+                "label": "After uses",
+                "type": "int",
+                "min": 0,
+                "max": 999,
+                "help": "Uses of the previous limit."
+              },
+              {
+                "key": "kills",
+                "label": "After kills",
+                "type": "int",
+                "min": 0,
+                "max": 9999
+              }
+            ]
+          },
+          {
+            "key": "action",
+            "label": "Action",
+            "type": "ref",
+            "required": true,
+            "refPrefix": "abl_"
+          }
+        ],
+        "codex": 1
+      },
+      "ExpectedPartyState": {
+        "name": "ExpectedPartyState",
+        "prefix": "eps_",
+        "label": "Expected Party State",
+        "group": "core",
+        "dependsOn": [
+          "charter.sections.chapters",
+          "charter.ruleset.progression"
+        ],
+        "fields": [
+          {
+            "key": "chapter",
+            "label": "Chapter",
+            "type": "ref",
+            "required": true,
+            "refPrefix": "chp_"
+          },
+          {
+            "key": "targetLevel",
+            "label": "Target level",
+            "type": "int",
+            "min": 1,
+            "max": 99
+          },
+          {
+            "key": "gearTier",
+            "label": "Gear tier",
+            "type": "int",
+            "min": 1,
+            "max": 20
+          },
+          {
+            "key": "materiaSet",
+            "label": "Materia set",
+            "type": "refList",
+            "refPrefix": "mat_"
+          },
+          {
+            "key": "gil",
+            "label": "Gil on hand",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          },
+          {
+            "key": "abilities",
+            "label": "Abilities",
+            "type": "refList",
+            "refPrefix": "abl_"
+          },
+          {
+            "key": "targetWinRate",
+            "label": "Target win rate",
+            "type": "num",
+            "min": 0,
+            "max": 100,
+            "help": "Percent. The Simulator draws this as the target line."
+          }
+        ],
+        "codex": 1
+      },
+      "Materia": {
+        "name": "Materia",
+        "prefix": "mat_",
+        "label": "Materia",
+        "group": "module",
+        "module": "materia",
+        "dependsOn": [
+          "charter.ruleset.progression",
+          "charter.ruleset.elements",
+          "charter.ruleset.stats"
+        ],
+        "fields": [
+          {
+            "key": "kind",
+            "label": "Kind",
+            "type": "enum",
+            "required": true,
+            "values": [
+              "magic",
+              "summon",
+              "command",
+              "support",
+              "independent"
+            ]
+          },
+          {
+            "key": "element",
+            "label": "Element",
+            "type": "enum",
+            "enumFrom": "charter.ruleset.elements"
+          },
+          {
+            "key": "apThresholds",
+            "label": "AP thresholds",
+            "type": "list",
+            "itemLabel": "Level",
+            "of": {
+              "type": "int",
+              "min": 0,
+              "max": 9999999
+            },
+            "help": "AP needed to reach each level after the first."
+          },
+          {
+            "key": "grants",
+            "label": "Grants per level",
+            "type": "list",
+            "itemLabel": "Grant",
+            "of": [
+              {
+                "key": "level",
+                "label": "Level",
+                "type": "int",
+                "required": true,
+                "min": 1,
+                "max": 9
+              },
+              {
+                "key": "abl",
+                "label": "Ability",
+                "type": "ref",
+                "refPrefix": "abl_"
+              },
+              {
+                "key": "statMods",
+                "label": "Stat mods",
+                "type": "table",
+                "rowsFrom": "charter.ruleset.stats",
+                "cell": "num",
+                "min": -100,
+                "max": 100,
+                "rowLabel": "Stat",
+                "valueLabel": "Percent"
+              }
+            ]
+          },
+          {
+            "key": "supportEffect",
+            "label": "Support effect",
+            "type": "enum",
+            "values": [
+              {
+                "key": "all",
+                "label": "All (hit every target)"
+              },
+              {
+                "key": "element",
+                "label": "Element (add the neighbor element)"
+              },
+              {
+                "key": "addedEffect",
+                "label": "Added effect (add the neighbor status)"
+              },
+              {
+                "key": "counter",
+                "label": "Counter"
+              },
+              {
+                "key": "hpAbsorb",
+                "label": "HP absorb"
+              },
+              {
+                "key": "mpAbsorb",
+                "label": "MP absorb"
+              }
+            ],
+            "help": "Support materia only: how it modifies its linked neighbor."
+          },
+          {
+            "key": "price",
+            "label": "Price",
+            "type": "int",
+            "min": 0,
+            "max": 9999999
+          }
+        ],
+        "codex": 1
+      },
+      "Rumor": {
+        "name": "Rumor",
+        "prefix": "rmr_",
+        "label": "Rumor",
+        "group": "living",
+        "module": "living",
+        "dependsOn": [
+          "charter.canon",
+          "charter.glossary"
+        ],
+        "fields": [
+          {
+            "key": "text",
+            "label": "Rumor",
+            "type": "longtext",
+            "required": true,
+            "max": 600,
+            "help": "What townsfolk say."
+          },
+          {
+            "key": "chapter",
+            "label": "Chapter",
+            "type": "ref",
+            "refPrefix": "chp_"
+          },
+          {
+            "key": "truthful",
+            "label": "Truthful",
+            "type": "bool"
+          },
+          {
+            "key": "refs",
+            "label": "About",
+            "type": "refList",
+            "refPrefix": [
+              "chr_",
+              "enm_",
+              "fam_",
+              "itm_",
+              "eqp_",
+              "abl_",
+              "npc_",
+              "twn_",
+              "dgn_",
+              "reg_",
+              "map_"
+            ]
+          }
+        ],
+        "codex": 1
+      },
+      "SideQuest": {
+        "name": "SideQuest",
+        "prefix": "sdq_",
+        "label": "Side quest seed",
+        "group": "living",
+        "module": "living",
+        "dependsOn": [
+          "charter.canon",
+          "charter.sections.chapters"
+        ],
+        "fields": [
+          {
+            "key": "text",
+            "label": "Quest seed",
+            "type": "longtext",
+            "required": true,
+            "max": 1200
+          },
+          {
+            "key": "chapter",
+            "label": "Chapter",
+            "type": "ref",
+            "refPrefix": "chp_"
+          },
+          {
+            "key": "giver",
+            "label": "Giver",
+            "type": "ref",
+            "refPrefix": "npc_",
+            "forward": true
+          },
+          {
+            "key": "rewards",
+            "label": "Rewards",
+            "type": "list",
+            "itemLabel": "Reward",
+            "of": [
+              {
+                "key": "item",
+                "label": "Item",
+                "type": "ref",
+                "required": true,
+                "refPrefix": [
+                  "itm_",
+                  "eqp_",
+                  "mat_"
+                ]
+              },
+              {
+                "key": "qty",
+                "label": "Quantity",
+                "type": "int",
+                "min": 1,
+                "max": 99
+              }
+            ]
+          },
+          {
+            "key": "refs",
+            "label": "Involves",
+            "type": "refList",
+            "refPrefix": [
+              "chr_",
+              "enm_",
+              "fam_",
+              "itm_",
+              "eqp_",
+              "abl_",
+              "npc_",
+              "twn_",
+              "dgn_",
+              "reg_",
+              "map_"
+            ]
+          },
+          {
+            "key": "flag",
+            "label": "Completion flag",
+            "type": "ref",
+            "refPrefix": "flg_",
+            "forward": true
+          }
+        ],
+        "codex": 1
+      },
+      "BossStrategy": {
+        "name": "BossStrategy",
+        "prefix": "bst_",
+        "label": "Boss strategy",
+        "group": "living",
+        "module": "living",
+        "dependsOn": [],
+        "fields": [
+          {
+            "key": "text",
+            "label": "Strategy",
+            "type": "longtext",
+            "required": true,
+            "max": 1200,
+            "help": "The plan in words. The rules below are what the engine runs."
+          },
+          {
+            "key": "boss",
+            "label": "Boss",
+            "type": "ref",
+            "required": true,
+            "refPrefix": "enm_"
+          },
+          {
+            "key": "rules",
+            "label": "Rules",
+            "type": "list",
+            "required": true,
+            "itemLabel": "Rule",
+            "help": "Same shape as a gambit set, so it validates and simulates the same way.",
+            "of": [
+              {
+                "key": "condition",
+                "label": "Condition",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "kind",
+                    "label": "Kind",
+                    "type": "enum",
+                    "required": true,
+                    "values": [
+                      {
+                        "key": "always",
+                        "label": "Always"
+                      },
+                      {
+                        "key": "selfHpBelow",
+                        "label": "Own HP below fraction"
+                      },
+                      {
+                        "key": "selfHpAbove",
+                        "label": "Own HP above fraction"
+                      },
+                      {
+                        "key": "allyHpBelow",
+                        "label": "An ally below HP fraction"
+                      },
+                      {
+                        "key": "targetHpBelow",
+                        "label": "Target HP below fraction"
+                      },
+                      {
+                        "key": "targetHasStatus",
+                        "label": "Target has status"
+                      },
+                      {
+                        "key": "targetLacksStatus",
+                        "label": "Target lacks status"
+                      },
+                      {
+                        "key": "turnEvery",
+                        "label": "Every N turns"
+                      },
+                      {
+                        "key": "enemyCountBelow",
+                        "label": "Fewer foes than N"
+                      },
+                      {
+                        "key": "allyCountBelow",
+                        "label": "Fewer allies than N"
+                      },
+                      {
+                        "key": "chance",
+                        "label": "Random chance"
+                      }
+                    ]
+                  },
+                  {
+                    "key": "param",
+                    "label": "Parameter",
+                    "type": "text",
+                    "max": 40,
+                    "help": "A fraction such as 0.35, a count such as 2, or a status ID for status conditions."
+                  }
+                ]
+              },
+              {
+                "key": "target",
+                "label": "Target",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "selector",
+                    "label": "Selector",
+                    "type": "enum",
+                    "required": true,
+                    "values": [
+                      {
+                        "key": "self",
+                        "label": "Self"
+                      },
+                      {
+                        "key": "randomFoe",
+                        "label": "Random foe"
+                      },
+                      {
+                        "key": "lowestHpFoe",
+                        "label": "Foe with lowest HP"
+                      },
+                      {
+                        "key": "highestHpFoe",
+                        "label": "Foe with highest HP"
+                      },
+                      {
+                        "key": "allFoes",
+                        "label": "All foes"
+                      },
+                      {
+                        "key": "randomAlly",
+                        "label": "Random ally"
+                      },
+                      {
+                        "key": "lowestHpAlly",
+                        "label": "Ally with lowest HP"
+                      },
+                      {
+                        "key": "allAllies",
+                        "label": "All allies"
+                      },
+                      {
+                        "key": "attacker",
+                        "label": "The attacker (counters)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "action",
+                "label": "Action",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "abl",
+                    "label": "Ability",
+                    "type": "ref",
+                    "required": true,
+                    "refPrefix": "abl_"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "counters",
+            "label": "Counters",
+            "type": "list",
+            "itemLabel": "Counter",
+            "of": [
+              {
+                "key": "trigger",
+                "label": "Trigger",
+                "type": "enum",
+                "required": true,
+                "values": [
+                  {
+                    "key": "onPhysical",
+                    "label": "Hit by a physical attack"
+                  },
+                  {
+                    "key": "onMagic",
+                    "label": "Hit by magic"
+                  },
+                  {
+                    "key": "onDamaged",
+                    "label": "Takes any damage"
+                  },
+                  {
+                    "key": "onAllyKo",
+                    "label": "An ally is KO"
+                  },
+                  {
+                    "key": "onLowHp",
+                    "label": "Falls below a quarter HP"
+                  },
+                  {
+                    "key": "onStatus",
+                    "label": "Receives a status"
+                  }
+                ]
+              },
+              {
+                "key": "action",
+                "label": "Action",
+                "type": "object",
+                "required": true,
+                "of": [
+                  {
+                    "key": "abl",
+                    "label": "Ability",
+                    "type": "ref",
+                    "required": true,
+                    "refPrefix": "abl_"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "codex": 1
+      }
+    },
+    "modules": [
+      "materia",
+      "living"
+    ],
+    "saveSchema": {
+      "name": "SaveGame",
+      "label": "Save game",
+      "schemaVersion": 1,
+      "policy": {
+        "slots": 4,
+        "mode": "savepoint",
+        "suspend": true
+      },
+      "fields": [
+        {
+          "key": "slotMeta",
+          "label": "Slot meta",
+          "type": "object",
+          "required": true,
+          "of": [
+            {
+              "key": "slot",
+              "label": "Slot",
+              "type": "int",
+              "required": true,
+              "min": 1,
+              "max": 4
+            },
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "savedAt",
+              "label": "Saved at",
+              "type": "text"
+            },
+            {
+              "key": "chapter",
+              "label": "Chapter",
+              "type": "ref",
+              "refPrefix": "chp_"
+            },
+            {
+              "key": "suspend",
+              "label": "Suspend save",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "key": "party",
+          "label": "Party",
+          "type": "list",
+          "required": true,
+          "itemLabel": "Member",
+          "of": [
+            {
+              "key": "chr",
+              "label": "Character",
+              "type": "ref",
+              "required": true,
+              "refPrefix": "chr_"
+            },
+            {
+              "key": "level",
+              "label": "Level",
+              "type": "int",
+              "required": true,
+              "min": 1,
+              "max": 99
+            },
+            {
+              "key": "exp",
+              "label": "EXP",
+              "type": "int",
+              "min": 0
+            },
+            {
+              "key": "hp",
+              "label": "HP",
+              "type": "int",
+              "min": 0
+            },
+            {
+              "key": "mp",
+              "label": "MP",
+              "type": "int",
+              "min": 0
+            },
+            {
+              "key": "equipment",
+              "label": "Equipment",
+              "type": "refList",
+              "refPrefix": "eqp_"
+            },
+            {
+              "key": "limitLevel",
+              "label": "Limit level",
+              "type": "int",
+              "min": 1,
+              "max": 4
+            },
+            {
+              "key": "limitUses",
+              "label": "Limit uses",
+              "type": "int",
+              "min": 0
+            },
+            {
+              "key": "kills",
+              "label": "Kills",
+              "type": "int",
+              "min": 0
+            },
+            {
+              "key": "status",
+              "label": "Lasting statuses",
+              "type": "refList",
+              "refPrefix": "sta_"
+            },
+            {
+              "key": "slots",
+              "label": "Slotted materia",
+              "type": "list",
+              "itemLabel": "Slot",
+              "of": [
+                {
+                  "key": "eqp",
+                  "label": "Equipment",
+                  "type": "ref",
+                  "refPrefix": "eqp_"
+                },
+                {
+                  "key": "slot",
+                  "label": "Slot",
+                  "type": "int",
+                  "min": 0,
+                  "max": 7
+                },
+                {
+                  "key": "mat",
+                  "label": "Materia",
+                  "type": "ref",
+                  "refPrefix": "mat_"
+                },
+                {
+                  "key": "ap",
+                  "label": "AP",
+                  "type": "int",
+                  "min": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "inventory",
+          "label": "Inventory",
+          "type": "list",
+          "itemLabel": "Stack",
+          "of": [
+            {
+              "key": "item",
+              "label": "Item",
+              "type": "ref",
+              "required": true,
+              "refPrefix": [
+                "itm_",
+                "eqp_"
+              ]
+            },
+            {
+              "key": "qty",
+              "label": "Quantity",
+              "type": "int",
+              "min": 0,
+              "max": 999
+            }
+          ]
+        },
+        {
+          "key": "materia",
+          "label": "Materia stock",
+          "type": "list",
+          "itemLabel": "Materia",
+          "of": [
+            {
+              "key": "mat",
+              "label": "Materia",
+              "type": "ref",
+              "required": true,
+              "refPrefix": "mat_"
+            },
+            {
+              "key": "ap",
+              "label": "AP",
+              "type": "int",
+              "min": 0
+            }
+          ]
+        },
+        {
+          "key": "gil",
+          "label": "Gil",
+          "type": "int",
+          "min": 0
+        },
+        {
+          "key": "flags",
+          "label": "Flags",
+          "type": "list",
+          "itemLabel": "Flag",
+          "of": [
+            {
+              "key": "flg",
+              "label": "Flag",
+              "type": "ref",
+              "refPrefix": "flg_",
+              "forward": true,
+              "required": true
+            },
+            {
+              "key": "value",
+              "label": "Value",
+              "type": "int"
+            }
+          ]
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "ref",
+          "refPrefix": "map_",
+          "forward": true,
+          "required": true
+        },
+        {
+          "key": "playTime",
+          "label": "Play time in seconds",
+          "type": "int",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "bundleHash",
+          "label": "Bundle hash",
+          "type": "text",
+          "required": true,
+          "help": "The content hash of the bundle this save was made against."
+        },
+        {
+          "key": "schemaVersion",
+          "label": "Schema version",
+          "type": "int",
+          "required": true,
+          "min": 1
+        }
+      ]
+    },
+    "rulesetHash": "f742d0f2f5616a60",
+    "generatedAt": "2026-10-01T18:12:57.087Z"
+  },
+  "rules": {
+    "sta_": {
+      "sta_poison_jcqu": {
+        "id": "sta_poison_jcqu",
+        "name": "Poison",
+        "charterVersion": 1,
+        "gauge": "normal",
+        "tickEffect": {
+          "kind": "damage",
+          "percent": 5
+        },
+        "duration": 4,
+        "cure": {
+          "battleEnd": false,
+          "onHit": false,
+          "curedBy": []
+        }
+      },
+      "sta_sleep_zdk1": {
+        "id": "sta_sleep_zdk1",
+        "name": "Sleep",
+        "charterVersion": 1,
+        "gauge": "freeze",
+        "tickEffect": {
+          "kind": "none",
+          "percent": 0
+        },
+        "duration": 3,
+        "cure": {
+          "battleEnd": true,
+          "onHit": true,
+          "curedBy": []
+        }
+      },
+      "sta_chill_03se": {
+        "id": "sta_chill_03se",
+        "name": "Chill",
+        "charterVersion": 1,
+        "gauge": "normal",
+        "tickEffect": {
+          "kind": "none",
+          "percent": 0
+        },
+        "duration": 2,
+        "cure": {
+          "battleEnd": true,
+          "onHit": false,
+          "curedBy": []
+        }
+      }
+    },
+    "abl_": {
+      "abl_flame_1pn0": {
+        "id": "abl_flame_1pn0",
+        "name": "Flame",
+        "charterVersion": 1,
+        "kind": "magic",
+        "element": "fire",
+        "power": 22,
+        "cost": {
+          "mp": 4
+        },
+        "targeting": {
+          "side": "foe",
+          "scope": "single"
+        },
+        "chargeTicks": 0,
+        "statusEffects": []
+      },
+      "abl_wave_inie": {
+        "id": "abl_wave_inie",
+        "name": "Wave",
+        "charterVersion": 1,
+        "kind": "magic",
+        "element": "water",
+        "power": 22,
+        "cost": {
+          "mp": 4
+        },
+        "targeting": {
+          "side": "foe",
+          "scope": "single"
+        },
+        "chargeTicks": 0,
+        "statusEffects": []
+      },
+      "abl_gust_jout": {
+        "id": "abl_gust_jout",
+        "name": "Gust",
+        "charterVersion": 1,
+        "kind": "magic",
+        "element": "air",
+        "power": 18,
+        "cost": {
+          "mp": 6
+        },
+        "targeting": {
+          "side": "foe",
+          "scope": "all"
+        },
+        "chargeTicks": 0,
+        "statusEffects": []
+      },
+      "abl_mend_vtjt": {
+        "id": "abl_mend_vtjt",
+        "name": "Mend",
+        "charterVersion": 1,
+        "kind": "heal",
+        "power": 30,
+        "cost": {
+          "mp": 5
+        },
+        "targeting": {
+          "side": "ally",
+          "scope": "single"
+        },
+        "chargeTicks": 0,
+        "statusEffects": []
+      },
+      "abl_venom_bite_auk6": {
+        "id": "abl_venom_bite_auk6",
+        "name": "Venom Bite",
+        "charterVersion": 1,
+        "kind": "enemy",
+        "power": 14,
+        "cost": {
+          "mp": 0
+        },
+        "targeting": {
+          "side": "foe",
+          "scope": "single"
+        },
+        "chargeTicks": 0,
+        "statusEffects": [
+          {
+            "sta": "sta_poison_jcqu",
+            "chance": 0.4
+          }
+        ]
+      },
+      "abl_rally_strike_1d3v": {
+        "id": "abl_rally_strike_1d3v",
+        "name": "Rally Strike",
+        "charterVersion": 1,
+        "kind": "limit",
+        "power": 60,
+        "cost": {
+          "mp": 0
+        },
+        "targeting": {
+          "side": "foe",
+          "scope": "single"
+        },
+        "chargeTicks": 0,
+        "statusEffects": []
+      }
+    },
+    "itm_": {
+      "itm_tonic_10jm": {
+        "id": "itm_tonic_10jm",
+        "name": "Tonic",
+        "charterVersion": 1,
+        "kind": "consumable",
+        "price": 30,
+        "effect": "abl_mend_vtjt"
+      },
+      "itm_ether_1mbx": {
+        "id": "itm_ether_1mbx",
+        "name": "Ether",
+        "charterVersion": 1,
+        "kind": "consumable",
+        "price": 120
+      },
+      "itm_antidote_ma2s": {
+        "id": "itm_antidote_ma2s",
+        "name": "Antidote",
+        "charterVersion": 1,
+        "kind": "consumable",
+        "price": 20
+      },
+      "itm_sealed_letter_maht": {
+        "id": "itm_sealed_letter_maht",
+        "name": "Sealed Letter",
+        "charterVersion": 1,
+        "kind": "key",
+        "price": 0
+      }
+    },
+    "eqp_": {
+      "eqp_short_blade_2skr": {
+        "id": "eqp_short_blade_2skr",
+        "name": "Short Blade",
+        "charterVersion": 1,
+        "slot": "weapon",
+        "weaponClass": "blade",
+        "tier": 1,
+        "price": 100,
+        "stats": {
+          "str": 6
+        },
+        "slotLayout": {
+          "count": 2,
+          "links": [
+            [
+              0,
+              1
+            ]
+          ]
+        }
+      },
+      "eqp_quilted_coat_dk8u": {
+        "id": "eqp_quilted_coat_dk8u",
+        "name": "Quilted Coat",
+        "charterVersion": 1,
+        "slot": "armor",
+        "tier": 1,
+        "price": 80,
+        "stats": {
+          "def": 6,
+          "mdef": 4
+        },
+        "slotLayout": {
+          "count": 1,
+          "links": []
+        }
+      },
+      "eqp_plain_ring_62mq": {
+        "id": "eqp_plain_ring_62mq",
+        "name": "Plain Ring",
+        "charterVersion": 1,
+        "slot": "accessory",
+        "tier": 1,
+        "price": 60,
+        "stats": {
+          "luck": 3
+        },
+        "slotLayout": {
+          "count": 0,
+          "links": []
+        }
+      }
+    },
+    "mat_": {
+      "mat_fire_stone_ewyt": {
+        "id": "mat_fire_stone_ewyt",
+        "name": "Fire Stone",
+        "charterVersion": 1,
+        "kind": "magic",
+        "element": "fire",
+        "apThresholds": [
+          100,
+          300
+        ],
+        "grants": [
+          {
+            "level": 1,
+            "abl": "abl_flame_1pn0"
+          }
+        ],
+        "price": 200
+      },
+      "mat_life_stone_n4xi": {
+        "id": "mat_life_stone_n4xi",
+        "name": "Life Stone",
+        "charterVersion": 1,
+        "kind": "magic",
+        "apThresholds": [
+          100,
+          300
+        ],
+        "grants": [
+          {
+            "level": 1,
+            "abl": "abl_mend_vtjt"
+          }
+        ],
+        "price": 200
+      }
+    },
+    "lim_": {
+      "lim_rally_yp5p": {
+        "id": "lim_rally_yp5p",
+        "name": "Rally",
+        "charterVersion": 1,
+        "level": 1,
+        "unlock": {
+          "uses": 0
+        },
+        "action": "abl_rally_strike_1d3v"
+      }
+    },
+    "chr_": {
+      "chr_courier_jonc": {
+        "id": "chr_courier_jonc",
+        "name": "Courier",
+        "charterVersion": 1,
+        "weaponClass": "blade",
+        "baseStats": {
+          "hp": 120,
+          "mp": 20,
+          "str": 12,
+          "mag": 8,
+          "def": 10,
+          "mdef": 8,
+          "spd": 14,
+          "luck": 10
+        },
+        "growth": {
+          "hp": 18,
+          "mp": 3,
+          "str": 1,
+          "mag": 1,
+          "def": 1,
+          "mdef": 1,
+          "spd": 1,
+          "luck": 1
+        },
+        "limitTree": [
+          "lim_rally_yp5p"
+        ],
+        "relationshipHooks": []
+      },
+      "chr_scholar_6i8u": {
+        "id": "chr_scholar_6i8u",
+        "name": "Scholar",
+        "charterVersion": 1,
+        "weaponClass": "staff",
+        "baseStats": {
+          "hp": 90,
+          "mp": 40,
+          "str": 7,
+          "mag": 14,
+          "def": 7,
+          "mdef": 12,
+          "spd": 11,
+          "luck": 9
+        },
+        "growth": {
+          "hp": 13,
+          "mp": 5,
+          "str": 1,
+          "mag": 2,
+          "def": 1,
+          "mdef": 1,
+          "spd": 1,
+          "luck": 1
+        },
+        "limitTree": [],
+        "relationshipHooks": []
+      },
+      "chr_guard_7l1b": {
+        "id": "chr_guard_7l1b",
+        "name": "Guard",
+        "charterVersion": 1,
+        "weaponClass": "blade",
+        "baseStats": {
+          "hp": 150,
+          "mp": 10,
+          "str": 14,
+          "mag": 5,
+          "def": 13,
+          "mdef": 6,
+          "spd": 9,
+          "luck": 7
+        },
+        "growth": {
+          "hp": 22,
+          "mp": 1,
+          "str": 2,
+          "mag": 1,
+          "def": 2,
+          "mdef": 1,
+          "spd": 1,
+          "luck": 1
+        },
+        "limitTree": [],
+        "relationshipHooks": []
+      }
+    },
+    "fam_": {
+      "fam_slime_96j0": {
+        "id": "fam_slime_96j0",
+        "name": "Slime",
+        "charterVersion": 1,
+        "type": "water",
+        "palette": {
+          "base": "#4f9ad6",
+          "accent": "#d8f0ff"
+        },
+        "absorbsOwnType": false
+      },
+      "fam_wisp_ugaa": {
+        "id": "fam_wisp_ugaa",
+        "name": "Wisp",
+        "charterVersion": 1,
+        "type": "fire",
+        "palette": {
+          "base": "#e4752e",
+          "accent": "#ffe08a"
+        },
+        "absorbsOwnType": true
+      },
+      "fam_wolf_jnou": {
+        "id": "fam_wolf_jnou",
+        "name": "Wolf",
+        "charterVersion": 1,
+        "type": "beast",
+        "palette": {
+          "base": "#7a6f6a",
+          "accent": "#d9c8a0"
+        },
+        "absorbsOwnType": false
+      },
+      "fam_slime_t2_fguh": {
+        "id": "fam_slime_t2_fguh",
+        "name": "Slime T2",
+        "charterVersion": 1,
+        "type": "water",
+        "palette": {
+          "base": "#5e4fd6",
+          "accent": "#dad8ff"
+        },
+        "absorbsOwnType": false,
+        "defaultAffinity": {
+          "fire": "weak",
+          "water": "resist",
+          "earth": "normal",
+          "air": "normal"
+        }
+      },
+      "fam_wisp_t2_h5bq": {
+        "id": "fam_wisp_t2_h5bq",
+        "name": "Wisp T2",
+        "charterVersion": 1,
+        "type": "fire",
+        "palette": {
+          "base": "#dae42e",
+          "accent": "#d0ff8a"
+        },
+        "absorbsOwnType": true,
+        "defaultAffinity": {
+          "fire": "absorb",
+          "water": "weak",
+          "earth": "normal",
+          "air": "normal"
+        }
+      },
+      "fam_wolf_t2_cyqx": {
+        "id": "fam_wolf_t2_cyqx",
+        "name": "Wolf T2",
+        "charterVersion": 1,
+        "type": "beast",
+        "palette": {
+          "base": "#7a7a6a",
+          "accent": "#c4d9a0"
+        },
+        "absorbsOwnType": false,
+        "defaultAffinity": {
+          "fire": "normal",
+          "water": "normal",
+          "earth": "normal",
+          "air": "normal"
+        }
+      }
+    },
+    "gmb_": {
+      "gmb_biter_7u7y": {
+        "id": "gmb_biter_7u7y",
+        "name": "Biter",
+        "charterVersion": 1,
+        "rules": [
+          {
+            "condition": {
+              "kind": "chance",
+              "param": "0.4"
+            },
+            "target": {
+              "selector": "randomFoe"
+            },
+            "action": {
+              "abl": "abl_venom_bite_auk6"
+            }
+          }
+        ],
+        "counters": []
+      }
+    },
+    "enm_": {
+      "enm_slime_0fnz": {
+        "id": "enm_slime_0fnz",
+        "name": "Slime",
+        "charterVersion": 1,
+        "family": "fam_slime_96j0",
+        "tier": 1,
+        "level": 2,
+        "stats": {
+          "hp": 40,
+          "mp": 0,
+          "str": 8,
+          "mag": 4,
+          "def": 4,
+          "mdef": 6,
+          "spd": 6,
+          "luck": 3
+        },
+        "drops": [
+          {
+            "item": "itm_tonic_10jm",
+            "chance": 0.2
+          }
+        ],
+        "steal": [],
+        "gil": 8,
+        "exp": 6,
+        "ap": 1,
+        "isBoss": false
+      },
+      "enm_wisp_p4wh": {
+        "id": "enm_wisp_p4wh",
+        "name": "Wisp",
+        "charterVersion": 1,
+        "family": "fam_wisp_ugaa",
+        "tier": 1,
+        "level": 3,
+        "stats": {
+          "hp": 30,
+          "mp": 20,
+          "str": 5,
+          "mag": 10,
+          "def": 3,
+          "mdef": 10,
+          "spd": 10,
+          "luck": 5
+        },
+        "drops": [],
+        "steal": [],
+        "gil": 10,
+        "exp": 8,
+        "ap": 2,
+        "isBoss": false
+      },
+      "enm_wolf_cs1u": {
+        "id": "enm_wolf_cs1u",
+        "name": "Wolf",
+        "charterVersion": 1,
+        "family": "fam_wolf_jnou",
+        "tier": 1,
+        "level": 3,
+        "stats": {
+          "hp": 55,
+          "mp": 0,
+          "str": 11,
+          "mag": 2,
+          "def": 5,
+          "mdef": 3,
+          "spd": 12,
+          "luck": 6
+        },
+        "gambits": "gmb_biter_7u7y",
+        "drops": [],
+        "steal": [],
+        "gil": 12,
+        "exp": 10,
+        "ap": 2,
+        "isBoss": false
+      },
+      "enm_slime_t2_wb2a": {
+        "id": "enm_slime_t2_wb2a",
+        "name": "Slime T2",
+        "charterVersion": 1,
+        "family": "fam_slime_t2_fguh",
+        "tier": 2,
+        "level": 8,
+        "stats": {
+          "hp": 64,
+          "mp": 0,
+          "str": 13,
+          "mag": 6,
+          "def": 6,
+          "mdef": 10,
+          "spd": 10,
+          "luck": 5
+        },
+        "drops": [
+          {
+            "item": "itm_tonic_10jm",
+            "chance": 0.2
+          }
+        ],
+        "steal": [],
+        "gil": 12,
+        "exp": 9,
+        "ap": 2,
+        "isBoss": false
+      },
+      "enm_wisp_t2_rm67": {
+        "id": "enm_wisp_t2_rm67",
+        "name": "Wisp T2",
+        "charterVersion": 1,
+        "family": "fam_wisp_t2_h5bq",
+        "tier": 2,
+        "level": 9,
+        "stats": {
+          "hp": 48,
+          "mp": 32,
+          "str": 8,
+          "mag": 16,
+          "def": 5,
+          "mdef": 16,
+          "spd": 16,
+          "luck": 8
+        },
+        "drops": [],
+        "steal": [],
+        "gil": 15,
+        "exp": 12,
+        "ap": 3,
+        "isBoss": false
+      },
+      "enm_wolf_t2_m0tn": {
+        "id": "enm_wolf_t2_m0tn",
+        "name": "Wolf T2",
+        "charterVersion": 1,
+        "family": "fam_wolf_t2_cyqx",
+        "tier": 2,
+        "level": 9,
+        "stats": {
+          "hp": 88,
+          "mp": 0,
+          "str": 18,
+          "mag": 3,
+          "def": 8,
+          "mdef": 5,
+          "spd": 19,
+          "luck": 10
+        },
+        "gambits": "gmb_biter_7u7y",
+        "drops": [],
+        "steal": [],
+        "gil": 18,
+        "exp": 15,
+        "ap": 3,
+        "isBoss": false
+      },
+      "enm_warden_73r1": {
+        "id": "enm_warden_73r1",
+        "name": "Warden",
+        "charterVersion": 1,
+        "family": "fam_wolf_jnou",
+        "tier": 1,
+        "level": 10,
+        "stats": {
+          "hp": 900,
+          "mp": 80,
+          "str": 22,
+          "mag": 18,
+          "def": 14,
+          "mdef": 14,
+          "spd": 13,
+          "luck": 10
+        },
+        "gambits": "gmb_biter_7u7y",
+        "drops": [],
+        "steal": [],
+        "gil": 300,
+        "exp": 200,
+        "ap": 20,
+        "isBoss": true
+      }
+    },
+    "trp_": {
+      "trp_lowland_slimes_ubsv": {
+        "id": "trp_lowland_slimes_ubsv",
+        "name": "Lowland Slimes",
+        "charterVersion": 1,
+        "members": [
+          {
+            "enm": "enm_slime_0fnz",
+            "row": "front"
+          },
+          {
+            "enm": "enm_slime_0fnz",
+            "row": "back"
+          }
+        ],
+        "chapter": "chp_the_lowlands_auem",
+        "flags": {
+          "noEscape": false,
+          "preemptiveChance": 0
+        }
+      },
+      "trp_lowland_pack_r3w4": {
+        "id": "trp_lowland_pack_r3w4",
+        "name": "Lowland Pack",
+        "charterVersion": 1,
+        "members": [
+          {
+            "enm": "enm_wolf_cs1u",
+            "row": "front"
+          },
+          {
+            "enm": "enm_wisp_p4wh",
+            "row": "back"
+          }
+        ],
+        "chapter": "chp_the_lowlands_auem",
+        "flags": {
+          "noEscape": false,
+          "preemptiveChance": 0.1
+        }
+      },
+      "trp_shore_pack_pf1f": {
+        "id": "trp_shore_pack_pf1f",
+        "name": "Shore Pack",
+        "charterVersion": 1,
+        "members": [
+          {
+            "enm": "enm_wolf_t2_m0tn",
+            "row": "front"
+          },
+          {
+            "enm": "enm_slime_t2_wb2a",
+            "row": "front"
+          },
+          {
+            "enm": "enm_wisp_t2_rm67",
+            "row": "back"
+          }
+        ],
+        "chapter": "chp_the_far_shore_izf4",
+        "flags": {
+          "noEscape": false,
+          "preemptiveChance": 0
+        }
+      },
+      "trp_the_warden_n1yb": {
+        "id": "trp_the_warden_n1yb",
+        "name": "The Warden",
+        "charterVersion": 1,
+        "members": [
+          {
+            "enm": "enm_warden_73r1",
+            "row": "front"
+          }
+        ],
+        "chapter": "chp_the_far_shore_izf4",
+        "flags": {
+          "noEscape": true,
+          "preemptiveChance": 0
+        }
+      }
+    },
+    "shp_": {
+      "shp_village_store_k29l": {
+        "id": "shp_village_store_k29l",
+        "name": "Village Store",
+        "charterVersion": 1,
+        "inventory": [
+          {
+            "item": "itm_tonic_10jm"
+          },
+          {
+            "item": "itm_antidote_ma2s"
+          },
+          {
+            "item": "eqp_short_blade_2skr"
+          },
+          {
+            "item": "eqp_quilted_coat_dk8u"
+          },
+          {
+            "item": "eqp_plain_ring_62mq"
+          },
+          {
+            "item": "mat_fire_stone_ewyt"
+          }
+        ],
+        "chapterAvailable": "chp_the_lowlands_auem"
+      }
+    },
+    "eps_": {
+      "eps_lowlands_state_oytu": {
+        "id": "eps_lowlands_state_oytu",
+        "name": "Lowlands state",
+        "charterVersion": 1,
+        "chapter": "chp_the_lowlands_auem",
+        "targetLevel": 4,
+        "gearTier": 1,
+        "gil": 200,
+        "materiaSet": [
+          "mat_fire_stone_ewyt",
+          "mat_life_stone_n4xi"
+        ],
+        "abilities": [],
+        "targetWinRate": 85
+      },
+      "eps_far_shore_state_ootl": {
+        "id": "eps_far_shore_state_ootl",
+        "name": "Far Shore state",
+        "charterVersion": 1,
+        "chapter": "chp_the_far_shore_izf4",
+        "targetLevel": 12,
+        "gearTier": 1,
+        "gil": 600,
+        "materiaSet": [
+          "mat_fire_stone_ewyt",
+          "mat_life_stone_n4xi"
+        ],
+        "abilities": [],
+        "targetWinRate": 70
+      }
+    },
+    "wth_": {
+      "wth_clear_wtes": {
+        "id": "wth_clear_wtes",
+        "name": "Clear",
+        "charterVersion": 1,
+        "realWorld": "clear sky",
+        "elementMultipliers": {
+          "fire": 1,
+          "water": 1,
+          "earth": 1,
+          "air": 1
+        },
+        "encounterModifiers": {
+          "rate": 1,
+          "familyWeights": []
+        }
+      },
+      "wth_rain_c98o": {
+        "id": "wth_rain_c98o",
+        "name": "Rain",
+        "charterVersion": 1,
+        "realWorld": "steady stratiform rain",
+        "elementMultipliers": {
+          "fire": 0.75,
+          "water": 1.25,
+          "earth": 1,
+          "air": 1
+        },
+        "encounterModifiers": {
+          "rate": 1.1,
+          "familyWeights": []
+        }
+      },
+      "wth_snow_d6v7": {
+        "id": "wth_snow_d6v7",
+        "name": "Snow",
+        "charterVersion": 1,
+        "realWorld": "light snow",
+        "elementMultipliers": {
+          "fire": 0.8,
+          "water": 1,
+          "earth": 1,
+          "air": 1.1
+        },
+        "encounterModifiers": {
+          "rate": 0.9,
+          "familyWeights": []
+        }
+      }
+    }
+  },
+  "art": {},
+  "world": {},
+  "story": {}
+}

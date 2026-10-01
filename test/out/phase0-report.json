@@ -1,0 +1,515 @@
+{
+  "results": [
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "tabs mounted",
+      "ok": true,
+      "detail": "start palette(locked) sprites(locked) motion(locked) world(locked) interface(locked) sound(locked) playtest(locked) export(locked) dev"
+    },
+    {
+      "name": "active tab is start",
+      "ok": true
+    },
+    {
+      "name": "fresh bundle gets an art skeleton",
+      "ok": true
+    },
+    {
+      "name": "14 art prefixes valid in ID_RE and PREFIXES",
+      "ok": true
+    },
+    {
+      "name": "fx_ would be invalid",
+      "ok": true
+    },
+    {
+      "name": "demo load keeps 146 hash semantics",
+      "ok": true
+    },
+    {
+      "name": "codex.prefixes registered on load",
+      "ok": true
+    },
+    {
+      "name": "art records indexed",
+      "ok": true,
+      "detail": [
+        "por_courier_portrait_kr13",
+        "til_forest_s415",
+        "efx_fire_effect_dajz"
+      ]
+    },
+    {
+      "name": "art records validate with the envelope types",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "ART.records.put refuses non art prefixes",
+      "ok": true
+    },
+    {
+      "name": "music roles generated",
+      "ok": true,
+      "detail": "title town dungeon battle boss victory defeat field:westland field:eastland ending:1 ending:2"
+    },
+    {
+      "name": "size meter model",
+      "ok": true,
+      "detail": {
+        "total": 50924,
+        "level": "ok",
+        "room": 4499970
+      }
+    },
+    {
+      "name": "header size chip painted",
+      "ok": true,
+      "detail": "50 KB"
+    },
+    {
+      "name": "self test runs every fixture",
+      "ok": true,
+      "detail": "F0 F1a F1b F2 F3 F4 F5d F5s F5t F5h"
+    },
+    {
+      "name": "every fixture hash verifies",
+      "ok": true
+    },
+    {
+      "name": "no fixture has blocking errors in 147",
+      "ok": true,
+      "detail": "F0:0/0 F1a:0/0 F1b:0/0 F2:0/0 F3:0/0 F4:0/0 F5d:0/0 F5s:0/0 F5t:0/0 F5h:0/0"
+    },
+    {
+      "name": "draft export leaves art closed",
+      "ok": true
+    },
+    {
+      "name": "final blocked by unresolved forward field",
+      "ok": true,
+      "detail": "Final export is blocked: a forward field points at an art record that does not exist."
+    },
+    {
+      "name": "146 imports 147 draft: hash ok, 0 broken, both refs forward",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 2,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "forward": [
+          "por_courier_portrait_kr13",
+          "spr_missing_zz99"
+        ],
+        "opened": [
+          "charter",
+          "rules"
+        ]
+      }
+    },
+    {
+      "name": "final export opens art and stamps forge 147",
+      "ok": true,
+      "detail": {
+        "146": {
+          "status": "final",
+          "exportedAt": "2026-10-01T18:12:57.142Z",
+          "charterVersion": 1
+        },
+        "147": {
+          "status": "final",
+          "exportedAt": "2026-10-01T19:47:56.253Z",
+          "artVersion": "1.0.0",
+          "charterVersion": 1
+        }
+      }
+    },
+    {
+      "name": "manifest hash equals bundle hash",
+      "ok": true,
+      "detail": {
+        "forge": 147,
+        "bundleHash": "5b6cb193bbabfc6dfd70f675d8ab6f5fe79b08641408377f13429b9205f0dd00",
+        "artVersion": "1.0.0",
+        "charterVersion": 1,
+        "created": [
+          "efx_fire_effect_dajz",
+          "por_courier_portrait_kr13",
+          "spr_slime_sprite_174d",
+          "til_forest_s415"
+        ],
+        "referenced": [
+          "por_courier_portrait_kr13",
+          "spr_slime_sprite_174d"
+        ],
+        "unresolved": [],
+        "artOpened": true,
+        "counts": {
+          "efx_": 1,
+          "por_": 1,
+          "spr_": 1,
+          "til_": 1
+        }
+      }
+    },
+    {
+      "name": "146 imports 147 final: hash ok, refs resolve, 146 Final still allowed, art untouched",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "broken": 0,
+        "forward": 0,
+        "blocked": null,
+        "artKept": true
+      }
+    },
+    {
+      "name": "all fixtures import into 146 with verified hashes",
+      "ok": true,
+      "detail": "F0:hash e0 b0 w3 | F1a:hash e0 b0 w2 | F1b:hash e0 b0 w2 | F2:hash e0 b0 w1 | F3:hash e0 b0 w1 | F4:hash e2 b0 w1 | F5d:hash e0 b0 w1 | F5s:hash e0 b0 w1 | F5t:hash e0 b0 w1 | F5h:hash e0 b0 w1"
+    },
+    {
+      "name": "147 restores the shared 146 draft and falls back to Start",
+      "ok": true,
+      "detail": {
+        "title": "Demo Saga",
+        "active": "start",
+        "errors": []
+      }
+    },
+    {
+      "name": "storage banner shows on refused save and clears on success",
+      "ok": true
+    },
+    {
+      "name": "later tabs lock until a locked Charter is loaded",
+      "ok": true,
+      "detail": 8
+    }
+  ],
+  "fixtures146": [
+    "F0:hash e0 b0 w3",
+    "F1a:hash e0 b0 w2",
+    "F1b:hash e0 b0 w2",
+    "F2:hash e0 b0 w1",
+    "F3:hash e0 b0 w1",
+    "F4:hash e2 b0 w1",
+    "F5d:hash e0 b0 w1",
+    "F5s:hash e0 b0 w1",
+    "F5t:hash e0 b0 w1",
+    "F5h:hash e0 b0 w1"
+  ],
+  "selfTest": [
+    {
+      "key": "F0",
+      "purpose": "Empty and sparse",
+      "buildMs": 2,
+      "hashOk": true,
+      "quickBuild": "16 new in 25 ms",
+      "quickBuildMs": 25,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 11,
+        "tiers": 0,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 16762,
+      "records": 0,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F1a",
+      "purpose": "Tiny, two colors",
+      "buildMs": 5,
+      "hashOk": true,
+      "quickBuild": "15 new in 7 ms",
+      "quickBuildMs": 7,
+      "palette": {
+        "master": 2,
+        "want": 2,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 45686,
+      "records": 17,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F1b",
+      "purpose": "Tiny, four colors",
+      "buildMs": 7,
+      "hashOk": true,
+      "quickBuild": "15 new in 3 ms",
+      "quickBuildMs": 3,
+      "palette": {
+        "master": 4,
+        "want": 4,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 45706,
+      "records": 17,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F2",
+      "purpose": "Large",
+      "buildMs": 9,
+      "hashOk": true,
+      "quickBuild": "132 new in 130 ms",
+      "quickBuildMs": 130,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 168817,
+      "records": 262,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F3",
+      "purpose": "Budget stress",
+      "buildMs": 8,
+      "hashOk": true,
+      "quickBuild": "132 new in 115 ms",
+      "quickBuildMs": 115,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 167995,
+      "records": 259,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F4",
+      "purpose": "Optional fields missing",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "25 new in 12 ms",
+      "quickBuildMs": 12,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 57023,
+      "records": 37,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F5d",
+      "purpose": "Typical, dpad controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "25 new in 12 ms",
+      "quickBuildMs": 12,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 65990,
+      "records": 46,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F5s",
+      "purpose": "Typical, stick controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "25 new in 11 ms",
+      "quickBuildMs": 11,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 66013,
+      "records": 46,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F5t",
+      "purpose": "Typical, tap controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "25 new in 11 ms",
+      "quickBuildMs": 11,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 66010,
+      "records": 46,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    },
+    {
+      "key": "F5h",
+      "purpose": "Typical, hybrid controls",
+      "buildMs": 3,
+      "hashOk": true,
+      "quickBuild": "25 new in 11 ms",
+      "quickBuildMs": 11,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 66015,
+      "records": 46,
+      "bakeMs": "pending (Phase 2)",
+      "cacheBytes": "pending (Phase 2)"
+    }
+  ]
+}

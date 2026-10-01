@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('fs'),path=require('path'),vm=require('vm');
+const src=fs.readFileSync(path.join(__dirname,'out','engine-battle.js'),'utf8');
+const ctx={};vm.createContext(ctx);vm.runInContext(src+';this.ENGINE_BATTLE=ENGINE_BATTLE;',ctx);
+const E=ctx.ENGINE_BATTLE;
+const b=JSON.parse(fs.readFileSync(path.join(__dirname,'out','demo-bundle.json'),'utf8'));
+const chr=Object.keys(b.rules.chr_);const trp=Object.values(b.rules.trp_);
+const party=chr.map((id,i)=>({chr:id,level:6,equipment:Object.keys(b.rules.eqp_),materia:[],abilities:Object.keys(b.rules.abl_).slice(0,4),row:i?'back':'front'}));
+const data={ruleset:b.charter.ruleset,records:b.rules,party,troopId:trp[1].id,weatherId:null};
+const S=E.init(data,7,{waitMode:true});
+const keys=o=>Object.keys(o).sort().join(' ');
+console.log('API:',keys(E),'| version',E.version);
+console.log('state:',keys(S));
+console.log('state.db:',keys(S.db));
+console.log('party unit:',keys(S.units[0]));
+console.log('foe unit:',keys(S.units.find(u=>u.side==='foe')));
+console.log('rng:',JSON.stringify(S.rng),'stateBytes',JSON.stringify(S).length);
+let r=E.advance(S,null);console.log('advance ->',keys(r),'awaiting',JSON.stringify(r.awaiting).slice(0,300));
+const seen={};let st=r.state,g=0;
+while(!st.result&&g++<500){ if(st.awaiting){ const i=E.suggest(st,null); r=E.advance(st,i);} else r=E.advance(st,null); r.events.forEach(e=>{const k=e.type+':'+keys(e);if(!seen[k]){seen[k]=JSON.stringify(e);}}); st=r.state;}
+Object.values(seen).forEach(v=>console.log(' ev',v));
+console.log('result:',keys(st.result));
+console.log('advance mutates input?',JSON.stringify(S).length===JSON.stringify(E.init(data,7,{waitMode:true})).length?'no':'check');

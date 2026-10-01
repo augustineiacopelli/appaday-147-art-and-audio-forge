@@ -1,0 +1,122 @@
+{
+  "A_baseline": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": []
+  },
+  "B_artClosed": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "indexed": "spr_courier_field_a1b2:yes por_courier_a1b2:yes til_forest_a1b2:no pal_master_a1b2:no fx_fire_a1b2:no",
+    "fxIdValid": false,
+    "efxRegex": true,
+    "artKept": true,
+    "forge147Kept": true
+  },
+  "C1_forwardArtClosed": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 2,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "forward": [
+      "por_courier_a1b2",
+      "spr_missing_zz99"
+    ]
+  },
+  "C2_forwardArtOpened": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 1,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "broken": [
+      "spr_missing_zz99"
+    ],
+    "forward": [],
+    "finalBlocked": "Final export is blocked by 1 broken reference."
+  },
+  "C3_emptyArtOpenedWithForward": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 1,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "broken": [
+      "por_courier_a1b2"
+    ]
+  },
+  "C4_emptyArtOpenedNoForward": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": []
+  },
+  "D_codexRegenerate": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "before": 38,
+    "after": 37,
+    "tilKept": false,
+    "sprExtraKept": false
+  },
+  "E_schema2": {
+    "rejected": "This bundle uses schema version 2, which is newer than this Forge supports."
+  },
+  "F_reexport": {
+    "matches": true,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": [],
+    "artIdentical": true,
+    "hashCoversArt": true,
+    "exportForges": [
+      "146",
+      "147"
+    ]
+  },
+  "G_tamper": {
+    "matches": false,
+    "summary": {
+      "errors": 0,
+      "broken": 0,
+      "forward": 0,
+      "warnings": 1
+    },
+    "pageErrors": []
+  }
+}
