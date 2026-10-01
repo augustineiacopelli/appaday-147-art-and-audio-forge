@@ -38,6 +38,45 @@ SESSION 0 / PHASE 0 (2026-10-01, Opus): SCAFFOLD AND COMPATIBILITY PROOF. COMPLE
     the plan's separate art key and the IndexedDB fallback need a decision before Phase 2. Tier sprites map to Day 146's
     separate tier families. Quick Build is Phase 1.
 === END SESSION 0 ===
+SESSION 1 / PHASE 1 (2026-10-01, Opus): PALETTE PIPELINE. COMPLETE.
+  New fences, in order after ART:CONTRACT: ENGINE:RENDER, ART:PALETTE, WS:PALETTE; APP:BOOT now lives in its own source file
+    (src/app-boot.js) so workspace fences can sit before WS:ART147. New CSS fence ART:PALETTE CSS. KIT:CORE still verbatim.
+  ENGINE:RENDER: var ENGINE_RENDER, frozen, version 1.0.0, reads no host global (test scans for Kit, ART, window, document).
+    Later phases add sections above the freeze line at the bottom of the fence. Phase 1 sections: util {clamp, rng, hash32},
+    color {OKLab and OKLCH conversions, gamut mapping by chroma, dist, hue shifted shade, idealRamp, contrastInk}, palette
+    {buildMaster, nearest, ramp, rampFor, outline, colorwaySource, colorway, local, slotsFrom, tier, element, collapse, size,
+    anchors, RAMPS, ENEMY_RAMPS, LOCAL_SLOTS}.
+  Master: anchors are a forced dark and light, Charter element colors, every fam_ base and accent, plus built in skin, hair,
+    terrain, and metal. Weighted farthest point selection in OKLab: stage one spends up to half the budget on anchors, stage
+    two adds hue shifted ramps of each anchor and an even OKLCH fill turned by the seed. Two to four colors is a single hue
+    lightness ramp. Entries sort neutrals first, then by hue band and lightness. Exact size, unique, deterministic per seed;
+    element colors are exact from 32 colors up.
+  Records: pal_ master {kind, size, entries, anchors} subject role palette:master. pal_ local {kind, layout humanoid, hint,
+    source, colorway, slots[16], ramps} for every chr_, the villain (role villain), and ten NPC archetypes (role npc:<key>).
+    DECISION: the colorway lives on the local pal_ (source hexes plus master indices); Phase 2 spr_ points at it through pal
+    and does not duplicate recipe.colorway. pal_ tier {kind, layout enemy, slots, ramps body/shade/accent/eye/metal,
+    derivedFrom {fam, base, tier, hueShift, rampOffset, inverted}, collapsed}, one per fam_ record, tier from enm_ records
+    then the " T<n>" suffix. efx_ {palette[4], flash, tint, particle {shape, count, life, gravity, spread, speed}, screen}
+    per Charter element; shape and screen default by keyword so element identity survives two color mode.
+  Edit rules: origin user or claude is never regenerated. Editing a master entry recolors in place (indices unchanged).
+    Regenerating the master refits generated records from their sources and remaps kept records to the nearest new color.
+    Tier fallback: when a tier's slots equal a sibling's, ramps shift lightness (+1, -1, +2, ...) then invert; collapsed is
+    set only if nothing differs (validator warning).
+  Quick Build: ART.quickBuild.register({key, label, order, run(b, report)}) registry; Phase 1 registers 'palette' (order 10).
+    Later phases register their own steps. Batching skips per record index invalidation (ART.batching); records.put only
+    invalidates for the current bundle. Start's Quick Build button is live; the self test runs Quick Build per fixture.
+  Validator art.palette: master missing or duplicated, bad hex, size mismatch with the Charter (warning), slot 0 not null,
+    out of range slots, orphaned chr_/fam_ subjects (warning), effect palettes not four valid indices.
+  UI: Palette tab (Master, Colorways, Tier palettes, Element palettes), 12 pixel doll and creature previews drawn from slots,
+    shared slot editor drawer with a master picker, jump handler for pal_ and efx_. Mounting pattern: a workspace fence sets
+    ART.WS[key] = {render, focus}; WS:ART147 mounts it in its tab slot, others stay stubs. Header title ellipsizes on phones.
+  Tests: test/phase1.js 59 of 59 (ASCII scan, parse, fence order, engine isolation, color math, sizes 2 to 256, nearest,
+    ramps, collapse, Quick Build counts and idempotence, edit survival, regenerate remap, validator, all fixtures, F2 cast at
+    4 colors forcing the fallback, UI render, jump, Day 146 draft and Final round trips). test/phase0.js still 27 of 27.
+  Timings (jsdom, desktop): demo Quick Build about 10 ms, F2 about 100 to 180 ms, master at 256 under 20 ms.
+  Known limits: a 64 color master has few colors in some hues, so cloth A and cloth B can share one step (soft penalty only).
+    Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
+=== END SESSION 1 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
@@ -361,7 +400,55 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .a7-meter.a7-red i { background: var(--danger); }
 .a7-fixtures { margin: 10px 0 14px; }
 .tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+.brand-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 520px) { .brand-title { font-size: 1.02rem; letter-spacing: .03em; } .brand-num { display: none; } }
 /* === ART:SHELL CSS END === */
+/* === ART:PALETTE CSS BEGIN === */
+.a7-sub { display: flex; gap: 2px; overflow-x: auto; margin: 0 0 14px; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.a7-sub::-webkit-scrollbar { display: none; }
+.a7-sub button { min-height: 44px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--ink2); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; flex: none; }
+.a7-sub button:hover { color: var(--ink); }
+.a7-sub button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.a7-subpanel > .panel + .panel { margin-top: 14px; }
+.a7-sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
+.a7-sw { position: relative; min-width: 44px; min-height: 44px; padding: 0; border-radius: 8px; border: 1px solid rgba(0,0,0,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); cursor: pointer; }
+.a7-sw:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+.a7-sw[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 1; }
+.a7-sw .n { position: absolute; left: 4px; bottom: 2px; font: 600 11px/1 var(--font-mono); pointer-events: none; }
+.a7-strip { display: flex; height: 22px; margin-top: 6px; border-radius: 7px; overflow: hidden; border: 1px solid var(--line2); max-width: 420px; }
+.a7-strip i { flex: 1 1 0; min-width: 0; }
+.a7-strip i.a7-clear, .a7-clear { background: repeating-conic-gradient(#8a8a8a 0 25%, #c4c4c4 0 50%) 0 0 / 8px 8px; }
+.a7-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.a7-row:last-child { border-bottom: 0; }
+.a7-row.a7-hit { background: var(--accent-soft); border-radius: var(--radius-sm); padding-left: 8px; padding-right: 8px; }
+.a7-grow { flex: 1 1 200px; min-width: 0; }
+.a7-name { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.a7-small { font-size: .88rem; }
+.a7-fig { flex: none; image-rendering: pixelated; image-rendering: crisp-edges; background: var(--bg2); border: 1px solid var(--line2); border-radius: 8px; padding: 4px; box-sizing: content-box; }
+.a7-detail { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: start; }
+.a7-big { display: block; width: 96px; height: 96px; border-radius: 12px; border: 1px solid var(--line2); box-shadow: var(--shadow-sm); }
+.a7-big-s { width: 44px; height: 44px; flex: none; border-radius: 10px; }
+.a7-hex { width: 12ch; min-width: 0; font-family: var(--font-mono); }
+.a7-anchors { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 14px; }
+.a7-anchor { display: flex; align-items: center; gap: 6px; min-height: 32px; font-size: .92rem; }
+.a7-anchor .muted { margin-left: auto; font-size: .85rem; white-space: nowrap; }
+.a7-dot { width: 20px; height: 20px; border-radius: 6px; border: 1px solid var(--line2); flex: none; }
+.a7-edhead { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 10px; }
+.a7-mat { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.a7-mat-l { font-weight: 700; color: var(--ink2); }
+.a7-steps { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.a7-steps .a7-sw { width: 44px; }
+.a7-sep { width: 1px; align-self: stretch; background: var(--line2); margin: 0 4px; }
+.a7-ctl { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.a7-sel { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); }
+.a7-sel select { min-height: 44px; width: auto; }
+@media (max-width: 520px) {
+  .a7-detail { grid-template-columns: minmax(0, 1fr); }
+  .a7-big { width: 100%; height: 64px; }
+  .a7-big-s { width: 44px; height: 44px; }
+  .a7-anchors { grid-template-columns: minmax(0, 1fr); }
+}
+/* === ART:PALETTE CSS END === */
 </style>
 </head>
 <body>
@@ -3197,7 +3284,9 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       var r = store(b);
       r[p] = r[p] || {};
       r[p][rec.id] = rec;
-      Kit.index.invalidate();
+      // Kit.index covers the current bundle only. Writes to another bundle, or inside a Quick Build batch, skip the
+      // invalidation (the batch invalidates once at the end); Kit.ids.mint still never repeats an ID within a session.
+      if (b === Kit.bundle.current() && !ART.batching) Kit.index.invalidate();
       return rec;
     },
     del: function (id, b) {
@@ -3450,10 +3539,19 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       var t0 = performance.now(), b = DEMO.fixture(f.key), built = performance.now() - t0;
       var copy = U.clone(b);
       ART.ensure(copy); ART.registerCodex(copy);
+      var qb = 'not run', qbMs = null, pal = null;
+      if (ART.quickBuild && copy.charter && copy.charter.locked) {
+        var rep = ART.quickBuild.run(copy);
+        qbMs = rep.ms; qb = rep.created + ' new in ' + rep.ms + ' ms';
+        var tiers = ART.palette.tiers(copy);
+        pal = { master: ART.palette.entries(copy).length, want: ART.palette.size(copy), locals: ART.palette.locals(copy).length, tiers: tiers.length,
+          collapsed: tiers.filter(function (t) { return t.collapsed; }).length, offset: tiers.filter(function (t) { return t.derivedFrom && (t.derivedFrom.rampOffset || t.derivedFrom.inverted); }).length,
+          effects: ART.palette.effects(copy).length };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: 'pending (Phase 1 onward)', coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: 'pending (Phase 2)', cacheBytes: 'pending (Phase 2)'
@@ -3510,6 +3608,1092 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
  *      that beat timing never feeds back into the engine.
  */
 // === ART:CONTRACT END ===
+// === ENGINE:RENDER BEGIN ===
+// ENGINE_RENDER is the pure rendering engine. It reads no host global: art, rules, charter, contexts, and callbacks always
+// arrive as arguments, so Phase 8 can lift this fence into engine-render.js unchanged. Phase 1 adds color math (OKLab) and
+// the palette module. Later phases add their sections above the freeze at the bottom of this fence.
+var ENGINE_RENDER = (function () {
+  'use strict';
+  var R = { version: '1.0.0' };
+
+  // ---------------------------------------------------------------- shared helpers
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function rng(seed) {
+    var a = (seed >>> 0) || 1;
+    return function () { a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  function hash32(str) {
+    var h = 0x811c9dc5;
+    str = String(str);
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return h >>> 0;
+  }
+  R.util = { clamp: clamp, rng: rng, hash32: hash32 };
+
+  // ---------------------------------------------------------------- color (sRGB, OKLab, OKLCH)
+  var HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
+  function normHex(hex) {
+    var m = HEX_RE.exec(String(hex == null ? '' : hex).trim());
+    if (!m) return null;
+    var h = m[1].toLowerCase();
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return '#' + h;
+  }
+  function hexToRgb(hex) {
+    var h = normHex(hex);
+    if (!h) return null;
+    return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  }
+  function byteHex(v) { var t = clamp(Math.round(v), 0, 255).toString(16); return t.length < 2 ? '0' + t : t; }
+  function rgbToHex(r, g, b) { return '#' + byteHex(r) + byteHex(g) + byteHex(b); }
+  function toLinear(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function toSrgb(c) { var v = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; return v * 255; }
+  function linToLab(r, g, b) {
+    var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+      1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+      0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+  }
+  function labToLin(L, a, b) {
+    var l = L + 0.3963377774 * a + 0.2158037573 * b, m = L - 0.1055613458 * a - 0.0638541728 * b, s = L - 0.0894841775 * a - 1.2914855480 * b;
+    l = l * l * l; m = m * m * m; s = s * s * s;
+    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+  }
+  var labMemo = {}, labMemoSize = 0;
+  function hexToLab(hex) {
+    var fast = typeof hex === 'string' ? labMemo[hex] : null;
+    if (fast) return fast;
+    var h = normHex(hex);
+    if (!h) return null;
+    var hit = labMemo[h];
+    if (hit) return hit;
+    var c = hexToRgb(h), lab = linToLab(toLinear(c[0]), toLinear(c[1]), toLinear(c[2]));
+    if (labMemoSize > 20000) { labMemo = {}; labMemoSize = 0; }
+    labMemo[h] = lab; labMemoSize++;
+    return lab;
+  }
+  function labToLch(lab) {
+    var C = Math.sqrt(lab[1] * lab[1] + lab[2] * lab[2]), h = Math.atan2(lab[2], lab[1]) * 180 / Math.PI;
+    return [lab[0], C, h < 0 ? h + 360 : h];
+  }
+  function lchToLab(L, C, h) { var r = h * Math.PI / 180; return [L, C * Math.cos(r), C * Math.sin(r)]; }
+  function inGamut(lin) { var e = 0.0005; return lin[0] >= -e && lin[0] <= 1 + e && lin[1] >= -e && lin[1] <= 1 + e && lin[2] >= -e && lin[2] <= 1 + e; }
+  // OKLCH to hex with gamut mapping by chroma reduction (hue and lightness are kept, chroma shrinks until it fits).
+  function lchToHex(L, C, h) {
+    L = clamp(L, 0, 1); C = Math.max(0, C);
+    var lab = lchToLab(L, C, h), lin = labToLin(lab[0], lab[1], lab[2]);
+    if (!inGamut(lin)) {
+      var lo = 0, hi = C;
+      for (var i = 0; i < 18; i++) {
+        var mid = (lo + hi) / 2, t = lchToLab(L, mid, h), tl = labToLin(t[0], t[1], t[2]);
+        if (inGamut(tl)) lo = mid; else hi = mid;
+      }
+      lab = lchToLab(L, lo, h); lin = labToLin(lab[0], lab[1], lab[2]);
+    }
+    return rgbToHex(toSrgb(clamp(lin[0], 0, 1)), toSrgb(clamp(lin[1], 0, 1)), toSrgb(clamp(lin[2], 0, 1)));
+  }
+  function hexToLch(hex) { var lab = hexToLab(hex); return lab ? labToLch(lab) : null; }
+  function labToHex(lab) { var l = labToLch(lab); return lchToHex(l[0], l[1], l[2]); }
+  function dist(a, b) { var x = a[0] - b[0], y = a[1] - b[1], z = a[2] - b[2]; return Math.sqrt(x * x + y * y + z * z); }
+  function distHex(a, b) { var x = hexToLab(a), y = hexToLab(b); return x && y ? dist(x, y) : Infinity; }
+  // Signed hue distance, from h toward target, in (-180, 180].
+  function hueDelta(h, target) { var d = ((target - h) % 360 + 540) % 360 - 180; return d === -180 ? 180 : d; }
+  function rotateToward(h, target, deg) {
+    var d = hueDelta(h, target), step = Math.sign(d) * Math.min(Math.abs(d), deg);
+    return ((h + step) % 360 + 360) % 360;
+  }
+  // A shade or tint of a color the way pixel artists ramp: shadows cool toward blue violet, highlights warm toward yellow,
+  // and chroma falls off toward both ends. k is in steps (negative darker); spread is the lightness change per step.
+  function shade(lch, k, spread) {
+    var L = clamp(lch[0] + k * spread, 0.06, 0.97);
+    var ak = Math.abs(k), grey = lch[1] < 0.03;
+    var h = grey ? lch[2] : k < 0 ? rotateToward(lch[2], 265, 9 * ak) : k > 0 ? rotateToward(lch[2], 85, 7 * ak) : lch[2];
+    var C = lch[1] * (k < 0 ? 1 - 0.12 * ak : k > 0 ? 1 - 0.2 * ak : 1);
+    if (L > 0.9) C *= 0.6;
+    return [L, Math.max(0, C), h];
+  }
+  function idealRamp(hex, steps, spread) {
+    var lch = hexToLch(hex) || [0.5, 0, 0], out = [], mid = (steps - 1) / 2;
+    for (var i = 0; i < steps; i++) out.push(shade(lch, i - mid, spread));
+    return out;
+  }
+  function contrastInk(hex) { var lab = hexToLab(hex); return lab && lab[0] > 0.66 ? '#111111' : '#ffffff'; }
+  R.color = {
+    normHex: normHex, hexToRgb: hexToRgb, rgbToHex: rgbToHex, hexToLab: hexToLab, hexToLch: hexToLch, labToHex: labToHex,
+    lchToHex: lchToHex, dist: dist, distHex: distHex, hueDelta: hueDelta, rotateToward: rotateToward, shade: shade,
+    idealRamp: idealRamp, contrastInk: contrastInk
+  };
+
+  // ---------------------------------------------------------------- palette
+  // Local sprite palettes have 16 slots: 0 transparent, 1 outline, then three step ramps and a two step metal ramp. The
+  // enemy layout reuses the same slots with enemy materials. Tilesets use their own 32 slot layout (Phase 4).
+  var RAMPS = { skin: [2, 3, 4], hair: [5, 6, 7], clothA: [8, 9, 10], clothB: [11, 12, 13], metal: [14, 15] };
+  var ENEMY_RAMPS = { body: [2, 3, 4], shade: [5, 6, 7], accent: [8, 9, 10], eye: [11, 12, 13], metal: [14, 15] };
+  var LOCAL_SLOTS = 16;
+  var SKIN = ['#f6d8bf', '#eabf98', '#d39a6e', '#b07a4e', '#8a5634', '#5e3a24'];
+  var HAIR = ['#2a2220', '#4a2e1c', '#7a4a24', '#b07a34', '#d8b060', '#c8c4bc', '#9a3a2a', '#3a3a4a'];
+  var METAL = ['#a3abba', '#c4a04c', '#7c7f88', '#b07a54'];
+  // Built in anchors keep a palette usable for people, terrain, and metal whatever the bundle's own colors are.
+  var BUILTIN = [
+    { hex: '#f2c9a8', role: 'skin', w: 0.8 }, { hex: '#b47e54', role: 'skin', w: 0.8 }, { hex: '#6a4430', role: 'skin', w: 0.75 },
+    { hex: '#3a2a22', role: 'hair', w: 0.65 }, { hex: '#c8963c', role: 'hair', w: 0.6 },
+    { hex: '#4f9a3e', role: 'terrain', w: 0.75 }, { hex: '#2d5a32', role: 'terrain', w: 0.7 }, { hex: '#3a72c0', role: 'terrain', w: 0.75 },
+    { hex: '#8cc4ec', role: 'terrain', w: 0.7 }, { hex: '#e2cc92', role: 'terrain', w: 0.65 }, { hex: '#8a5e3a', role: 'terrain', w: 0.65 },
+    { hex: '#7e848e', role: 'terrain', w: 0.6 }, { hex: '#eaf2fa', role: 'terrain', w: 0.55 },
+    { hex: '#a3abba', role: 'metal', w: 0.6 }, { hex: '#c4a04c', role: 'metal', w: 0.6 }
+  ];
+  var DARK = '#140f1c', LIGHT = '#f7f2e4';
+
+  function famColors(rules) {
+    var m = rules && rules.fam_ && typeof rules.fam_ === 'object' ? rules.fam_ : {};
+    return Object.keys(m).map(function (id) { return m[id]; }).filter(function (f) { return f && typeof f === 'object'; });
+  }
+  function collectAnchors(charter, rules) {
+    var out = [{ hex: DARK, role: 'outline', w: 9 }, { hex: LIGHT, role: 'highlight', w: 9 }];
+    var els = charter && charter.ruleset && Array.isArray(charter.ruleset.elements) ? charter.ruleset.elements : [];
+    els.forEach(function (e) { var h = e && normHex(e.color); if (h) out.push({ hex: h, role: 'element', src: e.key, w: 1 }); });
+    famColors(rules).forEach(function (f) {
+      var p = f.palette || {};
+      var a = normHex(p.base), c = normHex(p.accent);
+      if (a) out.push({ hex: a, role: 'family', src: f.id, w: 0.95 });
+      if (c) out.push({ hex: c, role: 'family accent', src: f.id, w: 0.75 });
+    });
+    BUILTIN.forEach(function (x) { out.push({ hex: x.hex, role: x.role, w: x.w }); });
+    // Collapse near duplicates, keeping the heavier anchor.
+    var kept = [];
+    out.forEach(function (a) {
+      var lab = hexToLab(a.hex);
+      for (var i = 0; i < kept.length; i++) {
+        if (dist(lab, hexToLab(kept[i].hex)) < 0.018) { if (a.w > kept[i].w) kept[i] = a; return; }
+      }
+      kept.push(a);
+    });
+    return kept;
+  }
+  // Weighted farthest point selection in OKLab. Each pick maximizes weight times distance to everything already chosen.
+  function maximin(pool, chosen, count) {
+    var labs = pool.map(function (c) { return hexToLab(c.hex); });
+    var best = labs.map(function (l) { var d = Infinity; chosen.forEach(function (h) { d = Math.min(d, dist(l, hexToLab(h))); }); return d; });
+    while (chosen.length < count) {
+      var bi = -1, bs = 0;
+      for (var i = 0; i < pool.length; i++) { var s = pool[i].w * best[i]; if (s > bs) { bs = s; bi = i; } }
+      if (bi < 0) break;
+      var hx = pool[bi].hex, bl = labs[bi];
+      chosen.push(hx);
+      for (var j = 0; j < pool.length; j++) best[j] = Math.min(best[j], dist(labs[j], bl));
+    }
+    return chosen;
+  }
+  function sortEntries(entries) {
+    var rows = entries.map(function (h) { var l = hexToLch(h); return { h: h, L: l[0], C: l[1], H: l[2] }; });
+    rows.sort(function (a, b) {
+      var an = a.C < 0.035, bn = b.C < 0.035;
+      if (an !== bn) return an ? -1 : 1;
+      if (!an) { var ab = Math.floor(((a.H + 15) % 360) / 30), bb = Math.floor(((b.H + 15) % 360) / 30); if (ab !== bb) return ab - bb; }
+      return a.L - b.L;
+    });
+    return rows.map(function (r) { return r.h; });
+  }
+  // Two to four colors: a single hue lightness ramp, the way tiny handheld palettes work.
+  function monoRamp(size, anchors) {
+    var el = anchors.filter(function (a) { return a.role === 'element' || a.role === 'family'; })[0];
+    var h = el ? hexToLch(el.hex)[2] : 110, out = [];
+    for (var i = 0; i < size; i++) {
+      var t = size === 1 ? 0 : i / (size - 1);
+      out.push(lchToHex(0.13 + t * 0.83, 0.035 + 0.03 * Math.sin(t * Math.PI), h));
+    }
+    return out;
+  }
+  function paletteSize(charter) {
+    var n = charter && charter.specs ? Math.round(Number(charter.specs.paletteSize)) : NaN;
+    return clamp(isFinite(n) ? n : 64, 2, 256);
+  }
+  // buildMaster(charter, rules, seed) -> {size, entries: [hex x size], anchors: [{hex, role, src}]}
+  function buildMaster(charter, rules, seed) {
+    var size = paletteSize(charter), anchors = collectAnchors(charter, rules), rnd = rng(seed || 1), entries;
+    if (size <= 4) entries = monoRamp(size, anchors);
+    else {
+      var forced = anchors.filter(function (a) { return a.w > 5; }).map(function (a) { return a.hex; });
+      var soft = anchors.filter(function (a) { return a.w <= 5; });
+      // Stage one spends up to half the budget on anchors only, so bundle colors are honored before ramps compete.
+      var chosen = maximin(soft, forced.slice(), Math.min(size, Math.max(forced.length + 1, Math.floor(size * 0.5))));
+      var pool = soft.slice(), ks = [-2, -1, 1, 2], kw = [0.5, 0.72, 0.68, 0.45];
+      soft.forEach(function (a) {
+        var lch = hexToLch(a.hex);
+        ks.forEach(function (k, i) { var s = shade(lch, k, 0.11); pool.push({ hex: lchToHex(s[0], s[1], s[2]), w: Math.min(1, a.w) * kw[i] }); });
+      });
+      // Even fill so large palettes still cover the hue wheel; the seed turns the wheel.
+      var turn = rnd() * 30;
+      for (var L = 0.22; L < 0.93; L += 0.1) {
+        for (var hh = 0; hh < 360; hh += 30) { pool.push({ hex: lchToHex(L, 0.07, hh + turn), w: 0.3 }); if (L < 0.85) pool.push({ hex: lchToHex(L, 0.14, hh + turn + 15), w: 0.28 }); }
+        pool.push({ hex: lchToHex(L, 0, 0), w: 0.32 });
+      }
+      chosen = maximin(pool, chosen, size);
+      var guard = 0;
+      while (chosen.length < size && guard++ < 5000) {
+        var hx = lchToHex(0.15 + rnd() * 0.8, rnd() * 0.18, rnd() * 360);
+        if (chosen.indexOf(hx) < 0) chosen.push(hx);
+      }
+      entries = chosen.slice(0, size);
+    }
+    return { size: size, entries: sortEntries(entries), anchors: anchors.map(function (a) { var o = { hex: a.hex, role: a.role }; if (a.src) o.src = a.src; return o; }) };
+  }
+  // nearest(master, hex) -> index of the closest master entry in OKLab.
+  function nearest(master, hex) {
+    var lab = hexToLab(hex), bi = 0, bd = Infinity;
+    if (!lab) return 0;
+    for (var i = 0; i < master.length; i++) { var m = hexToLab(master[i]); if (!m) continue; var d = dist(lab, m); if (d < bd) { bd = d; bi = i; } }
+    return bi;
+  }
+  // Maps an ideal ramp onto master indices, dark to light. Picks stay monotone in lightness and avoid reuse while any
+  // fresh candidate keeps the order; tiny palettes fall back to repeats, which is correct for them.
+  // The k nearest labs to t, nearest first, by insertion into a short list (no full sort of the master).
+  // Ramp matching weighs hue and chroma above lightness (order keeps lightness honest) and adds a soft penalty for indices
+  // another material already uses, so cloth A and cloth B stop sharing colors whenever the master has room.
+  function closest(labs, t, k, avoid) {
+    var out = [];
+    for (var i = 0; i < labs.length; i++) {
+      var l = labs[i], dl = l[0] - t[0], da = l[1] - t[1], db = l[2] - t[2];
+      var d = Math.sqrt(0.45 * dl * dl + da * da + db * db) + (avoid && avoid[i] ? 0.06 : 0);
+      if (out.length === k && d >= out[k - 1].d) continue;
+      var j = out.length < k ? out.length : k - 1;
+      while (j > 0 && out[j - 1].d > d) { out[j] = out[j - 1]; j--; }
+      out[j] = { i: i, d: d, L: labs[i][0] };
+    }
+    return out;
+  }
+  function rampFor(master, hex, steps, spread, avoid) {
+    var ideal = idealRamp(hex, steps, spread || 0.12), used = {}, out = [], prevL = -1;
+    var labs = master.map(function (h) { return hexToLab(h) || [0, 0, 0]; });
+    ideal.forEach(function (lch) {
+      var t = lchToLab(lch[0], lch[1], lch[2]);
+      var order = closest(labs, t, 12, avoid);
+      var pick = null, near = order[0];
+      for (var j = 0; j < order.length; j++) {
+        var o = order[j];
+        if (used[o.i] || o.L <= prevL) continue;
+        if (o.d > near.d + 0.09) break;
+        pick = o; break;
+      }
+      if (!pick) pick = near.L >= prevL ? near : (out.length ? { i: out[out.length - 1], L: prevL } : near);
+      used[pick.i] = 1; out.push(pick.i); prevL = Math.max(prevL, pick.L);
+    });
+    return out;
+  }
+  function ramp(master, idx, steps, spread) { return rampFor(master, master[clamp(idx | 0, 0, master.length - 1)], steps, spread); }
+  function outline(master) {
+    var bi = 0, bl = Infinity;
+    master.forEach(function (h, i) { var l = hexToLab(h); if (l && l[0] < bl) { bl = l[0]; bi = i; } });
+    return bi;
+  }
+  function slotsFrom(master, mats, layout) {
+    var s = new Array(LOCAL_SLOTS);
+    for (var i = 0; i < LOCAL_SLOTS; i++) s[i] = 0;
+    s[0] = null; s[1] = outline(master);
+    Object.keys(layout).forEach(function (k) { (layout[k] || []).forEach(function (slot, j) { var v = mats[k] && mats[k][j]; s[slot] = typeof v === 'number' && v >= 0 && v < master.length ? v : s[1]; }); });
+    return s;
+  }
+  // Seeded colorway sources: the colors a character is dressed in, before they are fitted to the master palette.
+  // hint: {hue (degrees, spreads a party), dark (villain)}
+  function colorwaySource(seed, hint) {
+    hint = hint || {};
+    var r = rng(seed), hueA = typeof hint.hue === 'number' ? hint.hue : r() * 360;
+    var skin = SKIN[Math.floor(r() * SKIN.length)], hair = HAIR[Math.floor(r() * HAIR.length)];
+    var la = hint.dark ? 0.38 + r() * 0.08 : 0.52 + r() * 0.1, ca = 0.11 + r() * 0.05;
+    var compl = r() < 0.5, hueB = hueA + (compl ? 150 + r() * 60 : 25 + r() * 35);
+    var clothA = lchToHex(la, ca, hueA), clothB = lchToHex(hint.dark ? 0.3 + r() * 0.1 : 0.48 + r() * 0.2, 0.08 + r() * 0.06, hueB);
+    var metal = METAL[Math.floor(r() * METAL.length)];
+    return { skin: skin, hair: hair, clothA: clothA, clothB: clothB, metal: metal, accent: r() < 0.5 ? 'clothB' : 'metal' };
+  }
+  // colorway(master, src) -> {skin, hair, clothA, clothB: [m, m, m], metal: [m, m], accent}
+  function colorway(master, src) {
+    var cw = { accent: src.accent === 'metal' ? 'metal' : 'clothB' };
+    var taken = {};
+    taken[outline(master)] = 1;
+    Object.keys(RAMPS).forEach(function (k) {
+      cw[k] = rampFor(master, src[k] || '#808080', RAMPS[k].length, k === 'metal' ? 0.16 : 0.12, taken);
+      cw[k].forEach(function (i) { taken[i] = 1; });
+    });
+    return cw;
+  }
+  function local(master, cw) { return slotsFrom(master, cw, RAMPS); }
+  // tier(fam, tierIndex, master, avoid) -> {slots, ramps, rampOffset, inverted, collapsed}. Day 146 tier families carry
+  // their own shifted colors; when that shift lands on the same master indices as a sibling (common at small sizes),
+  // the ramps are offset in lightness, then inverted, until the palette differs from everything in avoid.
+  function tier(fam, tierIndex, master, avoid) {
+    var p = (fam && fam.palette) || {}, base = normHex(p.base) || '#7a7a7a', acc = normHex(p.accent) || '#d0d0d0';
+    var bl = hexToLch(base), seen = {};
+    (avoid || []).forEach(function (s) { seen[String(s)] = 1; });
+    var shadeHex = lchToHex(bl[0] * 0.82, bl[1] * 0.7, rotateToward(bl[2], 265, 28));
+    var eyeHex = bl[0] > 0.6 ? lchToHex(0.3, 0.12, bl[2] + 180) : lchToHex(0.88, 0.14, (bl[2] + 180) % 360);
+    var tries = [0, 1, -1, 2, -2, 3, -3], first = null;
+    function lift(hex, k) { var l = hexToLch(hex); return lchToHex(clamp(l[0] + k * 0.13, 0.08, 0.96), l[1], l[2]); }
+    for (var t = 0; t < tries.length * 2; t++) {
+      var k = tries[t % tries.length], inv = t >= tries.length;
+      var mats = { body: rampFor(master, lift(base, k), 3), shade: rampFor(master, lift(shadeHex, k), 3), accent: rampFor(master, lift(acc, k), 3), eye: rampFor(master, eyeHex, 3), metal: rampFor(master, '#9aa0ac', 2, 0.16) };
+      if (inv) { var sw = mats.body; mats.body = mats.accent; mats.accent = sw; }
+      var slots = slotsFrom(master, mats, ENEMY_RAMPS);
+      var res = { slots: slots, ramps: ENEMY_RAMPS, rampOffset: k, inverted: inv, collapsed: false, tier: tierIndex || 1 };
+      if (!first) first = res;
+      if (!seen[String(slots)]) return res;
+    }
+    first.collapsed = true;
+    return first;
+  }
+  // element(color, master) -> {palette: [dark, base, light, hot], flash, tint}
+  function element(color, master) {
+    var hex = normHex(color) || '#c0c0c0', l = hexToLch(hex);
+    var ideal = [shade(l, -1.2, 0.12), l, shade(l, 1, 0.12), [0.95, l[1] * 0.35, rotateToward(l[2], 85, 20)]];
+    var used = {}, prevL = -1, pal = [];
+    ideal.forEach(function (c) {
+      var i = nearest(master, lchToHex(c[0], c[1], c[2]));
+      if ((used[i] || hexToLab(master[i])[0] < prevL) && master.length > 4) {
+        var t = lchToLab(c[0], c[1], c[2]), bd = Infinity;
+        master.forEach(function (h, j) { var lb = hexToLab(h); if (used[j] || lb[0] < prevL) return; var d = dist(lb, t); if (d < bd) { bd = d; i = j; } });
+      }
+      used[i] = 1; prevL = Math.max(prevL, hexToLab(master[i])[0]); pal.push(i);
+    });
+    return { palette: pal, flash: nearest(master, '#ffffff'), tint: nearest(master, hex) };
+  }
+  // collapse(pal, size) -> {entries, map}: reduce any palette to size colors, keeping the darkest and lightest, and map
+  // every old index to its nearest survivor.
+  function collapse(pal, size) {
+    size = clamp(size | 0, 1, 256);
+    var list = pal.map(normHex).filter(Boolean);
+    if (list.length <= size) return { entries: list.slice(), map: list.map(function (_, i) { return i; }) };
+    var dark = list[outline(list)], light = list.reduce(function (a, h) { return hexToLab(h)[0] > hexToLab(a)[0] ? h : a; }, list[0]);
+    var seed = size === 1 ? [dark] : dark === light ? [dark] : [dark, light];
+    var entries = maximin(list.map(function (h) { return { hex: h, w: 1 }; }), seed, size);
+    return { entries: entries, map: list.map(function (h) { return nearest(entries, h); }) };
+  }
+  R.palette = {
+    LOCAL_SLOTS: LOCAL_SLOTS, RAMPS: RAMPS, ENEMY_RAMPS: ENEMY_RAMPS,
+    size: paletteSize, anchors: collectAnchors, buildMaster: buildMaster, nearest: nearest, ramp: ramp, rampFor: rampFor,
+    outline: outline, colorwaySource: colorwaySource, colorway: colorway, local: local, slotsFrom: slotsFrom,
+    tier: tier, element: element, collapse: collapse
+  };
+
+  // ---------------------------------------------------------------- later phases insert sections above this line
+  Object.keys(R).forEach(function (k) { if (R[k] && typeof R[k] === 'object') Object.freeze(R[k]); });
+  return Object.freeze(R);
+})();
+// === ENGINE:RENDER END ===
+// === ART:PALETTE BEGIN ===
+(function () {
+  'use strict';
+  // The palette pipeline as records. One master pal_ (kind master), one local pal_ per character, the villain, and each NPC
+  // archetype (kind local, 16 slots, colorway), one tier pal_ per fam_ record (kind tier, derived from the family's own
+  // colors), and one efx_ per Charter element. Engine math lives in ENGINE_RENDER.palette; this fence owns the records.
+  var U = Kit.util, E = ENGINE_RENDER.palette, C = ENGINE_RENDER.color, H = ENGINE_RENDER.util.hash32;
+  var P = ART.palette = {};
+  ART.NPC_ARCHETYPES = ['elder', 'child', 'merchant', 'guard', 'worker', 'scholar', 'healer', 'traveler', 'noble', 'innkeeper'];
+  ART.LOCAL_RAMPS = E.RAMPS;
+  ART.ENEMY_RAMPS = E.ENEMY_RAMPS;
+  var MAT_LABELS = { skin: 'Skin', hair: 'Hair', clothA: 'Cloth A', clothB: 'Cloth B', metal: 'Metal', body: 'Body', shade: 'Shade', accent: 'Accent', eye: 'Eye' };
+  P.MAT_LABELS = MAT_LABELS;
+  var KEEP = { user: 1, claude: 1 };
+  P.isKept = function (rec) { return !!(rec && KEEP[rec.origin]); };
+
+  // Particle shape and screen behavior carry element identity when color cannot (two color palettes make every element
+  // palette identical). Keyword defaults; anything unmatched cycles through the shapes so no two elements share a default.
+  var SHAPES = ['spark', 'flake', 'bubble', 'shard', 'ring', 'wisp', 'bolt'];
+  var STYLE_WORDS = [
+    [/fire|flame|ember|heat|sun|lava|burn/, 'spark', 'shake'], [/frost|ice|snow|cold|winter/, 'flake', 'none'],
+    [/water|tide|sea|rain|wave|aqua/, 'bubble', 'wave'], [/earth|stone|rock|metal|iron|sand|ground/, 'shard', 'shake'],
+    [/light|holy|star|radian|sol/, 'ring', 'none'], [/shade|dark|shadow|void|night|death|umbra/, 'wisp', 'darken'],
+    [/air|wind|gale|sky/, 'wisp', 'wave'], [/storm|thunder|bolt|lightning|spark|volt/, 'bolt', 'shake'],
+    [/bloom|plant|wood|leaf|nature|life|poison/, 'ring', 'wave']
+  ];
+  P.elementStyle = function (el, i) {
+    var t = ((el && el.key) || '') + ' ' + ((el && el.label) || '');
+    t = t.toLowerCase();
+    for (var j = 0; j < STYLE_WORDS.length; j++) if (STYLE_WORDS[j][0].test(t)) return { shape: STYLE_WORDS[j][1], screen: STYLE_WORDS[j][2] };
+    return { shape: SHAPES[(i || 0) % SHAPES.length], screen: 'none' };
+  };
+
+  // ---------------------------------------------------------------- lookups
+  function cur() { return Kit.bundle.current(); }
+  ART.bySubject = function (prefix, kind, ref, b) {
+    return ART.records.list(prefix, b || cur()).filter(function (r) { return r.subject && r.subject.kind === kind && r.subject.ref === ref; })[0] || null;
+  };
+  P.master = function (b) {
+    b = b || cur();
+    return ART.records.list('pal_', b).filter(function (r) { return r.kind === 'master'; })[0] || null;
+  };
+  P.entries = function (b) { var m = P.master(b); return m && Array.isArray(m.entries) ? m.entries : []; };
+  P.size = function (b) { b = b || cur(); return E.size(b && b.charter); };
+  P.locals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local'; }); };
+  P.tiers = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'tier'; }); };
+  P.effects = function (b) { return ART.records.list('efx_', b || cur()); };
+  function bundleSeed(b) { return H((b.kit && b.kit.bundleId) || 'bundle'); }
+  function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(U.isObj); }
+  function elements(b) { var r = b.charter && b.charter.ruleset; return r && Array.isArray(r.elements) ? r.elements.filter(function (e) { return U.isObj(e) && e.key; }) : []; }
+
+  // Family tiers. Day 146 stores each tier as its own fam_ record ("Slime T2"); tier comes from its enemies, then the name.
+  P.familyInfo = function (b) {
+    b = b || cur();
+    var fams = rulesList(b, 'fam_'), enm = rulesList(b, 'enm_'), byName = {};
+    var info = fams.map(function (f) {
+      var t = null;
+      enm.forEach(function (e) { if (e.family === f.id && typeof e.tier === 'number') t = t === null ? e.tier : Math.min(t, e.tier); });
+      var m = /\s+T(\d+)$/i.exec(f.name || '');
+      if (t === null) t = m ? Number(m[1]) : 1;
+      var baseName = (f.name || f.id).replace(/\s+T\d+$/i, '');
+      return { id: f.id, name: f.name || f.id, baseName: baseName, tier: t, fam: f };
+    });
+    info.forEach(function (x) { if (!byName[x.baseName] || x.tier < byName[x.baseName].tier) byName[x.baseName] = x; });
+    info.forEach(function (x) {
+      var base = byName[x.baseName];
+      x.baseId = base.id;
+      var a = C.hexToLch((x.fam.palette || {}).base || '#808080'), z = C.hexToLch((base.fam.palette || {}).base || '#808080');
+      x.hueShift = a && z ? Math.round(C.hueDelta(z[2], a[2])) : 0;
+    });
+    info.sort(function (a, b) { return a.baseName < b.baseName ? -1 : a.baseName > b.baseName ? 1 : a.tier - b.tier; });
+    return info;
+  };
+
+  // ---------------------------------------------------------------- master
+  // buildMaster(b, {seed, force}). With an existing master and force, the master is rebuilt and every dependent is remapped.
+  P.buildMaster = function (b, opts, report) {
+    b = b || cur(); opts = opts || {}; report = report || {};
+    var m = P.master(b);
+    if (m && !opts.force && P.isKept(m)) { report.kept = (report.kept || 0) + 1; return m; }
+    var seed = opts.seed != null ? opts.seed >>> 0 : m ? m.seed : bundleSeed(b);
+    var out = E.buildMaster(b.charter, b.rules, seed);
+    // A generated master is rebuilt from the bundle on every Quick Build; when nothing changed it stays put.
+    if (m && !opts.force && U.canonical(m.entries) === U.canonical(out.entries)) { report.kept = (report.kept || 0) + 1; return m; }
+    if (m) {
+      var old = (m.entries || []).slice();
+      m.entries = out.entries; m.anchors = out.anchors; m.size = out.size; m.seed = seed; m.origin = 'procedural';
+      P.afterRebuild(b, old);
+      report.refreshed = (report.refreshed || 0) + 1;
+      return m;
+    }
+    var rec = ART.envelope('pal_', 'Master palette', { kind: 'role', ref: 'palette:master' }, 'procedural', seed,
+      { kind: 'master', size: out.size, entries: out.entries, anchors: out.anchors });
+    ART.records.put(rec, b);
+    report.created = (report.created || 0) + 1;
+    return rec;
+  };
+  // Editing one entry recolors everything that uses that index. Nothing is remapped.
+  P.setEntry = function (b, i, hex) {
+    var m = P.master(b), h = C.normHex(hex);
+    if (!m || !h || i < 0 || i >= m.entries.length) return false;
+    if (m.entries[i] === h) return true;
+    m.entries[i] = h; m.origin = 'user';
+    return true;
+  };
+  // After a whole master rebuild, generated records are refitted from their sources and kept records have every index
+  // moved to the nearest new color.
+  P.afterRebuild = function (b, oldEntries) {
+    var nu = P.entries(b), map = oldEntries.map(function (h) { return E.nearest(nu, h); });
+    function mv(i) { return typeof i === 'number' && map[i] !== undefined ? map[i] : (typeof i === 'number' ? Math.min(i, nu.length - 1) : i); }
+    P.locals(b).forEach(function (r) {
+      if (P.isKept(r)) {
+        Object.keys(E.RAMPS).forEach(function (k) { if (Array.isArray(r.colorway[k])) r.colorway[k] = r.colorway[k].map(mv); });
+        r.slots = E.local(nu, r.colorway);
+      } else refitLocal(b, r);
+    });
+    var tierRep = {};
+    P.tiers(b).forEach(function (r) { if (P.isKept(r)) r.slots = r.slots.map(function (s) { return s === null ? null : mv(s); }); });
+    P.buildTiers(b, tierRep, { refit: true });
+    P.effects(b).forEach(function (r) {
+      if (P.isKept(r)) { r.palette = (r.palette || []).map(mv); r.flash = mv(r.flash); r.tint = mv(r.tint); }
+    });
+    P.buildElements(b, {}, { refit: true });
+  };
+
+  // ---------------------------------------------------------------- local palettes (colorways)
+  function refitLocal(b, r) {
+    var nu = P.entries(b);
+    r.source = E.colorwaySource(r.seed, r.hint);
+    r.colorway = E.colorway(nu, r.source);
+    r.slots = E.local(nu, r.colorway);
+    r.ramps = U.clone(E.RAMPS);
+    return r;
+  }
+  P.refitLocal = refitLocal;
+  P.reroll = function (b, r, seed) { r.seed = (seed >>> 0) || ((Math.random() * 4294967295) >>> 0); r.origin = 'procedural'; return refitLocal(b, r); };
+  P.setStep = function (b, r, mat, step, idx) {
+    if (!r.colorway || !Array.isArray(r.colorway[mat]) || step < 0 || step >= r.colorway[mat].length) return false;
+    r.colorway[mat][step] = idx;
+    r.slots = E.local(P.entries(b), r.colorway);
+    r.origin = 'user';
+    return true;
+  };
+  P.setAccent = function (b, r, alias) {
+    if (!r.colorway) return false;
+    r.colorway.accent = alias === 'metal' ? 'metal' : 'clothB';
+    if (r.source) r.source.accent = r.colorway.accent;
+    return true;
+  };
+  function ensureLocal(b, subject, name, hint, origin, report) {
+    var r = ART.bySubject('pal_', subject.kind, subject.ref, b);
+    if (r && r.kind === 'local') {
+      if (P.isKept(r)) { report.kept++; return r; }
+      r.hint = hint; refitLocal(b, r); report.refreshed++;
+      return r;
+    }
+    r = ART.envelope('pal_', name, subject, origin, H(subject.ref + '|' + bundleSeed(b)), { kind: 'local', layout: 'humanoid', hint: hint });
+    refitLocal(b, r);
+    ART.records.put(r, b);
+    report.created++;
+    return r;
+  }
+  P.buildLocals = function (b, report) {
+    b = b || cur(); report = report || { created: 0, refreshed: 0, kept: 0 };
+    var turn = bundleSeed(b) % 360;
+    rulesList(b, 'chr_').forEach(function (c, i) {
+      ensureLocal(b, { kind: 'chr', ref: c.id }, (c.name || c.id) + ' colorway', { hue: Math.round((turn + i * 137.508) % 360) }, 'procedural', report);
+    });
+    var v = b.charter && b.charter.sections && b.charter.sections.villain;
+    var vname = v && typeof v.villain === 'string' && v.villain.trim() ? v.villain.split(/[,.]/)[0].trim().slice(0, 40) : 'Villain';
+    var vs = H('villain|' + bundleSeed(b));
+    ensureLocal(b, { kind: 'role', ref: 'villain' }, vname + ' colorway', { hue: vs % 2 ? 290 : 5, dark: true }, 'procedural', report);
+    ART.NPC_ARCHETYPES.forEach(function (k, i) {
+      ensureLocal(b, { kind: 'role', ref: 'npc:' + k }, k.charAt(0).toUpperCase() + k.slice(1) + ' colorway', { hue: Math.round((turn + 60 + i * 97) % 360) }, 'default', report);
+    });
+    return report;
+  };
+
+  // ---------------------------------------------------------------- tier palettes
+  P.buildTiers = function (b, report, opts) {
+    b = b || cur(); report = report || {}; opts = opts || {};
+    ['created', 'refreshed', 'kept'].forEach(function (k) { report[k] = report[k] || 0; });
+    var nu = P.entries(b), groups = {};
+    if (!nu.length) return report;
+    P.familyInfo(b).forEach(function (x) {
+      var avoid = groups[x.baseId] = groups[x.baseId] || [];
+      var r = ART.bySubject('pal_', 'fam', x.id, b);
+      if (r && r.kind === 'tier' && P.isKept(r)) { avoid.push(r.slots); report.kept++; return; }
+      var t = E.tier(x.fam, x.tier, nu, avoid);
+      avoid.push(t.slots);
+      var body = { kind: 'tier', layout: 'enemy', slots: t.slots, ramps: U.clone(t.ramps),
+        derivedFrom: { fam: x.id, base: x.baseId, tier: x.tier, hueShift: x.hueShift, rampOffset: t.rampOffset, inverted: t.inverted }, collapsed: t.collapsed };
+      if (r && r.kind === 'tier') { Object.keys(body).forEach(function (k) { r[k] = body[k]; }); r.name = x.name + ' palette'; report.refreshed++; }
+      else { ART.records.put(ART.envelope('pal_', x.name + ' palette', { kind: 'fam', ref: x.id }, 'procedural', H(x.id), body), b); report.created++; }
+    });
+    return report;
+  };
+
+  // ---------------------------------------------------------------- element effect palettes
+  P.buildElements = function (b, report, opts) {
+    b = b || cur(); report = report || {}; opts = opts || {};
+    ['created', 'refreshed', 'kept'].forEach(function (k) { report[k] = report[k] || 0; });
+    var nu = P.entries(b);
+    if (!nu.length) return report;
+    elements(b).forEach(function (el, i) {
+      var r = ART.bySubject('efx_', 'element', el.key, b);
+      if (r && P.isKept(r)) { report.kept++; return; }
+      var pe = E.element(el.color, nu), st = P.elementStyle(el, i);
+      if (r) { r.palette = pe.palette; r.flash = pe.flash; r.tint = pe.tint; report.refreshed++; return; }
+      r = ART.envelope('efx_', (el.label || el.key) + ' effect', { kind: 'element', ref: el.key }, 'procedural', H('efx|' + el.key), {
+        palette: pe.palette, flash: pe.flash, tint: pe.tint,
+        particle: { shape: st.shape, count: 12, life: 420, gravity: st.shape === 'flake' || st.shape === 'shard' ? 0.4 : st.shape === 'spark' ? -0.2 : 0, spread: 1, speed: 1 },
+        screen: st.screen
+      });
+      ART.records.put(r, b);
+      report.created++;
+    });
+    return report;
+  };
+  P.SHAPES = SHAPES;
+  P.SCREENS = ['none', 'wave', 'shake', 'darken'];
+
+  // Which records use each master index (for the editor and for safe edits).
+  P.usage = function (b) {
+    b = b || cur();
+    var n = P.entries(b).length, out = [];
+    for (var i = 0; i < n; i++) out.push([]);
+    function hit(i, id) { if (typeof i === 'number' && out[i] && out[i].indexOf(id) < 0) out[i].push(id); }
+    P.locals(b).concat(P.tiers(b)).forEach(function (r) { (r.slots || []).forEach(function (s) { hit(s, r.id); }); });
+    P.effects(b).forEach(function (r) { (r.palette || []).forEach(function (s) { hit(s, r.id); }); hit(r.flash, r.id); hit(r.tint, r.id); });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- Quick Build
+  // Every phase registers a step. Quick Build creates what is missing and refreshes generated records; records with origin
+  // user or claude are never touched. It needs no API key.
+  var steps = [];
+  ART.quickBuild = {
+    register: function (s) { steps.push(s); steps.sort(function (a, b) { return a.order - b.order; }); },
+    steps: function () { return steps.map(function (s) { return { key: s.key, label: s.label, order: s.order }; }); },
+    run: function (b, opts) {
+      b = b || cur(); opts = opts || {};
+      var t0 = performance.now(), rep = { created: 0, refreshed: 0, kept: 0, steps: {} };
+      ART.ensure(b); ART.registerCodex(b);
+      ART.batching = true;
+      try {
+        steps.forEach(function (s) {
+          var r = { created: 0, refreshed: 0, kept: 0 }, t = performance.now();
+          s.run(b, r, opts);
+          r.ms = Math.round(performance.now() - t);
+          rep.steps[s.key] = r;
+          rep.created += r.created; rep.refreshed += r.refreshed; rep.kept += r.kept;
+        });
+      } finally { ART.batching = false; }
+      rep.ms = Math.round(performance.now() - t0);
+      Kit.index.invalidate();
+      if (b === cur()) Kit.bundle.touch('quick-build');
+      return rep;
+    }
+  };
+  ART.quickBuild.register({ key: 'palette', label: 'Palettes', order: 10, run: function (b, r) {
+    P.buildMaster(b, {}, r);
+    P.buildLocals(b, r);
+    P.buildTiers(b, r);
+    P.buildElements(b, r);
+  } });
+
+  // ---------------------------------------------------------------- validation
+  Kit.validate.register('art.palette', function (b, ctx) {
+    var recs = b.art && U.isObj(b.art.records) ? b.art.records : {};
+    var pals = U.isObj(recs.pal_) ? Object.keys(recs.pal_).map(function (k) { return recs.pal_[k]; }).filter(U.isObj) : [];
+    var masters = pals.filter(function (r) { return r.kind === 'master'; });
+    var m = masters[0], n = m && Array.isArray(m.entries) ? m.entries.length : 0, want = E.size(b.charter);
+    if (masters.length > 1) masters.slice(1).forEach(function (r) { ctx.add({ recordId: r.id, fieldPath: 'kind', message: 'A second master palette. Only ' + masters[0].id + ' is used.', level: 'warning' }); });
+    if (!m && pals.length) ctx.add({ recordId: pals[0].id, fieldPath: 'kind', message: 'Palettes exist but there is no master palette. Run Quick Build.', level: 'error' });
+    if (m) {
+      if (!Array.isArray(m.entries)) ctx.add({ recordId: m.id, fieldPath: 'entries', message: 'The master palette has no entries.', level: 'error' });
+      else {
+        m.entries.forEach(function (h, i) { if (!C.normHex(h) || C.normHex(h) !== h) ctx.add({ recordId: m.id, fieldPath: 'entries.' + i, message: 'Entry ' + i + ' is not a #rrggbb color.', level: 'error' }); });
+        if (n !== want) ctx.add({ recordId: m.id, fieldPath: 'entries', message: 'The master palette has ' + n + ' colors but the Charter asks for ' + want + '. Regenerate it on the Palette tab.', level: 'warning' });
+      }
+    }
+    function idxOk(v) { return typeof v === 'number' && v === Math.floor(v) && v >= 0 && v < n; }
+    pals.forEach(function (r) {
+      if (r.kind === 'local' || r.kind === 'tier') {
+        var s = r.slots;
+        if (!Array.isArray(s) || s.length < 2 || s.length > 32) { ctx.add({ recordId: r.id, fieldPath: 'slots', message: 'Slots must be a list of 2 to 32 master indices.', level: 'error' }); return; }
+        if (s[0] !== null) ctx.add({ recordId: r.id, fieldPath: 'slots.0', message: 'Slot 0 is transparent and must be empty.', level: 'error' });
+        s.forEach(function (v, i) { if (i && !idxOk(v)) ctx.add({ recordId: r.id, fieldPath: 'slots.' + i, message: 'Slot ' + i + ' points outside the master palette.', level: 'error' }); });
+        if (r.kind === 'tier' && r.collapsed) ctx.add({ recordId: r.id, fieldPath: 'slots', message: 'This tier palette is identical to a sibling tier at this palette size.', level: 'warning' });
+      } else if (r.kind !== 'master') ctx.add({ recordId: r.id, fieldPath: 'kind', message: 'Palette kind must be master, local, or tier.', level: 'error' });
+      var sj = r.subject;
+      if (sj && (sj.kind === 'chr' || sj.kind === 'fam')) {
+        var p = sj.kind + '_';
+        if (!(b.rules && U.isObj(b.rules[p]) && b.rules[p][sj.ref])) ctx.add({ recordId: r.id, fieldPath: 'subject.ref', message: 'This palette belongs to ' + sj.ref + ', which no longer exists.', level: 'warning' });
+      }
+    });
+    var keys = {};
+    elements(b).forEach(function (e) { keys[e.key] = 1; });
+    var fx = U.isObj(recs.efx_) ? Object.keys(recs.efx_).map(function (k) { return recs.efx_[k]; }).filter(U.isObj) : [];
+    fx.forEach(function (r) {
+      if (r.subject && r.subject.kind === 'element' && !keys[r.subject.ref]) ctx.add({ recordId: r.id, fieldPath: 'subject.ref', message: 'Element ' + r.subject.ref + ' is not in the Charter.', level: 'warning' });
+      if (m) {
+        if (!Array.isArray(r.palette) || r.palette.length !== 4 || !r.palette.every(idxOk)) ctx.add({ recordId: r.id, fieldPath: 'palette', message: 'An effect palette is four master indices.', level: 'error' });
+        if (!idxOk(r.flash) || !idxOk(r.tint)) ctx.add({ recordId: r.id, fieldPath: 'flash', message: 'Flash and tint must be master indices.', level: 'error' });
+      }
+    });
+  });
+  Kit.jump.register({
+    test: function (rid) { var p = Kit.ids.prefixOf(rid); return p === 'pal_' || p === 'efx_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: function (rid) { if (!Kit.go('palette')) return false; if (ART.WS.palette && ART.WS.palette.focus) ART.WS.palette.focus(rid); return true; }
+  });
+})();
+// === ART:PALETTE END ===
+// === WS:PALETTE BEGIN ===
+(function () {
+  'use strict';
+  // The Palette tab: master palette, colorways, tier palettes, and element palettes. WS:ART147 mounts it from ART.WS.
+  var U = Kit.util, el = U.el, esc = U.esc, E = ENGINE_RENDER.palette, C = ENGINE_RENDER.color, P = ART.palette;
+  ART.WS = ART.WS || {};
+  var SUBS = [['master', 'Master'], ['colorways', 'Colorways'], ['tiers', 'Tier palettes'], ['elements', 'Element palettes']];
+  var ui = { sub: 'master', sel: 0, focus: null };
+  function cur() { return Kit.bundle.current(); }
+  function touch(reason) { Kit.bundle.touch(reason || 'palette'); Kit.refreshValidation(); }
+  function button(label, icon, cls, fn) {
+    var b = el('button', 'btn' + (cls ? ' ' + cls : ''), (icon ? Kit.icon(icon) : '') + '<span>' + esc(label) + '</span>');
+    b.type = 'button'; b.addEventListener('click', fn); return b;
+  }
+  function chip(text, kind) { return '<span class="chip chip-' + (kind || 'muted') + '">' + esc(text) + '</span>'; }
+  function originChip(r) { return P.isKept(r) ? chip('edited', 'accent') : chip(r.origin || 'generated', 'muted'); }
+  function newSeed() { return (Math.random() * 4294967295) >>> 0; }
+
+  // ---------------------------------------------------------------- preview figures
+  // Twelve pixel wide stand ins, drawn from slots so a palette reads as a character or a creature before Phase 2's
+  // composer exists. Characters are slot indices in hex; X is the accent alias.
+  var DOLL = ['000011110000', '000156651000', '001566665100', '015666666510', '015633336510', '015313313510', '001333333100',
+    '000123321000', '000012210000', '001899998100', '018999999810', '138BCCCCB831', '13899XX99831', '012EEFFEE210',
+    '001899998100', '001888888100', '001881188100', '001BB11BB100', '001CC11CC100', '001111111100'];
+  var BLOB = ['000011110000', '000134431000', '001344443100', '013444444310', '013BD33BD310', '133BB33BB331', '133333333331',
+    '123899A98321', '122333333221', '125555555521', '011111111110'];
+  ART.PREVIEW = { DOLL: DOLL, BLOB: BLOB };
+  function figure(tmpl, slots, entries, accent, scale) {
+    var cv = document.createElement('canvas');
+    cv.width = tmpl[0].length; cv.height = tmpl.length;
+    cv.className = 'a7-fig';
+    cv.style.width = (cv.width * (scale || 4)) + 'px'; cv.style.height = (cv.height * (scale || 4)) + 'px';
+    cv.setAttribute('role', 'img');
+    var ctx = cv.getContext && cv.getContext('2d');
+    if (!ctx) return cv;
+    var acc = accent === 'metal' ? 'F' : 'C';
+    tmpl.forEach(function (row, y) {
+      for (var x = 0; x < row.length; x++) {
+        var ch = row[x] === 'X' ? acc : row[x], s = parseInt(ch, 16);
+        if (!s) continue;
+        var m = slots[s];
+        if (typeof m !== 'number' || !entries[m]) continue;
+        ctx.fillStyle = entries[m]; ctx.fillRect(x, y, 1, 1);
+      }
+    });
+    return cv;
+  }
+  ART.figure = figure;
+
+  // ---------------------------------------------------------------- small widgets
+  function swatch(hex, i, o) {
+    o = o || {};
+    var b = el('button', 'a7-sw');
+    b.type = 'button';
+    b.style.background = hex;
+    b.setAttribute('aria-label', (o.label || 'Color ' + i) + ', ' + hex);
+    b.title = (o.label || '#' + i) + ' ' + hex;
+    if (o.num) b.innerHTML = '<span class="n" style="color:' + C.contrastInk(hex) + '">' + i + '</span>';
+    if (o.pressed != null) b.setAttribute('aria-pressed', o.pressed ? 'true' : 'false');
+    if (o.onClick) b.addEventListener('click', o.onClick);
+    return b;
+  }
+  function strip(slots, entries, label) {
+    var d = el('div', 'a7-strip');
+    d.setAttribute('role', 'img');
+    d.setAttribute('aria-label', (label || 'Palette') + ': ' + slots.map(function (s) { return s === null ? 'clear' : entries[s] || '?'; }).join(', '));
+    slots.forEach(function (s) {
+      var i = document.createElement('i');
+      if (s === null) i.className = 'a7-clear';
+      else i.style.background = entries[s] || '#000';
+      d.appendChild(i);
+    });
+    return d;
+  }
+  function pickMaster(title, current) {
+    return new Promise(function (resolve) {
+      var entries = P.entries();
+      Kit.ui.dialog({
+        title: title || 'Choose a color', wide: true,
+        body: function (body, h) {
+          body.appendChild(el('p', 'muted', 'Choose a color from the master palette.'));
+          var g = el('div', 'a7-sw-grid');
+          entries.forEach(function (hex, i) { g.appendChild(swatch(hex, i, { num: true, pressed: i === current, onClick: function () { h.close(i); } })); });
+          body.appendChild(g);
+        },
+        actions: [{ label: 'Cancel', kind: 'ghost', value: null }],
+        onResult: function (v) { resolve(typeof v === 'number' ? v : null); }
+      });
+    });
+  }
+  function needMaster(host) {
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">No master palette yet</h3><p class="muted">Every other palette is fitted to the master. Build it from the bundle, or run Quick Build to fill every palette at once.</p>';
+    var row = el('div', 'btn-row');
+    row.appendChild(button('Build master palette', 'spark', 'btn-primary', function () { P.buildMaster(cur(), {}); touch('palette-master'); Kit.rerender(); }));
+    row.appendChild(button('Quick Build', 'spark', '', function () { ART.openQuickBuild(); }));
+    p.appendChild(row);
+    host.appendChild(p);
+  }
+  function rowFor(r) { var d = el('div', 'a7-row'); d.dataset.rid = r.id; if (ui.focus === r.id) d.classList.add('a7-hit'); return d; }
+
+  // ---------------------------------------------------------------- master
+  function viewMaster(host, repaint) {
+    var b = cur(), m = P.master(b), want = P.size(b);
+    if (!m) { needMaster(host); return; }
+    var entries = m.entries, use = P.usage(b);
+    if (ui.sel >= entries.length) ui.sel = 0;
+    var top = el('section', 'panel');
+    top.innerHTML = '<h3 class="section-h">Master palette</h3><dl class="kv"><dt>Colors</dt><dd>' + entries.length + ' of ' + want + ' (Charter)</dd><dt>Seed</dt><dd><code>' + esc(m.seed) + '</code></dd><dt>Origin</dt><dd>' + originChip(m) + '</dd></dl>' +
+      (entries.length !== want ? '<p class="msg msg-warning">The Charter asks for ' + want + ' colors. Regenerate to match it.</p>' : '') +
+      '<p class="muted">Built in OKLab from the Charter\'s element colors and every enemy family\'s colors, plus skin, hair, terrain, and metal anchors, then filled with hue shifted ramps. Editing one color recolors everything that uses it. Regenerating refits every palette to the new colors.</p>';
+    var row = el('div', 'btn-row');
+    row.appendChild(button('Regenerate', 'spark', '', function () {
+      Kit.ui.confirm({ title: 'Regenerate the master palette?', message: 'A new seed builds a new palette. Generated colorways, tier palettes, and element palettes refit to it. Palettes you edited keep their colors as closely as the new palette allows.', okLabel: 'Regenerate' }).then(function (ok) {
+        if (!ok) return;
+        P.buildMaster(b, { force: true, seed: newSeed() }); touch('palette-regenerate'); repaint();
+        Kit.ui.toast('Master palette regenerated.', 'ok');
+      });
+    }));
+    row.appendChild(button('Rebuild from bundle', 'check', 'btn-ghost', function () {
+      P.buildMaster(b, { force: true, seed: m.seed }); touch('palette-rebuild'); repaint();
+      Kit.ui.toast('Master palette rebuilt from the bundle with the same seed.', 'ok');
+    }));
+    top.appendChild(row);
+    host.appendChild(top);
+
+    var i = ui.sel, hex = entries[i], lch = C.hexToLch(hex) || [0, 0, 0], users = use[i] || [];
+    var det = el('section', 'panel a7-detail');
+    var big = el('div', 'a7-big'); big.style.background = hex; big.setAttribute('role', 'img'); big.setAttribute('aria-label', 'Selected color ' + hex);
+    det.appendChild(big);
+    var info = el('div');
+    info.innerHTML = '<h3 class="section-h">Color ' + i + '</h3><dl class="kv"><dt>Hex</dt><dd><code>' + esc(hex) + '</code></dd><dt>OKLCH</dt><dd>L ' + lch[0].toFixed(2) + ', C ' + lch[1].toFixed(3) + ', h ' + Math.round(lch[2]) + '</dd><dt>Used by</dt><dd>' +
+      (users.length ? users.length + ' palette' + (users.length === 1 ? '' : 's') + ': ' + users.slice(0, 5).map(function (id) { var r = ART.records.get(id); return esc(r ? r.name : id); }).join(', ') + (users.length > 5 ? ', and more' : '') : 'nothing yet') + '</dd></dl>';
+    var edit = el('div', 'color-row');
+    var ci = el('input'); ci.type = 'color'; ci.value = hex; ci.id = 'a7ColorPick'; ci.setAttribute('aria-label', 'Pick a new color for entry ' + i);
+    var ti = el('input', 'inp a7-hex'); ti.type = 'text'; ti.value = hex; ti.maxLength = 7; ti.setAttribute('aria-label', 'Hex value for entry ' + i); ti.spellcheck = false;
+    ci.addEventListener('input', function () { ti.value = ci.value; big.style.background = ci.value; });
+    ti.addEventListener('input', function () { var h = C.normHex(ti.value); if (h) { ci.value = h; big.style.background = h; } });
+    var ap = button('Apply', 'check', 'btn-primary', function () {
+      var h = C.normHex(ti.value);
+      if (!h) { Kit.ui.toast('Enter a color as #rrggbb.', 'warn'); return; }
+      if (P.setEntry(b, i, h)) { touch('palette-entry'); repaint(); }
+    });
+    edit.appendChild(ci); edit.appendChild(ti); edit.appendChild(ap);
+    info.appendChild(edit);
+    det.appendChild(info);
+    host.appendChild(det);
+
+    var gp = el('section', 'panel');
+    gp.appendChild(el('h3', 'section-h', 'All ' + entries.length + ' colors'));
+    var g = el('div', 'a7-sw-grid');
+    entries.forEach(function (h, j) { g.appendChild(swatch(h, j, { num: true, pressed: j === i, onClick: function () { ui.sel = j; repaint(); } })); });
+    gp.appendChild(g);
+    host.appendChild(gp);
+
+    var ap2 = el('section', 'panel');
+    ap2.appendChild(el('h3', 'section-h', 'Anchors'));
+    ap2.appendChild(el('p', 'muted', 'The colors the palette was built to honor, and how close the master comes to each. A distance under 0.02 is a visual match.'));
+    var list = el('div', 'a7-anchors');
+    (m.anchors || []).forEach(function (a) {
+      var n = E.nearest(entries, a.hex), d = C.distHex(a.hex, entries[n]);
+      var src = a.src ? nameOf(a.src) : '';
+      var r = el('div', 'a7-anchor');
+      r.innerHTML = '<span class="a7-dot" style="background:' + esc(a.hex) + '"></span><span class="a7-dot" style="background:' + esc(entries[n]) + '"></span><span>' + esc(a.role + (src ? ': ' + src : '')) + '</span><span class="muted">#' + n + ', ' + (d < 0.02 ? 'match' : 'distance ' + d.toFixed(2)) + '</span>';
+      list.appendChild(r);
+    });
+    ap2.appendChild(list);
+    host.appendChild(ap2);
+  }
+
+  // ---------------------------------------------------------------- shared palette editor (local and tier)
+  function openEditor(rid, repaintList) {
+    var b = cur();
+    Kit.ui.drawer({
+      title: 'Edit palette',
+      onClose: function () { if (repaintList) repaintList(); },
+      body: function (body, h) {
+        function paint() {
+          var r = ART.records.get(rid, b), entries = P.entries(b);
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This palette no longer exists.')); return; }
+          h.setTitle(r.name);
+          var tier = r.kind === 'tier', ramps = tier ? E.ENEMY_RAMPS : E.RAMPS;
+          var head = el('div', 'a7-edhead');
+          head.appendChild(figure(tier ? BLOB : DOLL, r.slots, entries, r.colorway && r.colorway.accent, 6));
+          var meta = el('div', 'a7-grow');
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(r.id) + '</code></dd><dt>For</dt><dd>' + esc(subjectLabel(r)) + '</dd><dt>Origin</dt><dd>' + originChip(r) + '</dd></dl>';
+          meta.appendChild(strip(r.slots, entries, r.name));
+          head.appendChild(meta);
+          body.appendChild(head);
+          Object.keys(ramps).forEach(function (mat) {
+            var row = el('div', 'a7-mat');
+            row.appendChild(el('div', 'a7-mat-l', esc(P.MAT_LABELS[mat] || mat)));
+            var st = el('div', 'a7-steps');
+            ramps[mat].forEach(function (slot, k) {
+              var idx = r.slots[slot];
+              st.appendChild(swatch(entries[idx] || '#000000', idx, { label: (P.MAT_LABELS[mat] || mat) + ' step ' + (k + 1), onClick: function () {
+                pickMaster((P.MAT_LABELS[mat] || mat) + ' step ' + (k + 1), idx).then(function (v) {
+                  if (v === null) return;
+                  if (tier) { r.slots[slot] = v; r.origin = 'user'; } else P.setStep(b, r, mat, k, v);
+                  touch('palette-step'); paint();
+                });
+              } }));
+            });
+            row.appendChild(st);
+            body.appendChild(row);
+          });
+          if (!tier) {
+            var ar = el('div', 'a7-mat');
+            var lab = el('label', 'a7-mat-l', 'Accent'); lab.htmlFor = 'a7Accent';
+            var sel = el('select', 'inp'); sel.id = 'a7Accent';
+            sel.innerHTML = '<option value="clothB">Cloth B</option><option value="metal">Metal</option>';
+            sel.value = r.colorway && r.colorway.accent === 'metal' ? 'metal' : 'clothB';
+            sel.addEventListener('change', function () { P.setAccent(b, r, sel.value); touch('palette-accent'); paint(); });
+            ar.appendChild(lab); ar.appendChild(sel);
+            body.appendChild(ar);
+          } else if (r.derivedFrom) {
+            body.appendChild(el('p', 'muted', 'Derived from ' + esc(subjectLabel(r)) + ', tier ' + r.derivedFrom.tier + ', hue shift ' + r.derivedFrom.hueShift + ' degrees' + (r.derivedFrom.rampOffset ? ', lightness offset ' + r.derivedFrom.rampOffset : '') + (r.derivedFrom.inverted ? ', inverted' : '') + '.'));
+          }
+          var row2 = el('div', 'btn-row');
+          if (!tier) row2.appendChild(button('Reroll', 'spark', '', function () { P.reroll(b, r); touch('palette-reroll'); paint(); }));
+          row2.appendChild(button('Reset to generated', 'check', 'btn-ghost', function () {
+            r.origin = 'procedural';
+            if (tier) P.buildTiers(b, {}); else P.refitLocal(b, r);
+            touch('palette-reset'); paint();
+          }));
+          body.appendChild(row2);
+        }
+        paint();
+      }
+    });
+  }
+  function nameOf(id) {
+    var b = cur(), p = Kit.ids.prefixOf(id), m = p && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : null;
+    return m && m[id] && m[id].name ? m[id].name : String(id);
+  }
+  function subjectLabel(r) {
+    var s = r.subject || {};
+    if (s.kind === 'chr' || s.kind === 'fam') return nameOf(s.ref);
+    if (s.kind === 'role' && /^npc:/.test(s.ref)) return 'NPC ' + s.ref.slice(4);
+    if (s.kind === 'role' && s.ref === 'villain') return 'The villain';
+    if (s.kind === 'element') return 'Element ' + s.ref;
+    return s.ref || '';
+  }
+
+  // ---------------------------------------------------------------- colorways
+  function viewColorways(host, repaint) {
+    var b = cur(), entries = P.entries(b), locals = P.locals(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Colorways</h3><p class="muted">Each character, the villain, and each NPC archetype gets a 16 slot local palette: slot 0 clear, 1 outline, then skin, hair, cloth A, cloth B (three steps each), and a two step metal ramp. Accent points at cloth B or metal. Colors come from each record\'s seed, and party members are spread around the hue wheel.</p>';
+    host.appendChild(intro);
+    if (!locals.length) { intro.appendChild(el('div', 'empty-line', 'No colorways yet. Run Quick Build.')); return; }
+    var groups = [['Party', function (r) { return r.subject && r.subject.kind === 'chr'; }], ['Villain', function (r) { return r.subject && r.subject.ref === 'villain'; }],
+      ['NPC archetypes', function (r) { return r.subject && /^npc:/.test(r.subject.ref); }]];
+    var placed = {};
+    groups.push(['Other', function (r) { return !placed[r.id]; }]);
+    groups.forEach(function (g) {
+      var rs = locals.filter(function (r) { return !placed[r.id] && g[1](r); });
+      if (!rs.length) return;
+      var p = el('section', 'panel');
+      p.appendChild(el('h3', 'section-h', esc(g[0])));
+      rs.forEach(function (r) {
+        placed[r.id] = 1;
+        var row = rowFor(r);
+        var fig = figure(DOLL, r.slots, entries, r.colorway && r.colorway.accent, 3);
+        fig.setAttribute('aria-label', r.name + ' preview');
+        row.appendChild(fig);
+        var mid = el('div', 'a7-grow');
+        mid.innerHTML = '<div class="a7-name"><strong>' + esc(r.name) + '</strong> ' + originChip(r) + '</div><div class="muted a7-small">' + esc(subjectLabel(r)) + '</div>';
+        mid.appendChild(strip(r.slots, entries, r.name));
+        row.appendChild(mid);
+        row.appendChild(button('Edit', 'edit', '', function () { openEditor(r.id, repaint); }));
+        p.appendChild(row);
+      });
+      host.appendChild(p);
+    });
+  }
+
+  // ---------------------------------------------------------------- tiers
+  function viewTiers(host, repaint) {
+    var b = cur(), entries = P.entries(b), tiers = P.tiers(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Tier palettes</h3><p class="muted">One palette per enemy family record. Day 146 stores each tier as its own family with shifted colors; each palette is fitted from those colors. When a shift lands on the same master colors as a sibling tier, which happens at small palette sizes, the ramps move in lightness and then invert so every tier stays distinct.</p>';
+    var row = el('div', 'btn-row');
+    row.appendChild(button('Regenerate tier palettes', 'spark', '', function () { var r = P.buildTiers(b, {}); touch('palette-tiers'); repaint(); Kit.ui.toast('Tier palettes: ' + r.created + ' new, ' + r.refreshed + ' refreshed, ' + r.kept + ' kept.', 'ok'); }));
+    intro.appendChild(row);
+    host.appendChild(intro);
+    if (!tiers.length) { intro.appendChild(el('div', 'empty-line', 'No tier palettes yet. The bundle needs enemy families, then Quick Build.')); return; }
+    var groups = {}, order = [];
+    tiers.forEach(function (r) { var k = (r.derivedFrom && r.derivedFrom.base) || r.id; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
+    order.forEach(function (k) {
+      var rs = groups[k].sort(function (a, z) { return ((a.derivedFrom || {}).tier || 0) - ((z.derivedFrom || {}).tier || 0); });
+      var base = cur().rules.fam_ && cur().rules.fam_[k];
+      var p = el('section', 'panel');
+      p.appendChild(el('h3', 'section-h', esc(base ? base.name : k)));
+      rs.forEach(function (r) {
+        var d = r.derivedFrom || {}, row2 = rowFor(r);
+        var fig = figure(BLOB, r.slots, entries, null, 4);
+        fig.setAttribute('aria-label', r.name + ' preview');
+        row2.appendChild(fig);
+        var mid = el('div', 'a7-grow');
+        mid.innerHTML = '<div class="a7-name"><strong>' + esc(subjectLabel(r)) + '</strong> ' + chip('Tier ' + (d.tier || 1), 'accent') + ' ' + originChip(r) +
+          (d.hueShift ? ' ' + chip('hue ' + (d.hueShift > 0 ? '+' : '') + d.hueShift) : '') + (d.rampOffset ? ' ' + chip('lightness ' + (d.rampOffset > 0 ? '+' : '') + d.rampOffset, 'warning') : '') +
+          (d.inverted ? ' ' + chip('inverted', 'warning') : '') + (r.collapsed ? ' ' + chip('same as a sibling', 'error') : '') + '</div>';
+        mid.appendChild(strip(r.slots, entries, r.name));
+        row2.appendChild(mid);
+        row2.appendChild(button('Edit', 'edit', '', function () { openEditor(r.id, repaint); }));
+        p.appendChild(row2);
+      });
+      host.appendChild(p);
+    });
+  }
+
+  // ---------------------------------------------------------------- elements
+  function viewElements(host, repaint) {
+    var b = cur(), entries = P.entries(b), fx = P.effects(b);
+    var els = (b.charter.ruleset && b.charter.ruleset.elements) || [];
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Element palettes</h3><p class="muted">Four steps per element (dark, base, light, hot), plus a flash and a tint, fitted from the Charter\'s element color. Particle shape and screen behavior give each element its identity even when the palette cannot.</p>' +
+      (entries.length <= 2 ? '<p class="msg msg-warning">At two colors every element palette is identical. Shape and screen carry the difference.</p>' : '');
+    host.appendChild(intro);
+    if (!fx.length) { intro.appendChild(el('div', 'empty-line', els.length ? 'No element palettes yet. Run Quick Build.' : 'The Charter defines no elements.')); return; }
+    var p = el('section', 'panel');
+    fx.forEach(function (r) {
+      var e = els.filter(function (x) { return x.key === (r.subject || {}).ref; })[0];
+      var row = rowFor(r);
+      var dot = el('span', 'a7-big a7-big-s'); dot.style.background = (e && e.color) || '#888'; dot.setAttribute('role', 'img'); dot.setAttribute('aria-label', 'Charter color ' + ((e && e.color) || 'none'));
+      row.appendChild(dot);
+      var mid = el('div', 'a7-grow');
+      mid.innerHTML = '<div class="a7-name"><strong>' + esc(r.name) + '</strong> ' + originChip(r) + '</div>';
+      var sw = el('div', 'a7-steps');
+      function slotBtn(label, get, set) {
+        var idx = get();
+        sw.appendChild(swatch(entries[idx] || '#000', idx, { label: r.name + ' ' + label, onClick: function () {
+          pickMaster(r.name + ': ' + label, idx).then(function (v) { if (v === null) return; set(v); r.origin = 'user'; touch('palette-efx'); repaint(); });
+        } }));
+      }
+      ['dark', 'base', 'light', 'hot'].forEach(function (lab, k) { slotBtn(lab, function () { return r.palette[k]; }, function (v) { r.palette[k] = v; }); });
+      sw.appendChild(el('span', 'a7-sep', ''));
+      slotBtn('flash', function () { return r.flash; }, function (v) { r.flash = v; });
+      slotBtn('tint', function () { return r.tint; }, function (v) { r.tint = v; });
+      mid.appendChild(sw);
+      var ctl = el('div', 'a7-ctl');
+      function sel(label, val, opts, set) {
+        var id = 'a7s' + U.rand36(5), w = el('label', 'a7-sel');
+        w.htmlFor = id; w.innerHTML = '<span>' + esc(label) + '</span>';
+        var s = el('select', 'inp'); s.id = id;
+        s.innerHTML = opts.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+        s.value = val;
+        s.addEventListener('change', function () { set(s.value); touch('palette-efx'); });
+        w.appendChild(s); ctl.appendChild(w);
+      }
+      r.particle = U.isObj(r.particle) ? r.particle : { shape: 'spark' };
+      sel('Particle', r.particle.shape, P.SHAPES, function (v) { r.particle.shape = v; });
+      sel('Screen', r.screen || 'none', P.SCREENS, function (v) { r.screen = v; });
+      mid.appendChild(ctl);
+      row.appendChild(mid);
+      p.appendChild(row);
+    });
+    host.appendChild(p);
+  }
+
+  var VIEWS = { master: viewMaster, colorways: viewColorways, tiers: viewTiers, elements: viewElements };
+  function render(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Palette</h2><p class="muted">The master palette every sprite, tile, and effect is drawn from, with the colorways, tier palettes, and element palettes fitted to it.</p>';
+    host.appendChild(head);
+    var tabs = el('div', 'a7-sub'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Palette sections');
+    var panel = el('div', 'a7-subpanel'); panel.setAttribute('role', 'tabpanel');
+    SUBS.forEach(function (s) {
+      var t = el('button', null, esc(s[1])); t.type = 'button'; t.setAttribute('role', 'tab'); t.dataset.sub = s[0];
+      t.addEventListener('click', function () { ui.sub = s[0]; ui.focus = null; paint(); });
+      tabs.appendChild(t);
+    });
+    host.appendChild(tabs); host.appendChild(panel);
+    function paint() {
+      Array.prototype.forEach.call(tabs.children, function (t) { t.setAttribute('aria-selected', t.dataset.sub === ui.sub ? 'true' : 'false'); });
+      U.clear(panel);
+      if (ui.sub !== 'master' && !P.master()) needMaster(panel);
+      else VIEWS[ui.sub](panel, paint);
+      if (ui.focus) {
+        var hit = panel.querySelector('[data-rid="' + ui.focus + '"]');
+        if (hit && hit.scrollIntoView) setTimeout(function () { try { hit.scrollIntoView({ block: 'center' }); } catch (e) {} }, 0);
+      }
+    }
+    paint();
+  }
+  function focus(rid) {
+    var r = ART.records.get(rid);
+    if (!r) return;
+    ui.focus = rid;
+    ui.sub = Kit.ids.prefixOf(rid) === 'efx_' ? 'elements' : r.kind === 'tier' ? 'tiers' : r.kind === 'local' ? 'colorways' : 'master';
+    Kit.rerender();
+  }
+  ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor };
+})();
+// === WS:PALETTE END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -3609,6 +4793,25 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
     });
   };
 
+  // ---------------------------------------------------------------- Quick Build
+  function qbSummary(rep) {
+    return Object.keys(rep.steps).map(function (k) { var s = rep.steps[k]; return k + ' ' + s.created + ' new, ' + s.refreshed + ' refreshed, ' + s.kept + ' kept'; }).join('; ');
+  }
+  ART.qbSummary = qbSummary;
+  ART.openQuickBuild = function () {
+    var b = cur();
+    if (ready(b) !== true) { Kit.ui.toast(ready(b), 'warn'); return; }
+    var go = ART.isEmpty(b) ? Promise.resolve(true) : Kit.ui.confirm({ title: 'Run Quick Build?', message: 'Quick Build fills every missing art record from the bundle and refreshes the generated ones. Records you edited, or accepted from Claude, are kept exactly as they are.', okLabel: 'Run Quick Build' });
+    go.then(function (ok) {
+      if (!ok) return;
+      var rep;
+      try { rep = ART.quickBuild.run(b); } catch (e) { console.error(e); Kit.ui.toast('Quick Build failed: ' + e.message, 'error', 8000); return; }
+      Kit.refreshValidation();
+      Kit.rerender();
+      Kit.ui.toast('Quick Build done in ' + rep.ms + ' ms: ' + rep.created + ' new, ' + rep.refreshed + ' refreshed, ' + rep.kept + ' kept.', 'ok', 6000);
+    });
+  };
+
   // ---------------------------------------------------------------- Start
   function kv(pairs) { return '<dl class="kv">' + pairs.map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + p[1] + '</dd>'; }).join('') + '</dl>'; }
   function loadDemo() {
@@ -3624,7 +4827,8 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
     var imp = el('button', 'btn btn-primary', Kit.icon('import') + '<span>Load a Day 146 bundle</span>'); imp.type = 'button';
     imp.addEventListener('click', function () { var f = document.getElementById('fileImport'); f.value = ''; f.click(); });
     var demo = el('button', 'btn', Kit.icon('spark') + '<span>Load the demo</span>'); demo.type = 'button'; demo.addEventListener('click', loadDemo);
-    var qb = el('button', 'btn', Kit.icon('spark') + '<span>Quick Build</span>'); qb.type = 'button'; qb.disabled = true; qb.title = 'Quick Build arrives with the palette pipeline in Phase 1.';
+    var qb = el('button', 'btn', Kit.icon('spark') + '<span>Quick Build</span>'); qb.type = 'button';
+    if (ready(b) !== true) { qb.disabled = true; qb.title = ready(b); } else qb.addEventListener('click', ART.openQuickBuild);
     var st = el('button', 'btn btn-ghost', Kit.icon('gear') + '<span>Settings</span>'); st.type = 'button'; st.addEventListener('click', Kit.settings.open);
     row.appendChild(imp); row.appendChild(demo); row.appendChild(qb); row.appendChild(st);
     head.appendChild(row);
@@ -3665,7 +4869,8 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       ['Version', esc(b.art.version)],
       ['Records', ART.PREFIXES.reduce(function (n, p) { return n + (r[p] ? Object.keys(r[p]).length : 0); }, 0)],
       ['Art opened', Kit.codex.isOpened('art') ? '<span class="chip chip-ok">yes</span>' : '<span class="chip chip-muted">no, until a Final export</span>'],
-      ['Forward fields filled', fw.length + (fw.length ? ' (' + fw.filter(function (f) { return !f.ok; }).length + ' unresolved)' : '')]
+      ['Forward fields filled', fw.length + (fw.length ? ' (' + fw.filter(function (f) { return !f.ok; }).length + ' unresolved)' : '')],
+      ['Master palette', ART.palette.master(b) ? ART.palette.entries(b).length + ' colors' : '<span class="chip chip-muted">not built</span>']
     ]) + '<div class="a7-prefixes">' + ART.PREFIXES.map(function (p) {
       var n = r[p] ? Object.keys(r[p]).length : 0;
       return '<span class="chip ' + (n ? 'chip-accent' : 'chip-muted') + '" title="' + esc(ART.TYPES[p].label) + '">' + esc(p) + ' ' + n + '</span>';
@@ -3735,7 +4940,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
       t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs) + '</td></tr>'; }).join('') + '</tbody>';
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);
@@ -3744,8 +4949,11 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 
   // ---------------------------------------------------------------- mount
   Kit.mount('start', { title: 'Start', icon: 'scroll', canEnter: function () { return true; }, render: renderStart });
+  // A workspace fence that has arrived registers ART.WS[key] = {render, focus}; the rest stay stubs until their phase.
   LATER.forEach(function (t) {
-    Kit.mount(t[0], { title: t[1], icon: t[2], canEnter: ready, render: function (host) { host.appendChild(Kit.ui.stub({ title: t[1], lead: t[3], status: 'Arrives in ' + t[4] + '.', icon: t[2] })); } });
+    var real = ART.WS && ART.WS[t[0]];
+    Kit.mount(t[0], { title: t[1], icon: t[2], canEnter: ready, focus: real && real.focus,
+      render: real ? real.render : function (host) { host.appendChild(Kit.ui.stub({ title: t[1], lead: t[3], status: 'Arrives in ' + t[4] + '.', icon: t[2] })); } });
   });
   Kit.mount('export', { title: 'Export', icon: 'export', canEnter: ready, render: renderExport });
   if (DEV) Kit.mount('dev', { title: 'Dev', icon: 'gear', canEnter: function () { return true; }, render: renderDev });
