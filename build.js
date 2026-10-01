@@ -15,6 +15,13 @@ const kitJs = fence(src146, '// === KIT:CORE BEGIN ===', '// === KIT:CORE END ==
 const demoJson = JSON.stringify(JSON.parse(R('test/out/demo-bundle.json')));
 const demoSrc = R('src/art-demo.js').replace('/*DEMO_JSON*/null', () => demoJson);
 const buildLog = R('src/build-log.txt');
+// ENGINE:RENDER is one fence in the output. Later phases keep their engine sections in their own source files, spliced in
+// order above the freeze line, so each phase's engine code stays readable on its own.
+const ENGINE_SECTIONS = ['src/engine-sprites.js'];
+const FREEZE = '  // ---------------------------------------------------------------- later phases insert sections above this line';
+const engineBase = R('src/engine-render.js');
+if (engineBase.split(FREEZE).length !== 2) throw new Error('ENGINE:RENDER freeze marker not found exactly once.');
+const engineRender = engineBase.replace(FREEZE, () => ENGINE_SECTIONS.map((f) => R(f).replace(/\s+$/, '') + '\n\n').join('') + FREEZE).trim();
 
 const artCss = `/* === ART:SHELL CSS BEGIN === */
 .size-btn { padding: 0 8px; }
@@ -54,6 +61,7 @@ ${buildLog.trim()}
 ${kitCss}
 ${artCss}
 ${R('src/art-palette.css').trim()}
+${R('src/art-sprites.css').trim()}
 </style>
 </head>
 <body>
@@ -94,9 +102,10 @@ ${kitJs}
 ${R('src/art-store.js').trim()}
 ${demoSrc.trim()}
 ${R('src/art-contract.js').trim()}
-${R('src/engine-render.js').trim()}
+${engineRender}
 ${R('src/art-palette.js').trim()}
 ${R('src/ws-palette.js').trim()}
+${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
 ${R('src/ws-art147.js').trim()}
 ${R('src/app-boot.js').trim()}
 </script>

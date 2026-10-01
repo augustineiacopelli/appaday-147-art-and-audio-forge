@@ -77,13 +77,74 @@ SESSION 1 / PHASE 1 (2026-10-01, Opus): PALETTE PIPELINE. COMPLETE.
   Known limits: a 64 color master has few colors in some hues, so cloth A and cloth B can share one step (soft penalty only).
     Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
 === END SESSION 1 ===
+SESSION 2 / PHASE 2 (2026-10-01, Opus): COMPOSER. COMPLETE.
+  Storage: ART:STORE wraps the public Kit.store get, set, and del. kit:draft, kit:slots, kit:suspend, and kit:ui map to
+    art147: keys, so a Day 146 tab never overwrites this forge; kit:settings (API key) stays shared on purpose. A refused
+    localStorage write goes to IndexedDB (db appaday-147, store kv) with a marker key art147:where:<key> and an in-memory
+    mirror so Kit.store.get stays synchronous; APP:BOOT awaits ART.storage.ready() (ART.booted) before restoreDraft. The
+    banner shows only when IndexedDB also refuses or is missing. A later successful localStorage write moves the value
+    back. One time adoption: a kit:draft that already holds art records is copied to art147:draft when none exists (never
+    moved or deleted). Start shows "Open the Day 146 draft" when Day 146 left a different draft in this browser.
+  Fences, in order: ... ENGINE:RENDER, ART:PALETTE, WS:PALETTE, ART:SPRITES, ART:PIXED, WS:SPRITES, WS:INTERFACE, WS:ART147,
+    APP:BOOT. CSS adds ART:SPRITES CSS. KIT:CORE still verbatim.
+  Engine: Phase 2 engine code lives in src/engine-sprites.js; build.js splices it into ENGINE:RENDER above the freeze line
+    (ENGINE_SECTIONS), so the output is still one fence that reads no host global. New sections: codec {ALPHABET, decode,
+    encode, validate}, sprite {LAYERS, ORDER, POSES, BODY_PLANS, LIBRARY, RIGS, RIG_PARAMS, GENERATORS, DIRS, FIELD_POSES,
+    BATTLE_POSES, framePx, compose, partFrame, mirror, resample, slotCell, spec, frame, base, slotsFor, rgba}, portrait
+    {EXPRESSIONS, size, compose, frame}, icon {GLYPHS, STATUS_SHAPES, size, compose, frame}, createCache(art, {size,
+    entries, makeCanvas, budget}) -> {sprite, portrait, icon, invalidate, stats, clear, budget}.
+  Composer: a raster of cell codes (material 1 outline, 2 to 6 the five ramps in slot order, 7 accent alias, 8 ground
+    shadow; high nibble a fixed step) and layer ids. Generators draw in unit coordinates scaled by tileSize / 16 (sprites,
+    32 for enemies, 48 for portraits, 16 for icons), so every size rasterizes natively. Shading: top and left edges of a
+    region (one material in one layer) light, bottom and right shade, a later layer on top casts shade; bands widen with
+    scale. Outline from the alpha mask; the outer pixel ring is reserved so it always fits. Slots resolve through the
+    shared 16 slot ramp positions (2-4, 5-7, 8-10, 11-13, 14-15) for every layout. Left mirrors right. Ground shadow is a
+    dither in slot 1. Two color masters: colorways map step 0 dark and the rest light (engine palette.colorway).
+  Humanoid: body plans slight, average, broad, small, tall define the skeleton (the body part is the anchor source); poses
+    are parameter sets (Phase 2: stand, stepA, stepB, idle; Phase 3 adds entries). Layer order per direction; up puts front
+    gear behind and back gear on top. Default library: 5 bodies, 3 heads, 7 hair, 6 torsos, 4 legs, 3 back, 6 front, and
+    one body per enemy rig (humanoid, quadruped, avian, serpent, ooze, construct, floater, plant): 42 prt_ records.
+  Records: prt_ {layer, rig, lib, gen {shape, params} | px {base, variants {"<pose>.<dir>": {w, h, d}}}}. spr_ {kind
+    character|villain|npc|enemy, mode field|battle, recipe {rig, parts {layer: prt_}, params {layer: {...}}, proportions,
+    look, accent} | shares spr_, pal, overrides {"<pose>.<dir>": {w, h, d}}}. A battle character sprite shares its field
+    sprite; Day 146 tier families share the base family sprite with their own tier pal_. Overrides on a sprite win over
+    inherited ones; left falls back to the mirrored right override. por_ {size 3T clamped 24..96, recipe {head, hair,
+    mouth, collar, accent}, pal (the colorway), expressions {name: {brow, tilt, eye}}, overrides}. ico_ {size, gen {glyph,
+    tint (element key or hex)}, pal (the icon pal_, layout icon, role ui:icons), tintRamp [m,m,m] swapped into slots
+    8-10, px}. Icons cover itm_, eqp_, abl_, sta_, and mat_ (subject kind mat added to ART.SUBJECT_KINDS).
+  Looks: characters from stats and weapon class (S.characterLook, seeded); villain and the ten NPC archetypes have fixed
+    looks; enemy rig from family name keywords, then type, then seed, with seeded parameter variation.
+  Quick Build 'sprites' (order 20): parts, sprites, portraits, icon palette, icons. Kept (user, claude) never change;
+    default records (parts, NPCs) are created once; procedural ones refresh from the bundle. Deleted defaults go on
+    art.settings.retired and are never recreated. ART.palette.locals now means humanoid colorways only (otherLocals has the
+    icon palette); ART.palette.onRebuild hooks let this fence refit icon palettes and tints after a master rebuild.
+  Validator art.sprites: kinds, modes, missing pal, shares loops, missing or wrong layer parts, codec errors in overrides
+    and px, unknown generators and glyphs, tintRamp range, orphaned subjects (warning), resampled px parts (warning).
+  UI: Sprites tab (Characters, Villain and NPCs, Bestiary, Portraits, Parts) with drawers for sprites (look, accent,
+    proportions, rig parameters, every frame), portraits (face recipe, expression sliders, per expression pixels), and
+    parts (parameters, duplicate, draw by hand, delete). Interface tab: Icons live; Window and font, Cursor, Touch skin,
+    Title are Phase 5 stubs. ART:PIXED: pencil, fill, pick, eraser, undo and redo, mirror drawing, grid, zoom, keyboard
+    shortcuts, pointer events with touch-action none. Overrides equal to the generated frame are not stored. ART.ui holds
+    the shared widgets (button, chip, origin, select, slider, toggle, figure, subtabs).
+  Self test: bake column now real (every frame, portrait expression, and icon through the engine cache). Demo: 220 frames
+    in about 60 ms, 0.65 MB cache. F2: 413 frames in about 0.3 s. F3 (64 px): about 0.8 s and 17.6 MB if everything were
+    kept; the UI cache is capped at 12 MB and evicts.
+  Tests: test/phase2.js 67 of 67 (adds fake-indexeddb for the fallback path), phase1 59 of 59, phase0 27 of 27 (phase0
+    switches off art.sprites since its envelope-only records are incomplete sprites by design). test/png.js writes
+    contact sheets for eyeballing.
+  Checked in a real browser (Chromium, 390 and 1280 wide, night and parchment): no horizontal scroll, pixel editor draws
+    by pointer and saves to art147:draft, kit:draft untouched.
+  Known limits: 8 px and two color fixtures are legible but abstract; portrait eye whites are not possible in the
+    humanoid slot map (no white ramp), so eyes are dark pupils with a skin highlight. Poses beyond stand, steps, and battle
+    idle arrive with the anm_ player in Phase 3.
+=== END SESSION 2 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
     Tilesets keep the full 32 slot alphabet.
   Enemy tiers: one spr_ and one pal_ per fam_ record. Day 146 tier families (name suffix " T2" and so on, own shifted
     palette) share the base family's recipe; the tiers array on enemy sprites is dropped.
-  Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
+  Storage (decided 2026-10-01 before Phase 2): own keys plus IndexedDB fallback. See Session 2.
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -449,6 +510,52 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
   .a7-anchors { grid-template-columns: minmax(0, 1fr); }
 }
 /* === ART:PALETTE CSS END === */
+/* === ART:SPRITES CSS BEGIN === */
+.a7-figs { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; flex: none; }
+.a7-figs .a7-fig { padding: 3px; }
+.a7-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.a7-note { padding: 10px 12px; margin: 8px 0; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--line2); }
+.a7-ctl-s { gap: 4px 10px; margin-top: 4px; }
+.a7-range { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); min-height: 44px; }
+.a7-range input { width: 120px; min-height: 44px; accent-color: var(--accent); }
+.a7-range output { min-width: 3.2ch; font: 600 .85rem/1 var(--font-mono); color: var(--ink); }
+.a7-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); }
+.a7-check input { width: 22px; height: 22px; accent-color: var(--accent); }
+.a7-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.a7-frames-l { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.a7-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.a7-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.a7-frame { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-height: 44px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--line2); background: var(--bg2); color: var(--ink); font: inherit; cursor: pointer; text-align: center; }
+.a7-frame:hover { border-color: var(--accent); }
+.a7-frame:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+.a7-frame.a7-hit { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.a7-frame .a7-fig { border: 0; padding: 0; background: none; }
+.a7-frame-l { font-size: .82rem; line-height: 1.25; color: var(--ink2); overflow-wrap: anywhere; }
+.a7-frame-l .chip { font-size: .7rem; }
+.a7-expr { display: flex; flex-direction: column; gap: 4px; }
+.a7-expr .a7-range input { width: 90px; }
+.a7-sublabel { margin: 12px 0 6px; font-weight: 800; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.a7-tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.a7-tier { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-tier.a7-hit { border-color: var(--accent); }
+.a7-tier .a7-fig { align-self: center; }
+.a7-pxdlg .dlg-body { display: flex; flex-direction: column; gap: 10px; }
+.a7-pxbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.a7-pxbar .btn { min-height: 44px; min-width: 44px; }
+.a7-tool[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.a7-pxwrap { overflow: auto; max-height: min(56vh, 560px); max-width: 100%; padding: 8px; border-radius: var(--radius-sm); background: var(--bg2); border: 1px solid var(--line2); text-align: center; }
+.a7-pxcanvas { display: inline-block; touch-action: none; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; vertical-align: top; }
+.a7-pxcanvas:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+.a7-pxpal { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
+.a7-pxpal .a7-sw[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+.a7-pxstatus { min-height: 1.3em; }
+@media (max-width: 520px) {
+  .a7-row > .a7-figs { width: 100%; }
+  .a7-frames { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .a7-range input { width: 96px; }
+  .a7-pxwrap { max-height: 46vh; }
+}
+/* === ART:SPRITES CSS END === */
 </style>
 </head>
 <body>
@@ -3174,7 +3281,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
     'efx_': { name: 'ArtEffect', label: 'Element effect' }, 'wov_': { name: 'ArtWeather', label: 'Weather overlay' },
     'ins_': { name: 'ArtInstrument', label: 'Instrument' }, 'prt_': { name: 'ArtPart', label: 'Sprite part' }
   };
-  ART.SUBJECT_KINDS = ['chr', 'fam', 'sta', 'wth', 'abl', 'itm', 'eqp', 'element', 'role'];
+  ART.SUBJECT_KINDS = ['chr', 'fam', 'sta', 'wth', 'abl', 'itm', 'eqp', 'mat', 'element', 'role'];
   ART.ORIGINS = ['default', 'procedural', 'user', 'claude'];
   // The eight forward fields Day 146 reserved for this forge (Phase 7 fills them; nothing else outside art is written).
   ART.FORWARD_FIELDS = [
@@ -3363,25 +3470,123 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
     });
     top.sort(function (x, y) { return y.size - x.size; });
     // Room under the 4.5 MB budget after everything else this origin keeps in localStorage (other drafts, slots).
-    var draft = 0;
-    try { draft = (localStorage.getItem('kit:draft') || '').length; } catch (e) {}
-    var other = Math.max(0, Kit.store.usage() - draft);
+    // A draft that has moved to IndexedDB is no longer squeezed by localStorage, so its room is the full budget.
+    var draft = 0, where = ART.storage.where('kit:draft');
+    try { draft = (localStorage.getItem('art147:draft') || '').length; } catch (e) {}
+    var other = where === 'idb' ? 0 : Math.max(0, Kit.store.usage() - draft);
     var room = Math.max(0, ART.LIMIT - other);
     var level = total >= room * 0.9 ? 'red' : total >= ART.AMBER ? 'amber' : 'ok';
-    return { total: total, ns: ns, top: top.slice(0, 25), other: other, room: room, level: level };
+    return { total: total, ns: ns, top: top.slice(0, 25), other: other, room: room, level: level, where: where };
   };
 
-  // ---------------------------------------------------------------- persistent storage banner
-  // KIT:CORE shows a toast when localStorage refuses a write. Phase 0 wraps the public Kit.store.set so a refused draft
-  // write also raises a banner that stays until a save succeeds or the bundle is exported.
-  var rawSet = Kit.store.set;
-  Kit.store.set = function (key, value) {
-    var ok = rawSet.apply(Kit.store, arguments);
-    if (key === 'kit:draft') ART.storageFailed(!ok);
-    return ok;
+  // ---------------------------------------------------------------- storage (decision of 2026-10-01, before Phase 2)
+  // Every AppADay app shares one origin and one localStorage quota, and Day 146 uses the same kit: keys. This forge keeps
+  // its draft, slots, suspend record, and UI state under its own art147: keys, so a Day 146 tab can never overwrite a Day
+  // 147 draft. The API key setting (kit:settings) stays shared on purpose. KIT:CORE reads and writes only through the
+  // public Kit.store methods, so wrapping them remaps every key without touching the fence.
+  // When localStorage refuses a write for a remapped key, the value goes to IndexedDB instead, a tiny marker in
+  // localStorage records where it lives, and an in-memory mirror keeps Kit.store.get synchronous. The banner prompting an
+  // export appears only when IndexedDB also refuses (or does not exist). APP:BOOT awaits ART.storage.ready() first.
+  var KEYMAP = { 'kit:draft': 'art147:draft', 'kit:slots': 'art147:slots', 'kit:suspend': 'art147:suspend', 'kit:ui': 'art147:ui' };
+  var WHERE = 'art147:where:', IDB_NAME = 'appaday-147', IDB_STORE = 'kv';
+  var raw = { get: Kit.store.get, set: Kit.store.set, del: Kit.store.del };
+  var mem = {}, idbKeys = {}, dbp = null;
+  function hasIdb() { try { return typeof indexedDB !== 'undefined' && !!indexedDB; } catch (e) { return false; } }
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (resolve, reject) {
+      var rq = indexedDB.open(IDB_NAME, 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore(IDB_STORE); };
+      rq.onsuccess = function () { resolve(rq.result); };
+      rq.onerror = function () { reject(rq.error); };
+    });
+    dbp.catch(function () { dbp = null; });
+    return dbp;
+  }
+  function idb(mode, fn) {
+    return db().then(function (d) {
+      return new Promise(function (resolve, reject) {
+        var tx = d.transaction(IDB_STORE, mode), st = tx.objectStore(IDB_STORE), out;
+        var rq = fn(st);
+        if (rq) rq.onsuccess = function () { out = rq.result; };
+        tx.oncomplete = function () { resolve(out); };
+        tx.onerror = tx.onabort = function () { reject(tx.error); };
+      });
+    });
+  }
+  function lsSet(k, s) { try { localStorage.setItem(k, s); return true; } catch (e) { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  ART.storage = {
+    KEYMAP: KEYMAP,
+    // Where a remapped key lives right now: 'local', 'idb', or 'none'.
+    where: function (key) { var k = KEYMAP[key] || key; if (idbKeys[k]) return 'idb'; try { return localStorage.getItem(k) != null ? 'local' : 'none'; } catch (e) { return 'none'; } },
+    hasIdb: hasIdb,
+    // Loads every key whose marker says IndexedDB into the mirror. Always resolves.
+    ready: function () {
+      var ks = [];
+      try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(WHERE) === 0) ks.push(k.slice(WHERE.length)); } } catch (e) {}
+      if (!ks.length) return Promise.resolve();
+      if (!hasIdb()) { ks.forEach(function (k) { lsDel(WHERE + k); }); return Promise.resolve(); }
+      return Promise.all(ks.map(function (k) {
+        return idb('readonly', function (st) { return st.get(k); }).then(function (v) {
+          if (typeof v === 'string') { mem[k] = v; idbKeys[k] = 1; } else lsDel(WHERE + k);
+        }, function () {});
+      })).then(function () {});
+    },
+    // The draft Day 146 left in this browser, if any (read only; this forge never writes kit:draft).
+    day146Draft: function () { return raw.get.call(Kit.store, 'kit:draft', null); }
   };
+  Kit.store.get = function (key, fallback) {
+    var k = KEYMAP[key];
+    if (!k) return raw.get.apply(Kit.store, arguments);
+    if (idbKeys[k]) { try { return JSON.parse(mem[k]); } catch (e) { return fallback; } }
+    return raw.get.call(Kit.store, k, fallback);
+  };
+  Kit.store.del = function (key) {
+    var k = KEYMAP[key];
+    if (!k) return raw.del.apply(Kit.store, arguments);
+    if (idbKeys[k]) { delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k); idb('readwrite', function (st) { return st.delete(k); }).catch(function () {}); }
+    return raw.del.call(Kit.store, k);
+  };
+  Kit.store.set = function (key, value) {
+    var k = KEYMAP[key];
+    if (!k) return raw.set.apply(Kit.store, arguments);
+    var s;
+    try { s = JSON.stringify(value); } catch (e) { return false; }
+    if (lsSet(k, s)) {
+      if (idbKeys[k]) { delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k); idb('readwrite', function (st) { return st.delete(k); }).catch(function () {}); }
+      if (key === 'kit:draft') ART.storageFailed(false);
+      return true;
+    }
+    // localStorage refused (quota). Free the stale copy so it is never read back, then fall back to IndexedDB.
+    lsDel(k);
+    if (!hasIdb() || !lsSet(WHERE + k, '1')) {
+      if (key === 'kit:draft') ART.storageFailed(true);
+      if (Kit.ui && Kit.ui.toast) Kit.ui.toast('Could not save to browser storage. Export your bundle now to keep your work.', 'error', 8000);
+      return false;
+    }
+    var first = !idbKeys[k];
+    mem[k] = s; idbKeys[k] = 1;
+    idb('readwrite', function (st) { return st.put(s, k); }).then(function () {
+      if (key === 'kit:draft') ART.storageFailed(false);
+      if (first && Kit.ui && Kit.ui.toast && key === 'kit:draft') Kit.ui.toast('This draft is now saved in IndexedDB, the browser\'s larger store, because localStorage is full.', 'warn', 7000);
+    }, function () {
+      delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k);
+      if (key === 'kit:draft') ART.storageFailed(true);
+    });
+    return true;
+  };
+  // One time adoption: Phase 0 and 1 builds saved this forge's work under the shared kit:draft. When there is no Day 147
+  // draft yet and that shared draft already carries art records, it is copied into art147:draft (never moved or deleted).
+  (function adopt() {
+    try {
+      if (localStorage.getItem('art147:draft') != null || localStorage.getItem(WHERE + 'art147:draft') != null) return;
+      var d = raw.get.call(Kit.store, 'kit:draft', null);
+      if (d && d.art && U.isObj(d.art.records) && Object.keys(d.art.records).length) lsSet('art147:draft', JSON.stringify(d));
+    } catch (e) {}
+  })();
   ART.storageFailed = function (failed) {
-    var el = document.getElementById('storeBanner');
+    var el = typeof document !== 'undefined' && document.getElementById('storeBanner');
     if (!el) return;
     el.hidden = !failed;
   };
@@ -3548,13 +3753,27 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           collapsed: tiers.filter(function (t) { return t.collapsed; }).length, offset: tiers.filter(function (t) { return t.derivedFrom && (t.derivedFrom.rampOffset || t.derivedFrom.inverted); }).length,
           effects: ART.palette.effects(copy).length };
       }
+      // Phase 2: bake every frame the forge owns (field poses in four directions, battle idle, every portrait
+      // expression, every icon) through the engine cache, without canvases, and report time and cache memory.
+      var bake = null;
+      if (ART.sprites && ART.palette.master(copy)) {
+        var tb = performance.now(), ER = ENGINE_RENDER, n = 0;
+        var k = ER.createCache(copy.art, { size: ART.sprites.tileSize(copy), entries: ART.palette.entries(copy), budget: 64e6 });
+        ART.sprites.sprites(copy).forEach(function (s) {
+          if (s.mode === 'battle') { k.sprite(s.id, 'idle', s.kind === 'enemy' ? 'right' : 'left'); n++; }
+          else ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+        });
+        ART.sprites.portraits(copy).forEach(function (p) { Object.keys(ER.portrait.EXPRESSIONS).forEach(function (e) { k.portrait(p.id, e); n++; }); });
+        ART.sprites.icons(copy).forEach(function (i) { k.icon(i.id); n++; });
+        bake = { ms: Math.round(performance.now() - tb), frames: n, bytes: k.stats().bytes };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
         quickBuild: qb, quickBuildMs: qbMs, palette: pal, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
-        bakeMs: 'pending (Phase 2)', cacheBytes: 'pending (Phase 2)'
+        bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
       };
     });
   };
@@ -3912,6 +4131,13 @@ var ENGINE_RENDER = (function () {
   // colorway(master, src) -> {skin, hair, clothA, clothB: [m, m, m], metal: [m, m], accent}
   function colorway(master, src) {
     var cw = { accent: src.accent === 'metal' ? 'metal' : 'clothB' };
+    // Two colors: every material reads as light with a dark shadow step, so figures stay readable against the outline
+    // instead of collapsing into dark silhouettes.
+    if (master.length <= 2) {
+      var dk = outline(master), lt = master.length > 1 ? 1 - dk : dk;
+      Object.keys(RAMPS).forEach(function (k) { cw[k] = RAMPS[k].map(function (_, j) { return j === 0 ? dk : lt; }); });
+      return cw;
+    }
     var taken = {};
     taken[outline(master)] = 1;
     Object.keys(RAMPS).forEach(function (k) {
@@ -3977,6 +4203,824 @@ var ENGINE_RENDER = (function () {
     tier: tier, element: element, collapse: collapse
   };
 
+  // ================================================================ PHASE 2: COMPOSER
+  // build.js splices this file into ENGINE:RENDER above the freeze line. It reads no host global either.
+
+  // ---------------------------------------------------------------- codec
+  // Pixel strings use 0 to 9 then A to V (indices 0 to 31). Rows are concatenated and the width lives on the containing
+  // object. A period followed by one alphabet character n is a run of n + 1 transparent pixels; longer runs chain.
+  var ALPHA = '0123456789ABCDEFGHIJKLMNOPQRSTUV', AIDX = {};
+  for (var ai = 0; ai < 32; ai++) AIDX[ALPHA[ai]] = ai;
+  function decodePx(str, w, h) {
+    var n = w * h, out = new Uint8Array(n), p = 0, s = String(str == null ? '' : str);
+    if (!(w > 0 && h > 0)) throw new Error('Width and height must be positive.');
+    for (var i = 0; i < s.length; i++) {
+      var ch = s[i];
+      if (ch === '.') {
+        var c = AIDX[s[i + 1]];
+        if (c === undefined) throw new Error('The run marker at character ' + i + ' has no count.');
+        p += c + 1; i++;
+        continue;
+      }
+      var v = AIDX[ch];
+      if (v === undefined) throw new Error('Character ' + JSON.stringify(ch) + ' at ' + i + ' is not in the pixel alphabet.');
+      if (p < n) out[p] = v;
+      p++;
+    }
+    if (p !== n) throw new Error('The pixels expand to ' + p + ', but ' + w + ' by ' + h + ' needs ' + n + '.');
+    return out;
+  }
+  function encodePx(arr) {
+    var s = '', i = 0, n = arr.length;
+    while (i < n) {
+      var v = arr[i] | 0;
+      if (v === 0) {
+        var j = i;
+        while (j < n && (arr[j] | 0) === 0) j++;
+        var run = j - i;
+        while (run > 0) {
+          if (run === 1) { s += '0'; run = 0; } else { var k = Math.min(run, 32); s += '.' + ALPHA[k - 1]; run -= k; }
+        }
+        i = j;
+      } else { s += ALPHA[clamp(v, 0, 31)]; i++; }
+    }
+    return s;
+  }
+  function validatePx(str, w, h, maxIndex) {
+    var a;
+    try { a = decodePx(str, w, h); } catch (e) { return { ok: false, error: e.message }; }
+    var mx = maxIndex == null ? 31 : maxIndex;
+    for (var i = 0; i < a.length; i++) if (a[i] > mx) return { ok: false, error: 'Pixel ' + i + ' uses index ' + a[i] + ', above the limit of ' + mx + '.' };
+    return { ok: true, pixels: a.length };
+  }
+  R.codec = { ALPHABET: ALPHA, decode: decodePx, encode: encodePx, validate: validatePx };
+
+  // ---------------------------------------------------------------- raster
+  // A composing raster holds a cell code and a layer id per pixel. Cell code: low four bits are the material (1 outline,
+  // 2 to 6 the five ramps in slot order, 7 the accent alias, 8 ground shadow), high four bits are a fixed ramp step plus
+  // one (0 means the shading pass decides). Drawing takes unit coordinates; s scales units to pixels, so generators
+  // rasterize natively at any tile size instead of resampling.
+  var M_OUT = 1, M_A = 2, M_B = 3, M_C = 4, M_D = 5, M_E = 6, M_ACC = 7, M_GROUND = 8;
+  function fx(m, step) { return m | ((step + 1) << 4); }
+  function Ras(w, h, s) {
+    this.w = w; this.h = h; this.s = s;
+    this.c = new Uint8Array(w * h); this.l = new Uint8Array(w * h);
+    this.layer = 1; this.clip = null;
+  }
+  // The outermost ring of pixels stays clear so the outline pass always has room, at any size.
+  Ras.prototype.ok = function (px, py) {
+    if (px < 1 || py < 1 || px >= this.w - 1 || py >= this.h - 1) return false;
+    var k = this.clip;
+    if (!k) return true;
+    var ux = (px + 0.5) / this.s, uy = (py + 0.5) / this.s;
+    return !(ux < k[0] || ux > k[2] || uy < k[1] || uy > k[3]);
+  };
+  Ras.prototype.put = function (px, py, code) { px |= 0; py |= 0; if (this.ok(px, py)) { var i = py * this.w + px; this.c[i] = code; this.l[i] = this.layer; } };
+  // A unit point as one pixel (used for eyes and studs, which must exist even at tiny sizes).
+  // Grows with scale so eyes read at large tile sizes too.
+  Ras.prototype.dot = function (x, y, code, tall) {
+    var n = Math.max(1, Math.floor(this.s * 0.8)), m = tall ? Math.max(1, Math.round(this.s * 1.4)) : n, px = Math.floor(x * this.s), py = Math.floor(y * this.s);
+    for (var j = 0; j < m; j++) for (var i = 0; i < n; i++) this.put(px + i, py + j, code);
+  };
+  Ras.prototype.rect = function (x0, y0, x1, y1, code) {
+    var s = this.s, a = Math.round(Math.min(x0, x1) * s), b = Math.round(Math.min(y0, y1) * s);
+    var c = Math.round(Math.max(x0, x1) * s), d = Math.round(Math.max(y0, y1) * s);
+    if (c <= a) c = a + 1;
+    if (d <= b) d = b + 1;
+    for (var y = b; y < d; y++) for (var x = a; x < c; x++) this.put(x, y, code);
+  };
+  Ras.prototype.ell = function (cx, cy, rx, ry, code) {
+    var s = this.s, X = cx * s, Y = cy * s, RX = Math.max(0.5, rx * s), RY = Math.max(0.5, ry * s), any = false;
+    for (var y = Math.floor(Y - RY); y <= Math.ceil(Y + RY); y++) {
+      for (var x = Math.floor(X - RX); x <= Math.ceil(X + RX); x++) {
+        var dx = (x + 0.5 - X) / RX, dy = (y + 0.5 - Y) / RY;
+        if (dx * dx + dy * dy <= 1.0001) { this.put(x, y, code); any = true; }
+      }
+    }
+    if (!any) this.put(Math.floor(X), Math.floor(Y), code);
+  };
+  Ras.prototype.poly = function (pts, code) {
+    var s = this.s, P = pts.map(function (p) { return [p[0] * s, p[1] * s]; }), y0 = Infinity, y1 = -Infinity, any = false;
+    P.forEach(function (p) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
+    for (var y = Math.floor(y0); y <= Math.ceil(y1); y++) {
+      var cy = y + 0.5, xs = [];
+      for (var i = 0, j = P.length - 1; i < P.length; j = i++) {
+        var a = P[i], b = P[j];
+        if ((a[1] > cy) !== (b[1] > cy)) xs.push(a[0] + (cy - a[1]) * (b[0] - a[0]) / (b[1] - a[1]));
+      }
+      xs.sort(function (p, q) { return p - q; });
+      for (var k = 0; k + 1 < xs.length; k += 2) {
+        for (var x = Math.ceil(xs[k] - 0.5); x < xs[k + 1] - 0.5; x++) { this.put(x, y, code); any = true; }
+      }
+    }
+    if (!any && P.length) { var m = P.reduce(function (o, p) { return [o[0] + p[0] / P.length, o[1] + p[1] / P.length]; }, [0, 0]); this.put(Math.floor(m[0]), Math.floor(m[1]), code); }
+  };
+  // A capsule: every pixel whose center lies within t / 2 units of the segment.
+  Ras.prototype.line = function (x0, y0, x1, y1, t, code) {
+    var s = this.s, ax = x0 * s, ay = y0 * s, bx = x1 * s, by = y1 * s, rr = Math.max(0.5, (t || 1) * s / 2);
+    var dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, any = false;
+    for (var y = Math.floor(Math.min(ay, by) - rr); y <= Math.ceil(Math.max(ay, by) + rr); y++) {
+      for (var x = Math.floor(Math.min(ax, bx) - rr); x <= Math.ceil(Math.max(ax, bx) + rr); x++) {
+        var px = x + 0.5, py = y + 0.5, u = L2 ? clamp(((px - ax) * dx + (py - ay) * dy) / L2, 0, 1) : 0;
+        var qx = ax + u * dx - px, qy = ay + u * dy - py;
+        if (qx * qx + qy * qy <= rr * rr + 0.0001) { this.put(x, y, code); any = true; }
+      }
+    }
+    if (!any) this.put(Math.floor(ax), Math.floor(ay), code);
+  };
+  Ras.prototype.next = function () { this.layer++; this.clip = null; return this; };
+
+  // Shading: a pixel whose top and left neighbors leave its region is lit, one whose bottom and right neighbors leave it
+  // is shaded, otherwise it takes the middle step. A region is one material within one layer. The light and shade bands
+  // widen with scale (one pixel per 1.5 units of scale) so large tile sizes keep readable form.
+  function shadeAndOutline(r, outline) {
+    var w = r.w, h = r.h, c = r.c, l = r.l, step = new Int8Array(w * h), band = Math.max(1, Math.round(r.s / 1.5));
+    // 0 inside the region, 1 open edge (empty or an earlier layer), 2 an edge under a later layer, which casts shade.
+    function off(i, x, y, dx, dy) {
+      for (var k = 1; k <= band; k++) {
+        var X = x + dx * k, Y = y + dy * k;
+        if (same(i, X, Y)) continue;
+        if (X < 0 || Y < 0 || X >= w || Y >= h) return 1;
+        var j = Y * w + X, mj = c[j] & 15;
+        return mj && mj !== M_GROUND && l[j] > l[i] ? 2 : 1;
+      }
+      return 0;
+    }
+    function same(i, x, y) {
+      if (x < 0 || y < 0 || x >= w || y >= h) return false;
+      var j = y * w + x, m = c[j] & 15;
+      return m && m !== M_GROUND && l[j] === l[i] && (m === (c[i] & 15));
+    }
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var i = y * w + x, m = c[i] & 15, f = c[i] >> 4;
+      if (!m || m === M_OUT || m === M_GROUND) { step[i] = -1; continue; }
+      if (f) { step[i] = f - 1; continue; }
+      var t = off(i, x, y, 0, -1), lf = off(i, x, y, -1, 0);
+      var hl = (t === 1 ? 1 : 0) + (lf === 1 ? 1 : 0), sh = (off(i, x, y, 0, 1) ? 1 : 0) + (off(i, x, y, 1, 0) ? 1 : 0) + (t === 2 ? 1 : 0);
+      var n = m === M_E ? 2 : 3;
+      step[i] = n === 3 ? (hl > sh ? 2 : sh > hl ? 0 : 1) : (hl > sh ? 1 : 0);
+    }
+    var edge = new Uint8Array(w * h);
+    if (outline !== false) {
+      for (var y2 = 0; y2 < h; y2++) for (var x2 = 0; x2 < w; x2++) {
+        var k = y2 * w + x2, mk = c[k] & 15;
+        if (mk && mk !== M_GROUND) continue;
+        var hit = false;
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+          var X = x2 + d[0], Y = y2 + d[1];
+          if (X < 0 || Y < 0 || X >= w || Y >= h) return;
+          var mm = c[Y * w + X] & 15;
+          if (mm && mm !== M_GROUND) hit = true;
+        });
+        if (hit) edge[k] = 1;
+      }
+    }
+    return { step: step, edge: edge };
+  }
+  // Slot resolution. Every 16 slot layout (humanoid, enemy, icon) keeps ramps at 2-4, 5-7, 8-10, 11-13, and 14-15.
+  var RAMP_SLOTS = [[2, 3, 4], [5, 6, 7], [8, 9, 10], [11, 12, 13], [14, 15]];
+  function resolve(r, sh, accent) {
+    var w = r.w, out = new Uint8Array(w * r.h);
+    for (var i = 0; i < out.length; i++) {
+      var m = r.c[i] & 15;
+      if (sh.edge[i]) { out[i] = 1; continue; }
+      if (!m) continue;
+      if (m === M_OUT) { out[i] = 1; continue; }
+      if (m === M_GROUND) { var x = i % w, y = (i - x) / w; out[i] = (x + y) & 1 ? 1 : 0; continue; }
+      var k = m === M_ACC ? (accent === 'metal' ? 4 : accent === 'clothA' ? 2 : 3) : m - 2;
+      var ramp = RAMP_SLOTS[k], st = clamp(sh.step[i], 0, ramp.length - 1);
+      out[i] = ramp[st];
+    }
+    return out;
+  }
+  // A hand drawn local slot back into a fixed cell, so px parts layer exactly like generated ones.
+  function slotCell(s) {
+    if (!s) return 0;
+    if (s === 1) return M_OUT;
+    if (s >= 14) return fx(M_E, s - 14);
+    return fx(2 + Math.floor((s - 2) / 3), (s - 2) % 3);
+  }
+  function mirror(idx, w, h) {
+    var out = new Uint8Array(idx.length);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) out[y * w + x] = idx[y * w + (w - 1 - x)];
+    return out;
+  }
+  function resample(idx, w, h, W, H) {
+    var out = new Uint8Array(W * H);
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) out[y * W + x] = idx[Math.min(h - 1, Math.floor(y * h / H)) * w + Math.min(w - 1, Math.floor(x * w / W))];
+    return out;
+  }
+
+  // ---------------------------------------------------------------- humanoid rig
+  var BODY_PLANS = {
+    slight: { sh: 3, hip: 2.3, leg: 6.4, torso: 6, head: 3.9, arm: 1.5, legW: 1.6 },
+    average: { sh: 3.5, hip: 2.6, leg: 6, torso: 6, head: 4, arm: 1.8, legW: 1.9 },
+    broad: { sh: 4.4, hip: 3.2, leg: 5.6, torso: 6.4, head: 4.1, arm: 2.3, legW: 2.3 },
+    small: { sh: 2.8, hip: 2.2, leg: 3.8, torso: 4.4, head: 4.3, arm: 1.5, legW: 1.6 },
+    tall: { sh: 3.6, hip: 2.6, leg: 7.4, torso: 6.8, head: 3.8, arm: 1.8, legW: 1.9 }
+  };
+  // Pose parameters. legs and arms are -1 to 1 per side (index 0 far or viewer left, 1 near or viewer right). Phase 3
+  // adds entries here; generators read only these fields.
+  var POSES = {
+    stand: { legs: [0, 0], arms: [0, 0], bob: 0 },
+    stepA: { legs: [1, -1], arms: [-1, 1], bob: 0.4 },
+    stepB: { legs: [-1, 1], arms: [1, -1], bob: 0.4 },
+    idle: { legs: [-0.6, 0.7], arms: [0.2, 0.8], bob: 0, crouch: 0.6, ready: true }
+  };
+  function framePx(size, prop) { var h = clamp(Number(prop && prop.height) || 1.5, 1, 2.5); return { w: size, h: Math.round(size * h) }; }
+  function skeleton(plan, prop, pose, dir, Wu, Hu) {
+    var bp = BODY_PLANS[plan && BODY_PLANS[plan] ? plan : 'average'];
+    if (plan && typeof plan === 'object') bp = plan;
+    var hs = clamp(Number(prop && prop.headScale) || 1, 0.6, 1.6), head = bp.head * hs;
+    var need = head * 1.8 + bp.torso + bp.leg + 2.2, k = Math.min(1.25, (Hu - 1.6) / need);
+    var side = dir === 'right', cx = Wu / 2, footY = Hu - 1.6, crouch = (pose.crouch || 0);
+    var L = bp.leg * k - crouch, T = bp.torso * k, r = head * k, bob = pose.bob || 0;
+    var hipY = footY - L + bob * 0.5, neckY = hipY - T, headCy = neckY - r * 0.82;
+    var sh = bp.sh * (side ? 0.62 : 1), hip = bp.hip * (side ? 0.66 : 1);
+    var J = { cx: cx, footY: footY, hipY: hipY, neckY: neckY, headCy: headCy, headR: r, sh: sh, hip: hip, armW: bp.arm, legW: bp.legW, dir: dir, side: side, ready: !!pose.ready, plan: bp, legLen: L };
+    J.legs = [0, 1].map(function (i) {
+      var v = pose.legs[i] || 0, hx = side ? cx + (i ? 0.4 : -0.4) : cx + (i ? 1 : -1) * hip * 0.55;
+      if (side) return { hx: hx, x: hx + v * 2.3, y: footY - (v > 0.3 ? 0.4 : 0), far: !i };
+      return { hx: hx, x: hx, y: footY - (v > 0 ? 1 : 0), far: false };
+    });
+    J.arms = [0, 1].map(function (i) {
+      var v = pose.arms[i] || 0, sx = side ? cx + (i ? 0.3 : -0.3) : cx + (i ? 1 : -1) * (sh + 0.1), sy = neckY + 1;
+      var len = T * 0.95;
+      if (side) {
+        if (pose.ready && i) return { sx: sx, sy: sy, hx: sx + len * 0.75, hy: sy + len * 0.45, far: false };
+        return { sx: sx, sy: sy, hx: sx + v * 2.4, hy: sy + len - Math.abs(v) * 0.4, far: !i };
+      }
+      return { sx: sx, sy: sy, hx: sx + (i ? 0.5 : -0.5), hy: sy + len - (v > 0 ? 0.8 : 0), far: false };
+    });
+    return J;
+  }
+  // Materials for the humanoid layout: 2 skin, 3 hair, 4 cloth A, 5 cloth B, 6 metal, 7 accent alias.
+  var SKN = M_A, HAI = M_B, CLA = M_C, CLB = M_D, MET = M_E, ACC = M_ACC;
+  function farc(code, far) { return far ? fx(code & 15, 0) : code; }
+  var HUMANOID = {};
+  HUMANOID['shadow.ground'] = function (r, J, p) { r.ell(J.cx, J.footY + 0.4, J.plan.sh * 1.05 * (p.width || 1), 0.9, M_GROUND); };
+  HUMANOID['body.plan'] = function (r, J) {
+    r.rect(J.cx - 0.8, J.neckY - 1, J.cx + 0.8, J.neckY + 1.2, SKN);
+    J.arms.forEach(function (a) { if (a.far) { r.line(a.sx, a.sy, a.hx, a.hy, J.armW, farc(SKN, 1)); } });
+    J.legs.forEach(function (g) { r.line(g.hx, J.hipY, g.x, g.y, J.legW, farc(SKN, g.far)); });
+    r.poly([[J.cx - J.sh, J.neckY + 0.4], [J.cx + J.sh, J.neckY + 0.4], [J.cx + J.hip, J.hipY + 0.5], [J.cx - J.hip, J.hipY + 0.5]], SKN);
+    J.arms.forEach(function (a) { if (!a.far) r.line(a.sx, a.sy, a.hx, a.hy, J.armW, SKN); r.ell(a.hx, a.hy + 0.2, J.armW * 0.55, J.armW * 0.55, farc(SKN, a.far)); });
+  };
+  function headShape(r, J, shape, code) {
+    var cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR;
+    if (shape === 'square') r.poly([[cx - R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.9, cy + R0 * 0.4], [cx + R0 * 0.45, cy + R0], [cx - R0 * 0.45, cy + R0], [cx - R0 * 0.9, cy + R0 * 0.4]], code);
+    else if (shape === 'long') r.ell(cx, cy + R0 * 0.1, R0 * 0.8, R0 * 1.1, code);
+    else r.ell(cx, cy, R0 * 0.92, R0, code);
+  }
+  HUMANOID['head.shape'] = function (r, J, p) {
+    headShape(r, J, p.shape, SKN);
+    var cy = J.headCy + J.headR * 0.18, R0 = J.headR;
+    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.42, cy, M_OUT, true); r.dot(J.cx + R0 * 0.42 - 0.01, cy, M_OUT, true); }
+    else if (J.dir === 'right') { r.dot(J.cx + R0 * 0.55, cy, M_OUT, true); r.dot(J.cx + R0 * 1.12, cy + R0 * 0.25, SKN); }
+  };
+  HUMANOID['hair.style'] = function (r, J, p) {
+    var st = p.style || 'short', cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR, code = st === 'covered' ? CLB : HAI;
+    if (st === 'none') return;
+    if (J.dir === 'up') {
+      if (st === 'cropped') { r.clip = [-99, -99, 99, cy + R0 * 0.2]; r.ell(cx, cy, R0 * 0.95, R0 * 1.02, code); r.clip = null; }
+      else r.ell(cx, cy, R0 * (st === 'covered' ? 1.1 : 0.98), R0 * (st === 'covered' ? 1.08 : 1.02), code);
+      if (st === 'long') r.rect(cx - R0 * 0.85, cy, cx + R0 * 0.85, J.neckY + 2.6, code);
+      if (st === 'tied') r.line(cx, cy + R0 * 0.6, cx, J.neckY + 2.4, 1.4, code);
+      if (st === 'covered') r.poly([[cx - R0 * 1.05, cy], [cx + R0 * 1.05, cy], [cx + J.sh * 0.9, J.neckY + 1.5], [cx - J.sh * 0.9, J.neckY + 1.5]], code);
+      if (st === 'spiked') for (var u = -1; u <= 1; u++) r.poly([[cx + u * R0 * 0.55 - R0 * 0.3, cy - R0 * 0.55], [cx + u * R0 * 0.55 + R0 * 0.3, cy - R0 * 0.55], [cx + u * R0 * 0.7, cy - R0 * 1.4]], code);
+      return;
+    }
+    var back = J.side ? -R0 * 0.18 : 0, depth = st === 'cropped' ? -0.45 : -0.08;
+    if (st === 'long') {
+      if (J.side) r.rect(cx - R0 * 1.0, cy - R0 * 0.2, cx - R0 * 0.1, J.neckY + 2.4, code);
+      else { r.rect(cx - R0 * 1.04, cy - R0 * 0.2, cx - R0 * 0.6, J.neckY + 2.4, code); r.rect(cx + R0 * 0.6, cy - R0 * 0.2, cx + R0 * 1.04, J.neckY + 2.4, code); }
+    }
+    if (st === 'covered') {
+      r.ell(cx + back, cy - R0 * 0.05, R0 * 1.12, R0 * 1.12, code);
+      r.poly([[cx - R0 * 1.05, cy + R0 * 0.2], [cx + R0 * 1.05, cy + R0 * 0.2], [cx + J.sh * 0.95, J.neckY + 1.6], [cx - J.sh * 0.95, J.neckY + 1.6]], code);
+      r.next(); headFace(r, J);
+      return;
+    }
+    r.clip = [-99, -99, 99, cy + R0 * depth];
+    r.ell(cx + back, cy - R0 * 0.08, R0 * 1.0, R0 * 0.98, code);
+    r.clip = null;
+    if (J.side) { r.clip = [-99, -99, cx - R0 * 0.05, cy + R0 * 0.5]; r.ell(cx + back, cy, R0, R0, code); r.clip = null; }
+    else if (st !== 'cropped') { r.rect(cx - R0 * 0.98, cy - R0 * 0.2, cx - R0 * 0.62, cy + R0 * 0.45, code); r.rect(cx + R0 * 0.62, cy - R0 * 0.2, cx + R0 * 0.98, cy + R0 * 0.45, code); }
+    if (st === 'spiked') for (var v = -1; v <= 1; v++) r.poly([[cx + v * R0 * 0.55 - R0 * 0.32, cy - R0 * 0.6], [cx + v * R0 * 0.55 + R0 * 0.32, cy - R0 * 0.6], [cx + v * R0 * 0.75 + back, cy - R0 * 1.45]], code);
+    if (st === 'tied') { if (J.side) r.line(cx - R0 * 0.9, cy - R0 * 0.2, cx - R0 * 1.5, cy + R0 * 1.1, 1.4, code); else r.ell(cx, cy - R0 * 1.0, R0 * 0.4, R0 * 0.35, code); }
+  };
+  // A hood leaves the face open: redraw it in its own layer so the shading reads.
+  function headFace(r, J) {
+    var cx = J.cx + (J.side ? 0.45 : 0), R0 = J.headR;
+    r.ell(cx, J.headCy + R0 * 0.2, R0 * 0.62, R0 * 0.7, SKN);
+    var cy = J.headCy + J.headR * 0.18;
+    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.32, cy, M_OUT); r.dot(J.cx + R0 * 0.32 - 0.01, cy, M_OUT); }
+    else if (J.dir === 'right') r.dot(J.cx + R0 * 0.62, cy, M_OUT);
+  }
+  function sleeves(r, J, len, code) {
+    J.arms.forEach(function (a) {
+      var ex = a.sx + (a.hx - a.sx) * len, ey = a.sy + (a.hy - a.sy) * len;
+      r.line(a.sx, a.sy, ex, ey, J.armW + 0.5, farc(code, a.far));
+    });
+  }
+  function chest(r, J, wid, bottom, flare, code) {
+    var s = J.sh * wid, hb = J.hip * flare;
+    r.poly([[J.cx - s, J.neckY + 0.3], [J.cx + s, J.neckY + 0.3], [J.cx + hb, bottom], [J.cx - hb, bottom]], code);
+  }
+  HUMANOID['torso.cloth'] = function (r, J, p) {
+    var st = p.style || 'tunic', front = J.dir === 'down';
+    if (st === 'robe') {
+      chest(r, J, 1.02, J.footY - 0.3, 1.6, CLA); sleeves(r, J, 1, CLA);
+      if (J.dir !== 'up') r.rect(J.cx - J.hip * 0.9, J.hipY - 0.6, J.cx + J.hip * 0.9, J.hipY + 0.3, ACC);
+    } else if (st === 'coat') {
+      chest(r, J, 1.05, J.hipY + J.legLen * 0.55, 1.45, CLA); sleeves(r, J, 1, CLA);
+      if (front) r.rect(J.cx - 0.35, J.neckY + 1.2, J.cx + 0.35, J.hipY + J.legLen * 0.5, CLB);
+      if (J.dir !== 'up') r.rect(J.cx - J.sh * 0.6, J.neckY + 0.2, J.cx + J.sh * 0.6, J.neckY + 1.0, ACC);
+    } else if (st === 'plate') {
+      sleeves(r, J, 1, CLA);
+      chest(r, J, 1.0, J.hipY + 0.6, 1.1, MET);
+      J.arms.forEach(function (a) { if (!J.side || !a.far) r.ell(a.sx, a.sy - 0.1, J.armW * 0.9, J.armW * 0.75, MET); });
+      r.rect(J.cx - J.hip * 1.05, J.hipY - 0.3, J.cx + J.hip * 1.05, J.hipY + 0.5, CLB);
+    } else if (st === 'bodysuit') {
+      chest(r, J, 0.92, J.hipY + 0.5, 1.0, CLA); sleeves(r, J, 1, CLA);
+      if (front) r.line(J.cx - J.sh * 0.6, J.neckY + 1, J.cx + J.sh * 0.5, J.hipY - 0.5, 0.8, ACC);
+    } else if (st === 'vest') {
+      chest(r, J, 1.0, J.hipY + 0.6, 1.1, CLA); sleeves(r, J, 0.45, CLA);
+      if (front) { r.rect(J.cx - J.sh, J.neckY + 0.5, J.cx - 0.5, J.hipY + 0.6, CLB); r.rect(J.cx + 0.5, J.neckY + 0.5, J.cx + J.sh, J.hipY + 0.6, CLB); }
+      else chest(r, J, 0.95, J.hipY + 0.6, 1.05, CLB);
+    } else {
+      chest(r, J, 1.0, J.hipY + 1.3, 1.25, CLA); sleeves(r, J, 0.5, CLA);
+      r.rect(J.cx - J.hip * 1.2, J.hipY - 0.4, J.cx + J.hip * 1.2, J.hipY + 0.4, CLB);
+    }
+  };
+  HUMANOID['legs.cloth'] = function (r, J, p) {
+    var st = p.style || 'trousers';
+    function shoes() { J.legs.forEach(function (g) { r.rect(g.x - J.legW * 0.6 + (J.side ? 0.4 : 0), g.y - 0.8, g.x + J.legW * 0.6 + (J.side ? 0.9 : 0), g.y + 0.25, farc(M_OUT, 0)); }); }
+    if (st === 'skirt') {
+      r.poly([[J.cx - J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.5, J.hipY + J.legLen * 0.55], [J.cx - J.hip * 1.5, J.hipY + J.legLen * 0.55]], CLB);
+      shoes();
+    } else if (st === 'longrobe') {
+      r.poly([[J.cx - J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.45, J.footY - 0.5], [J.cx - J.hip * 1.45, J.footY - 0.5]], CLA);
+      shoes();
+    } else {
+      J.legs.forEach(function (g) { r.line(g.hx, J.hipY - 0.3, g.x, g.y - 0.6, J.legW * 1.12, farc(CLB, g.far)); });
+      r.rect(J.cx - J.hip * 1.02, J.hipY - 0.5, J.cx + J.hip * 1.02, J.hipY + 0.6, CLB);
+      if (st === 'boots') J.legs.forEach(function (g) { r.line(g.x, g.y - J.legLen * 0.38, g.x + (J.side ? 0.4 : 0), g.y - 0.2, J.legW * 1.25, farc(ACC, g.far)); });
+      else shoes();
+    }
+  };
+  HUMANOID['back.gear'] = function (r, J, p) {
+    var st = p.style || 'cape', s = J.sh, dx = J.side ? -1.2 : 0;
+    if (st === 'cape') {
+      if (J.side) r.poly([[J.cx + 0.3, J.neckY + 0.2], [J.cx - 0.8, J.neckY + 0.2], [J.cx - s * 1.3 - 1.8, J.hipY + J.legLen * 0.75], [J.cx - 0.4, J.hipY + J.legLen * 0.75]], CLB);
+      else r.poly([[J.cx - s, J.neckY + 0.2], [J.cx + s, J.neckY + 0.2], [J.cx + s * 1.35, J.hipY + J.legLen * 0.75], [J.cx - s * 1.35, J.hipY + J.legLen * 0.75]], CLB);
+    }
+    else if (st === 'pack') r.rect(J.cx - s * 0.75 + dx * 1.3, J.neckY + 0.4 - (J.dir === 'down' ? 1 : 0), J.cx + s * 0.75 + dx * 0.4, J.hipY - 0.2, CLB);
+    else r.line(J.cx - s - 0.5 + dx, J.hipY + 1.5, J.cx + s + 1 + dx, J.neckY - J.headR * 1.2, 1.1, MET);
+  };
+  HUMANOID['front.gear'] = function (r, J, p) {
+    var st = p.style || 'bare';
+    if (st === 'bare') return;
+    var hi = J.side ? 1 : J.dir === 'up' ? 1 : 0, off = 1 - hi, h = J.arms[hi], o = J.arms[off], hx = h.hx, hy = h.hy + 0.2;
+    var up = J.ready, dir = J.dir;
+    if (st === 'blade') {
+      var tx = up ? hx + 4.6 : hx + (dir === 'right' ? 1.4 : dir === 'up' ? 1.2 : -1.4), ty = up ? hy - 4.8 : hy + 5.2;
+      r.line(hx, hy, tx, ty, 1.05, MET);
+      r.line(hx - (up ? 0.8 : 1), hy + (up ? 0.8 : 0), hx + (up ? 0.8 : 1), hy - (up ? 0.8 : 0), 0.9, ACC);
+    } else if (st === 'staff') {
+      r.line(hx, hy + 3, hx + (up ? 1.5 : 0), hy - 8.5, 1.05, ACC);
+      r.ell(hx + (up ? 1.5 : 0), hy - 8.8, 1.1, 1.1, MET);
+    } else if (st === 'shield') {
+      var sx = J.side ? J.cx + J.sh + 1.2 : o.hx + (off ? 0.4 : -0.4), sy = J.side ? J.neckY + J.plan.torso * 0.55 : o.hy - 1.4;
+      r.ell(sx, sy, J.side ? 1.1 : 1.9, 2.3, MET);
+      r.dot(sx, sy, ACC);
+    } else if (st === 'tool') {
+      var ex = up ? hx + 3 : hx, ey = up ? hy - 3.6 : hy + 3.6;
+      r.line(hx, hy, ex, ey, 0.9, ACC);
+      r.line(ex - 1.3, ey, ex + 1.3, ey, 1.6, MET);
+    } else if (st === 'device') {
+      var bx = hx + (J.side ? 0.6 : 0);
+      for (var t = 0; t < 6; t++) {
+        var a0 = -1.1 + t * 0.44, a1 = a0 + 0.44, rr = 4.2;
+        r.line(bx + Math.cos(a0) * 1.4, hy + Math.sin(a0) * rr, bx + Math.cos(a1) * 1.4, hy + Math.sin(a1) * rr, 0.9, ACC);
+      }
+      r.line(bx + Math.cos(-1.1) * 1.4, hy + Math.sin(-1.1) * 4.2, bx + Math.cos(1.54) * 1.4, hy + Math.sin(1.54) * 4.2, 0.6, M_OUT);
+    }
+  };
+  // Each default part generator: shape key, the layer it fills, and its parameters.
+  var LAYERS = ['shadow', 'back', 'body', 'legs', 'torso', 'head', 'hair', 'front'];
+  var ORDER = {
+    down: ['shadow', 'back', 'body', 'legs', 'torso', 'head', 'hair', 'front'],
+    right: ['shadow', 'back', 'body', 'legs', 'torso', 'head', 'hair', 'front'],
+    up: ['shadow', 'front', 'body', 'legs', 'torso', 'head', 'hair', 'back']
+  };
+  var GEN_KEY = { shadow: 'shadow.ground', body: 'body.plan', head: 'head.shape', hair: 'hair.style', torso: 'torso.cloth', legs: 'legs.cloth', back: 'back.gear', front: 'front.gear' };
+  var LIBRARY = [];
+  function lib(layer, style, label, params) { LIBRARY.push({ key: layer + '.' + style, layer: layer, rig: 'humanoid', label: label, gen: { shape: GEN_KEY[layer], params: params } }); }
+  Object.keys(BODY_PLANS).forEach(function (k) { lib('body', k, k.charAt(0).toUpperCase() + k.slice(1) + ' build', { plan: k }); });
+  [['round', 'Round head'], ['square', 'Square head'], ['long', 'Long head']].forEach(function (x) { lib('head', x[0], x[1], { shape: x[0] }); });
+  [['short', 'Short hair'], ['long', 'Long hair'], ['tied', 'Tied hair'], ['spiked', 'Spiked hair'], ['cropped', 'Cropped hair'], ['covered', 'Hood'], ['none', 'No hair']].forEach(function (x) { lib('hair', x[0], x[1], { style: x[0] }); });
+  [['tunic', 'Tunic'], ['robe', 'Robe'], ['coat', 'Coat'], ['plate', 'Plate'], ['bodysuit', 'Bodysuit'], ['vest', 'Vest']].forEach(function (x) { lib('torso', x[0], x[1], { style: x[0] }); });
+  [['trousers', 'Trousers'], ['skirt', 'Skirt'], ['longrobe', 'Long robe'], ['boots', 'Boots']].forEach(function (x) { lib('legs', x[0], x[1], { style: x[0] }); });
+  [['cape', 'Cape'], ['pack', 'Pack'], ['item', 'Long carried item']].forEach(function (x) { lib('back', x[0], x[1], { style: x[0] }); });
+  [['blade', 'Blade'], ['staff', 'Staff'], ['shield', 'Shield'], ['tool', 'Tool'], ['device', 'Ranged device'], ['bare', 'Bare hand']].forEach(function (x) { lib('front', x[0], x[1], { style: x[0] }); });
+
+  // ---------------------------------------------------------------- enemy rigs (battle, facing right, 2 by 2 tiles)
+  // Materials for the enemy layout: 2 body, 3 shade, 4 accent, 5 eye, 6 metal.
+  var BOD = M_A, SHD = M_B, EAC = M_C, EYE = M_D, EMT = M_E;
+  function eyes(r, x, y, n, sz) {
+    for (var i = 0; i < n; i++) { var ex = x - i * (sz * 2.4 + 0.6); r.ell(ex, y, sz, sz * 1.15, fx(EYE, 2)); r.dot(ex + sz * 0.35, y + sz * 0.2, M_OUT); }
+  }
+  var ENEMY = {};
+  ENEMY.ooze = function (r, p, rnd) {
+    var w = 13 * (p.width || 0.85), hgt = 20 * (p.height || 0.7), base = 29.5, cx = 16;
+    r.clip = [-99, -99, 99, base];
+    r.ell(cx, base, w, hgt, BOD);
+    r.clip = null;
+    if (p.crest) r.poly([[cx - 2, base - hgt + 1], [cx + 2, base - hgt + 1], [cx + 0.5, base - hgt - 4]], BOD);
+    r.next(); r.clip = [-99, base - 2.4, 99, base]; r.ell(cx, base, w, hgt, SHD); r.clip = null;
+    for (var i = 0; i < (p.drip == null ? 1 : p.drip); i++) r.ell(cx - w * 0.5 + rnd() * w, base + 0.4, 1.1, 1.3, SHD);
+    r.next(); r.ell(cx - w * 0.45, base - hgt * 0.62, w * 0.16, hgt * 0.1, fx(EAC, 2));
+    r.next(); eyes(r, cx + w * 0.45, base - hgt * 0.5, p.eyes == null ? 2 : p.eyes, 1.5);
+    r.line(cx + w * 0.05, base - hgt * 0.22, cx + w * 0.5, base - hgt * 0.22, 0.7, M_OUT);
+  };
+  ENEMY.floater = function (r, p, rnd) {
+    var sz = 7 * (p.size || 0.9) + 2, cx = 15, cy = 13;
+    var n = p.tails == null ? 3 : p.tails;
+    for (var i = 0; i < n; i++) {
+      var a = (i - (n - 1) / 2) * 0.55, len = 9 + rnd() * 4;
+      r.line(cx - Math.sin(a) * 2, cy + sz * 0.5, cx - 2 - Math.sin(a) * len * 0.6, cy + sz * 0.6 + len, 3.2 - i * 0.2, EAC);
+    }
+    r.next(); r.ell(cx, cy, sz, sz, BOD);
+    r.next(); r.ell(cx - sz * 0.25, cy - sz * 0.15, sz * 0.5, sz * 0.5, fx(EAC, 2));
+    r.next(); eyes(r, cx + sz * 0.45, cy + 0.5, p.eyes == null ? 2 : p.eyes, 1.2);
+  };
+  ENEMY.quadruped = function (r, p, rnd) {
+    var sz = p.size || 0.85, leg = 4 + 5 * (p.legLen == null ? 0.5 : p.legLen), base = 29.5, by = base - leg - 3.5;
+    var bx = 13, bw = 9.5 * sz, bh = 4.6 * sz, hx = bx + bw + 1.5 + 2 * (p.neck || 0.5), hy = by - 4 - 2 * (p.neck || 0.5);
+    [[bx - bw * 0.55, 1], [bx + bw * 0.55, 1]].forEach(function (q) { r.line(q[0] + 1.2, by + 1, q[0] + 1.8, base, 2.1, fx(SHD, 0)); });
+    if (p.tail !== 0) r.line(bx - bw * 0.85, by - 1, bx - bw - 3, by - 5 - rnd() * 2, 1.8, SHD);
+    r.next(); r.ell(bx, by, bw, bh, BOD);
+    if (p.mane) r.ell(bx + bw * 0.55, by - bh * 0.5, bw * 0.4, bh * 0.75, EAC);
+    r.line(bx + bw * 0.6, by - 1, hx - 1, hy + 1, 3.6 * sz, BOD);
+    [[bx - bw * 0.55], [bx + bw * 0.55]].forEach(function (q) { r.line(q[0], by + 1.5, q[0] + 0.4, base, 2.3, BOD); });
+    r.next(); r.ell(hx, hy, 3.6 * sz + 0.4, 3.1 * sz + 0.4, BOD); r.ell(hx + 3.2 * sz, hy + 1.3, 2.3, 1.5, BOD);
+    if (p.ears !== 0) r.poly([[hx - 2.2, hy - 1.5], [hx - 0.2, hy - 2.5], [hx - 2.4, hy - 5.8]], BOD);
+    if (p.horns) r.line(hx - 0.5, hy - 2.6, hx - 3.5, hy - 6.5, 1.3, EMT);
+    r.next(); r.ell(hx + 0.6, hy - 0.4, 0.9, 0.9, fx(EYE, 2)); r.dot(hx + 0.9, hy - 0.3, M_OUT);
+    r.dot(hx + 5.2 * sz, hy + 1.2, M_OUT);
+  };
+  ENEMY.avian = function (r, p) {
+    var base = 29.5, bx = 14, by = 18, span = p.wingspan == null ? 1 : p.wingspan, hx = 21.5, hy = 10.5;
+    r.poly([[bx - 2, by - 2], [bx + 3, by - 3], [bx - 6 * span, by - 12 * span], [bx - 10 * span, by - 6]], fx(EAC, 0));
+    r.line(bx, by + 4, bx - 0.5, base, 1, EMT); r.line(bx + 2.5, by + 4, bx + 3, base, 1, EMT);
+    r.next(); r.poly([[bx - 6, by + 1], [bx - 12, by + 1 + 2 * (p.tail == null ? 1 : p.tail)], [bx - 11, by - 2]], SHD);
+    r.ell(bx, by, 6.6, 5, BOD); r.line(bx + 3, by - 3, hx - 1, hy + 1.5, 3.2, BOD);
+    r.next(); r.ell(hx, hy, 3.6, 3.3, BOD);
+    r.poly([[hx + 2.8, hy - 0.4], [hx + 2.8, hy + 1.6], [hx + 4 + 2.5 * (p.beak == null ? 1 : p.beak), hy + 0.8]], EMT);
+    r.next(); r.poly([[bx - 4, by - 1], [bx + 4, by - 2], [bx - 3 * span, by - 10 * span], [bx - 8 * span, by - 5]], EAC);
+    r.next(); r.ell(hx + 0.8, hy - 0.6, 0.9, 0.9, fx(EYE, 2)); r.dot(hx + 1.1, hy - 0.5, M_OUT);
+  };
+  ENEMY.serpent = function (r, p) {
+    var coils = p.coils == null ? 2 : p.coils, pts = [], n = 18;
+    for (var i = 0; i <= n; i++) {
+      var t = i / n, x = 3 + t * 20, y = 27 - t * 13 - Math.sin(t * Math.PI * coils) * 3.5;
+      pts.push([x, y, 2.2 + t * 4.4 * (p.length || 1)]);
+    }
+    for (var j = 1; j < pts.length; j++) r.line(pts[j - 1][0], pts[j - 1][1], pts[j][0], pts[j][1], pts[j][2], BOD);
+    r.next();
+    for (var k = 2; k < pts.length - 1; k += 2) r.line(pts[k][0], pts[k][1] + pts[k][2] * 0.32, pts[k + 1][0], pts[k + 1][1] + pts[k + 1][2] * 0.32, Math.max(0.8, pts[k][2] * 0.35), EAC);
+    var h = pts[n];
+    r.next(); if (p.hood) r.ell(h[0] - 1, h[1] - 0.5, 3.2, 4.6, SHD);
+    r.ell(h[0] + 1.5, h[1] - 1, 3.6, 2.6, BOD);
+    r.line(h[0] + 4.8, h[1] - 0.4, h[0] + 7.5, h[1] + 0.6, 0.6, EAC);
+    r.next(); r.ell(h[0] + 2.2, h[1] - 2, 0.85, 0.85, fx(EYE, 2)); r.dot(h[0] + 2.5, h[1] - 1.9, M_OUT);
+  };
+  ENEMY.construct = function (r, p) {
+    var b = p.bulk || 1, base = 29.5, cx = 15;
+    r.rect(cx - 4.5, base - 7, cx - 1.5, base, fx(SHD, 0)); r.rect(cx + 1.5, base - 7, cx + 4.5, base, SHD);
+    if (p.arms !== 0) r.rect(cx - 9 * b, base - 18, cx - 6 * b, base - 7, fx(SHD, 0));
+    r.next(); r.rect(cx - 6.5 * b, base - 19, cx + 6.5 * b, base - 6, BOD);
+    r.rect(cx - 3, base - 25, cx + 3.5, base - 19, BOD);
+    if (p.arms !== 0) r.rect(cx + 6 * b, base - 18, cx + 9 * b, base - 7, BOD);
+    r.next(); r.rect(cx - 4.5 * b, base - 16, cx + 4.5 * b, base - 13, EMT);
+    r.dot(cx - 5 * b, base - 8, EMT); r.dot(cx + 5 * b, base - 8, EMT);
+    r.next(); r.rect(cx - 1, base - 23, cx + 3, base - 21.6, p.glow === 0 ? EYE : fx(EYE, 2));
+  };
+  ENEMY.plant = function (r, p, rnd) {
+    var base = 29.5, cx = 15, top = base - 20 * (p.height || 0.75);
+    r.line(cx, base, cx + 1, top + 3, 2.2, SHD);
+    for (var i = 0; i < 3; i++) r.line(cx, base - 0.3, cx - 4 + i * 4, base + 0.4, 1, fx(SHD, 0));
+    r.next(); r.poly([[cx, base - 7], [cx - 7, base - 11], [cx - 2, base - 6]], EAC); r.poly([[cx + 1, base - 10], [cx + 8, base - 14], [cx + 3, base - 9]], EAC);
+    var n = p.petals == null ? 5 : p.petals;
+    r.next();
+    for (var k = 0; k < n; k++) { var a = k / n * Math.PI * 2 + rnd() * 0.3; r.ell(cx + 1 + Math.cos(a) * 5, top + Math.sin(a) * 4.6, 2.6, 2.2, EAC); }
+    r.next(); r.ell(cx + 1, top, 4.4, 4, BOD);
+    r.line(cx + 2, top + 1.2, cx + 5, top + 1.2, 0.9, M_OUT); r.dot(cx + 3, top + 1.9, EMT); r.dot(cx + 4.4, top + 1.9, EMT);
+    r.next(); r.ell(cx + 2.6, top - 1.6, 0.8, 0.8, fx(EYE, 2));
+  };
+  ENEMY.humanoid = function (r, p) {
+    var base = 29.5, cx = 14, b = p.bulk || 1, hunch = p.hunch == null ? 0.5 : p.hunch;
+    r.line(cx - 1.5, base - 9, cx - 3, base, 2.4 * b, fx(SHD, 0)); r.line(cx - 4 * b, base - 19, cx - 6 * b, base - 10, 2.2 * b, fx(SHD, 0));
+    r.next(); r.line(cx + 1.5, base - 9, cx + 2.5, base, 2.6 * b, SHD);
+    r.ell(cx, base - 14, 5 * b, 6.5, BOD);
+    r.ell(cx + 2 + hunch * 2.5, base - 22 + hunch * 2, 3.4, 3.4, BOD);
+    r.line(cx + 4 * b, base - 18, cx + 7 * b, base - 11, 2.2 * b, BOD);
+    if (p.weapon !== 0) { r.next(); r.line(cx + 7 * b, base - 10, cx + 12 * b, base - 20, 1.3, EMT); }
+    r.next(); r.ell(cx + 3.6 + hunch * 2.5, base - 22.6 + hunch * 2, 0.8, 0.8, fx(EYE, 2));
+  };
+  var RIGS = ['humanoid', 'quadruped', 'avian', 'serpent', 'ooze', 'construct', 'floater', 'plant'];
+  var RIG_PARAMS = {
+    ooze: { width: 0.85, height: 0.7, eyes: 2, drip: 1, crest: 0 }, floater: { size: 0.9, tails: 3, eyes: 2 },
+    quadruped: { size: 0.85, legLen: 0.5, neck: 0.5, tail: 1, ears: 1, horns: 0, mane: 0 }, avian: { wingspan: 1, beak: 1, tail: 1 },
+    serpent: { coils: 2, length: 1, hood: 0 }, construct: { bulk: 1, arms: 1, glow: 1 }, plant: { height: 0.75, petals: 5 },
+    humanoid: { bulk: 1, hunch: 0.5, weapon: 1 }
+  };
+  RIGS.forEach(function (k) { LIBRARY.push({ key: 'enemy.' + k, layer: 'body', rig: k, label: k.charAt(0).toUpperCase() + k.slice(1) + ' body', gen: { shape: 'enemy.' + k, params: clone(RIG_PARAMS[k]) } }); });
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  // ---------------------------------------------------------------- portraits
+  var EXPRESSIONS = {
+    neutral: { brow: 0, tilt: 0, eye: 1, mouth: 'line' }, happy: { brow: -0.4, tilt: 0, eye: 0.55, mouth: 'smile' },
+    sad: { brow: 0.4, tilt: 1, eye: 0.8, mouth: 'frown' }, angry: { brow: 0.6, tilt: -1, eye: 0.75, mouth: 'grit' },
+    surprised: { brow: -1.2, tilt: 0, eye: 1.3, mouth: 'open' }, determined: { brow: 0.4, tilt: -0.5, eye: 0.85, mouth: 'set' }
+  };
+  function portraitSize(T) { return clamp(Math.round(T * 3), 24, 96); }
+  function portrait(recipe, expr, P) {
+    recipe = recipe || {}; var e = typeof expr === 'object' && expr ? expr : EXPRESSIONS[expr] || EXPRESSIONS.neutral;
+    var r = new Ras(P, P, P / 48), hair = recipe.hair || 'short', cx = 24, cy = 21, hr = 11.5;
+    var hc = hair === 'covered' ? CLB : HAI;
+    if (hair === 'long' || hair === 'tied' || hair === 'covered') { r.rect(cx - 13, cy - 4, cx + 13, 41, hc); r.next(); }
+    r.poly([[3, 48], [45, 48], [38, 37], [10, 37]], CLA);
+    r.poly([[18, 37], [30, 37], [24, 45]], CLB);
+    if (recipe.collar === 'plate') { r.ell(10, 41, 6, 4, MET); r.ell(38, 41, 6, 4, MET); }
+    r.next(); r.rect(cx - 4, cy + 8, cx + 4, 39, SKN);
+    r.next();
+    var shp = recipe.head || 'round';
+    if (shp === 'square') r.poly([[cx - 10.5, cy - 11], [cx + 10.5, cy - 11], [cx + 11, cy + 5], [cx + 5, cy + 12.5], [cx - 5, cy + 12.5], [cx - 11, cy + 5]], SKN);
+    else if (shp === 'long') r.ell(cx, cy + 1, 9.6, 14, SKN);
+    else r.ell(cx, cy, hr, 13, SKN);
+    r.ell(cx - hr - 0.3, cy + 2, 1.8, 2.8, SKN); r.ell(cx + hr + 0.3, cy + 2, 1.8, 2.8, SKN);
+    r.next();
+    var ey = cy + 1.5, eo = 5, eh = 2.2 * clamp(e.eye, 0.3, 1.6);
+    [-1, 1].forEach(function (sd) {
+      var ex = cx + sd * eo;
+      if (e.eye > 0.4) { r.ell(ex, ey + 0.2, 1.3, Math.max(0.8, eh * 0.8), M_OUT); r.dot(ex - 0.6, ey - eh * 0.35, fx(SKN, 2)); }
+      r.line(ex - 2.4, ey - eh + 0.1, ex + 2.4, ey - eh + 0.1, 0.8, M_OUT);
+      r.line(ex - 1.8 * sd, ey + eh * 0.9, ex + 1.2 * sd, ey + eh * 0.9, 0.6, fx(SKN, 0));
+      var by = ey - 4.2 + e.brow, inner = ex - sd * 2.2, outer = ex + sd * 2.6;
+      r.line(inner, by - e.tilt * 0.9, outer, by + e.tilt * 0.6, 1.1, fx(HAI, 0));
+    });
+    r.line(cx + 0.4, cy + 4, cx + 1, cy + 6.5, 0.9, fx(SKN, 0));
+    var my = cy + 9.5, mw = 3.6 * (recipe.mouth || 1);
+    if (e.mouth === 'smile') { r.line(cx - mw, my - 0.8, cx - mw * 0.4, my + 0.5, 0.8, M_OUT); r.line(cx - mw * 0.4, my + 0.5, cx + mw * 0.4, my + 0.5, 0.8, M_OUT); r.line(cx + mw * 0.4, my + 0.5, cx + mw, my - 0.8, 0.8, M_OUT); }
+    else if (e.mouth === 'frown') { r.line(cx - mw, my + 0.8, cx - mw * 0.4, my - 0.3, 0.8, M_OUT); r.line(cx - mw * 0.4, my - 0.3, cx + mw * 0.4, my - 0.3, 0.8, M_OUT); r.line(cx + mw * 0.4, my - 0.3, cx + mw, my + 0.8, 0.8, M_OUT); }
+    else if (e.mouth === 'open') { r.ell(cx, my + 0.4, mw * 0.55, 1.9, M_OUT); }
+    else if (e.mouth === 'grit') { r.rect(cx - mw * 0.8, my - 0.6, cx + mw * 0.8, my + 1, fx(SKN, 2)); r.line(cx - mw * 0.8, my - 0.6, cx + mw * 0.8, my - 0.6, 0.6, M_OUT); r.line(cx - mw * 0.8, my + 1, cx + mw * 0.8, my + 1, 0.6, M_OUT); }
+    else r.line(cx - mw * (e.mouth === 'set' ? 0.85 : 0.7), my, cx + mw * (e.mouth === 'set' ? 0.85 : 0.7), my, 0.8, M_OUT);
+    r.next();
+    if (hair !== 'none') {
+      r.clip = [-99, -99, 99, cy - (hair === 'cropped' ? 7 : 3.5)];
+      r.ell(cx, cy - 1, hr + 1.4, 14.4, hc);
+      r.clip = null;
+      if (hair !== 'cropped') { r.rect(cx - hr - 1.4, cy - 5, cx - hr + 2, cy + 6, hc); r.rect(cx + hr - 2, cy - 5, cx + hr + 1.4, cy + 6, hc); }
+      if (hair === 'spiked') for (var v = -2; v <= 2; v++) r.poly([[cx + v * 4.6 - 3, cy - 10], [cx + v * 4.6 + 3, cy - 10], [cx + v * 5.4, cy - 19]], hc);
+      if (hair === 'tied') { r.next(); r.ell(cx, cy - 15.2, 3.4, 2.8, hc); }
+      if (hair === 'covered') r.poly([[cx - 14, cy - 2], [cx - 12, cy - 15], [cx + 12, cy - 15], [cx + 14, cy - 2], [cx + 12, cy + 8], [cx + 10, cy - 4], [cx - 10, cy - 4], [cx - 12, cy + 8]], hc);
+      if (hair === 'short' || hair === 'long') r.poly([[cx - 9, cy - 8], [cx + 6, cy - 9], [cx - 2, cy - 4.5]], hc);
+    }
+    var sh = shadeAndOutline(r, true);
+    return { w: P, h: P, ax: P >> 1, ay: P - 1, idx: resolve(r, sh, recipe.accent) };
+  }
+
+  // ---------------------------------------------------------------- icons
+  // The icon layout: 2 to 4 metal, 5 to 7 wood, 8 to 10 tint (swapped per icon), 11 to 13 cloth, 14 and 15 light.
+  var GLYPHS = ['blade', 'staff', 'shield', 'helm', 'body', 'ring', 'vial', 'scroll', 'gem', 'seed', 'tool', 'device'];
+  var STATUS_SHAPES = ['drop', 'skull', 'sleep', 'spiral', 'star', 'up', 'down', 'clock', 'heart', 'bolt', 'flame', 'leaf', 'eye', 'chain'];
+  var I_MET = M_A, I_WOD = M_B, I_TNT = M_C, I_CLO = M_D, I_LGT = M_E;
+  function iconSize(T) { T = Number(T) || 16; return T <= 16 ? Math.max(8, Math.round(T)) : clamp(Math.round(T / 2), 16, 32); }
+  var ICON = {
+    blade: function (r) { r.line(4, 12, 12.5, 3.5, 1.7, I_MET); r.line(2.8, 9.8, 6.2, 13.2, 1.2, I_TNT); r.line(2.2, 13.8, 4.2, 11.8, 1.3, I_WOD); },
+    staff: function (r) { r.line(3, 14, 11, 5, 1.3, I_WOD); r.ell(11.8, 4, 2.4, 2.4, I_TNT); },
+    shield: function (r) { r.poly([[3, 2.5], [13, 2.5], [13, 8], [8, 14], [3, 8]], I_MET); r.next(); r.poly([[5, 4.5], [11, 4.5], [11, 8], [8, 11.5], [5, 8]], I_TNT); },
+    helm: function (r) { r.clip = [-9, -9, 99, 10]; r.ell(8, 10, 5.6, 7, I_MET); r.clip = null; r.rect(2.4, 10, 13.6, 12.4, I_MET); r.next(); r.rect(6, 8, 10, 9.4, M_OUT); r.line(8, 2.5, 8, 6.5, 1.3, I_TNT); },
+    body: function (r) { r.poly([[3, 3], [6, 2.5], [8, 4], [10, 2.5], [13, 3], [13.5, 7], [11.5, 7.5], [11.5, 13.5], [4.5, 13.5], [4.5, 7.5], [2.5, 7]], I_MET); r.next(); r.rect(5.5, 9, 10.5, 10.4, I_TNT); },
+    ring: function (r) { r.ell(8, 9.5, 4.6, 4.6, I_MET); r.next(); r.ell(8, 9.5, 2.5, 2.5, 0); r.next(); r.ell(8, 4.4, 2.2, 1.9, I_TNT); },
+    vial: function (r) { r.rect(6.6, 2.2, 9.4, 4.2, I_WOD); r.rect(7, 4, 9, 6.4, I_LGT); r.ell(8, 10.2, 4.4, 4.2, I_LGT); r.next(); r.clip = [-9, 9.4, 99, 99]; r.ell(8, 10.2, 4.4, 4.2, I_TNT); r.clip = null; },
+    scroll: function (r) { r.rect(3.5, 4, 12.5, 12, I_CLO); r.next(); r.rect(2.4, 2.6, 13.6, 4.6, I_WOD); r.rect(2.4, 11.4, 13.6, 13.4, I_WOD); r.next(); r.line(5, 7, 11, 7, 0.7, M_OUT); r.line(5, 9.4, 10, 9.4, 0.7, M_OUT); },
+    gem: function (r) { r.poly([[4, 6], [6.5, 2.8], [9.5, 2.8], [12, 6], [8, 13.5]], I_TNT); r.next(); r.poly([[6.4, 5.6], [8, 3.6], [9.6, 5.6], [8, 9]], fx(I_TNT, 2)); },
+    seed: function (r) { r.ell(8, 9.5, 3.8, 4.6, I_WOD); r.next(); r.line(8, 5.2, 10.6, 2.6, 1.2, I_TNT); r.ell(11.4, 2.8, 1.6, 1.1, I_TNT); },
+    tool: function (r) { r.line(4, 13, 10, 7, 1.4, I_WOD); r.next(); r.poly([[8, 3], [13.5, 8.5], [11.5, 10.5], [6, 5]], I_MET); },
+    device: function (r) { for (var t = 0; t < 7; t++) { var a = -1.25 + t * 0.4; r.line(6 + Math.cos(a) * 5.5, 8 + Math.sin(a) * 6, 6 + Math.cos(a + 0.4) * 5.5, 8 + Math.sin(a + 0.4) * 6, 1.3, I_WOD); } r.line(6 + Math.cos(-1.25) * 5.5, 8 + Math.sin(-1.25) * 6, 6 + Math.cos(1.55) * 5.5, 8 + Math.sin(1.55) * 6, 0.6, I_LGT); r.line(3, 8, 12.5, 8, 0.8, I_TNT); },
+    'status.drop': function (r) { r.poly([[8, 2], [12, 9], [4, 9]], I_TNT); r.ell(8, 10, 4, 3.8, I_TNT); },
+    'status.skull': function (r) { r.ell(8, 7, 5, 4.8, I_LGT); r.rect(5.4, 10, 10.6, 13.4, I_LGT); r.next(); r.ell(6, 7.4, 1.2, 1.3, M_OUT); r.ell(10, 7.4, 1.2, 1.3, M_OUT); r.line(6.6, 12, 9.4, 12, 0.6, M_OUT); },
+    'status.sleep': function (r) { r.line(3, 4, 8, 4, 1.2, I_TNT); r.line(8, 4, 3, 10, 1.2, I_TNT); r.line(3, 10, 8, 10, 1.2, I_TNT); r.line(9.5, 9, 13, 9, 1, I_TNT); r.line(13, 9, 9.5, 13, 1, I_TNT); r.line(9.5, 13, 13, 13, 1, I_TNT); },
+    'status.spiral': function (r) { var px = 8, py = 8; for (var t = 0; t < 26; t++) { var a = t * 0.5, rr = 0.4 + t * 0.24, x = 8 + Math.cos(a) * rr, y = 8 + Math.sin(a) * rr; r.line(px, py, x, y, 1.1, I_TNT); px = x; py = y; } },
+    'status.star': function (r) { var pts = []; for (var k = 0; k < 10; k++) { var a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? 2.6 : 6.2; pts.push([8 + Math.cos(a) * rr, 8.5 + Math.sin(a) * rr]); } r.poly(pts, I_TNT); },
+    'status.up': function (r) { r.poly([[8, 2], [13.5, 8], [10, 8], [10, 14], [6, 14], [6, 8], [2.5, 8]], I_TNT); },
+    'status.down': function (r) { r.poly([[8, 14], [13.5, 8], [10, 8], [10, 2], [6, 2], [6, 8], [2.5, 8]], I_TNT); },
+    'status.clock': function (r) { r.ell(8, 8, 5.8, 5.8, I_LGT); r.next(); r.line(8, 8, 8, 4.2, 0.9, M_OUT); r.line(8, 8, 10.8, 9.6, 0.9, M_OUT); r.next(); r.dot(8, 8, I_TNT); },
+    'status.heart': function (r) { r.ell(5.6, 6.4, 3, 3, I_TNT); r.ell(10.4, 6.4, 3, 3, I_TNT); r.poly([[2.8, 7.4], [13.2, 7.4], [8, 13.6]], I_TNT); },
+    'status.bolt': function (r) { r.poly([[9.5, 1.8], [4, 9], [7.6, 9], [6.2, 14.2], [12, 6.6], [8.4, 6.6]], I_TNT); },
+    'status.flame': function (r) { r.ell(8, 10, 4.6, 4.2, I_TNT); r.poly([[3.6, 9.6], [12.4, 9.6], [9, 1.8], [7.6, 5.6], [6, 3.8]], I_TNT); r.next(); r.ell(8, 10.8, 2, 2.4, fx(I_TNT, 2)); },
+    'status.leaf': function (r) { r.poly([[3, 13], [4, 6], [9, 2.6], [13.4, 3], [12, 9], [6, 12]], I_TNT); r.next(); r.line(3.6, 12.4, 11, 4.4, 0.7, fx(I_TNT, 0)); },
+    'status.eye': function (r) { r.poly([[1.8, 8], [5, 4.6], [11, 4.6], [14.2, 8], [11, 11.4], [5, 11.4]], I_LGT); r.next(); r.ell(8, 8, 2.6, 2.6, I_TNT); r.dot(8, 8, M_OUT); },
+    'status.chain': function (r) { r.ell(5.6, 8, 3.4, 2.4, I_MET); r.ell(10.4, 8, 3.4, 2.4, I_MET); r.next(); r.ell(5.6, 8, 1.6, 0.9, 0); r.ell(10.4, 8, 1.6, 0.9, 0); }
+  };
+  function icon(glyph, N) {
+    var r = new Ras(N, N, N / 16), g = ICON[glyph] || ICON.gem;
+    g(r);
+    // A zero code erases (rings and links are hollow); erased pixels must not count as filled.
+    return { w: N, h: N, ax: N >> 1, ay: N >> 1, idx: resolve(r, shadeAndOutline(r, true), 'metal') };
+  }
+
+  // ---------------------------------------------------------------- composing a sprite
+  // spec: {layout, rig, size, proportions, accent, seed, layers: [{layer, gen: {shape, params}} | {layer, px}]}
+  // poseKey is a POSES key; dir is down, up, right, or left (left mirrors right). Returns {w, h, ax, ay, idx}.
+  function compose(spec, poseKey, dir) {
+    if (dir === 'left') { var f = compose(spec, poseKey, 'right'); return { w: f.w, h: f.h, ax: f.w - 1 - f.ax, ay: f.ay, idx: mirror(f.idx, f.w, f.h) }; }
+    var T = clamp(Math.round(spec.size || 16), 4, 128), layers = spec.layers || [], pose = POSES[poseKey] || POSES.stand;
+    if (spec.layout === 'enemy') {
+      var N = T * 2, r = new Ras(N, N, N / 32), rnd = rng(spec.seed || 1);
+      layers.forEach(function (L) {
+        if (L.px) blit(r, L.px, poseKey, 'right');
+        else { var g = ENEMY[(L.gen.shape || '').replace('enemy.', '')]; if (g) g(r, Object.assign(clone(RIG_PARAMS[(L.gen.shape || '').replace('enemy.', '')] || {}), L.gen.params || {}), rnd); }
+        r.next();
+      });
+      return { w: N, h: N, ax: N >> 1, ay: N - 2, idx: resolve(r, shadeAndOutline(r, true), 'clothB') };
+    }
+    var fp = framePx(T, spec.proportions), s = T / 16, Wu = fp.w / s, Hu = fp.h / s;
+    var byLayer = {};
+    layers.forEach(function (L) { byLayer[L.layer] = L; });
+    var body = byLayer.body && byLayer.body.gen && byLayer.body.gen.params ? byLayer.body.gen.params.plan : 'average';
+    var J = skeleton(body, spec.proportions, pose, dir === 'up' ? 'up' : dir, Wu, Hu);
+    var r2 = new Ras(fp.w, fp.h, s), order = ORDER[dir] || ORDER.down;
+    if (spec.shadow !== false && !byLayer.shadow) byLayer.shadow = { layer: 'shadow', gen: { shape: 'shadow.ground', params: {} } };
+    order.forEach(function (name) {
+      var L = byLayer[name];
+      if (!L) return;
+      if (L.px) blit(r2, L.px, poseKey, dir);
+      else { var g = HUMANOID[L.gen && L.gen.shape]; if (g) g(r2, J, L.gen.params || {}); }
+      r2.next();
+    });
+    return { w: fp.w, h: fp.h, ax: Math.round(J.cx * s), ay: Math.min(fp.h - 1, Math.round(J.footY * s)), idx: resolve(r2, shadeAndOutline(r2, true), spec.accent) };
+  }
+  // A hand drawn part: variants keyed "<pose>.<dir>" (or "<dir>", or "*"), each {w, h, d} in local slots at the part's
+  // base size. Variants at another size are resampled with nearest neighbor, which the editor warns about.
+  function pickVariant(px, poseKey, dir) {
+    var v = px && px.variants || {};
+    return v[poseKey + '.' + dir] || v['stand.' + dir] || v[dir] || v['*'] || null;
+  }
+  function blit(r, px, poseKey, dir) {
+    var v = pickVariant(px, poseKey, dir === 'left' ? 'right' : dir);
+    if (!v) return;
+    var a;
+    try { a = decodePx(v.d, v.w, v.h); } catch (e) { return; }
+    if (v.w !== r.w || v.h !== r.h) a = resample(a, v.w, v.h, r.w, r.h);
+    for (var i = 0; i < a.length; i++) if (a[i]) { r.c[i] = slotCell(a[i]); r.l[i] = r.layer; }
+  }
+  // Just one layer rasterized alone and resolved to slots: what "draw a part by hand" starts from.
+  function partFrame(spec, layerName, poseKey, dir) {
+    var only = (spec.layers || []).filter(function (L) { return L.layer === layerName || L.layer === 'body'; });
+    var full = compose(Object.assign({}, spec, { layers: only, shadow: false }), poseKey, dir);
+    if (layerName === 'body') return full;
+    var base = compose(Object.assign({}, spec, { layers: only.filter(function (L) { return L.layer === 'body'; }), shadow: false }), poseKey, dir);
+    var out = new Uint8Array(full.idx.length);
+    for (var i = 0; i < out.length; i++) out[i] = full.idx[i] !== base.idx[i] ? full.idx[i] : 0;
+    return { w: full.w, h: full.h, ax: full.ax, ay: full.ay, idx: out };
+  }
+
+  // ---------------------------------------------------------------- records to specs (pure; art is bundle.art)
+  function recs(art, p) { return art && art.records && art.records[p] && typeof art.records[p] === 'object' ? art.records[p] : {}; }
+  function rec(art, id) { var p = typeof id === 'string' ? id.slice(0, 4) : ''; return recs(art, p)[id] || null; }
+  // A tier family sprite shares its base sprite's recipe and overrides and keeps its own palette.
+  function baseSprite(art, spr) {
+    var seen = {}, s = spr;
+    while (s && s.shares && !seen[s.id]) { seen[s.id] = 1; s = rec(art, s.shares); }
+    return s || spr;
+  }
+  function spriteSpec(art, spr, size) {
+    var b = baseSprite(art, spr), rc = b && b.recipe || {}, parts = rc.parts || {}, layers = [];
+    Object.keys(parts).forEach(function (layer) {
+      var pid = parts[layer];
+      if (!pid) return;
+      var p = rec(art, pid);
+      if (!p) return;
+      if (p.px && p.px.variants && Object.keys(p.px.variants).length) layers.push({ layer: layer, px: p.px });
+      else if (p.gen) layers.push({ layer: layer, gen: { shape: p.gen.shape, params: Object.assign({}, p.gen.params || {}, (rc.params && rc.params[layer]) || {}) } });
+    });
+    var cw = rc.colorway || {};
+    return { layout: spr.kind === 'enemy' ? 'enemy' : 'humanoid', rig: rc.rig || 'humanoid', size: size, proportions: rc.proportions || {}, accent: rc.accent || cw.accent || 'clothB', seed: b.seed, layers: layers, shadow: spr.mode !== 'battle' };
+  }
+  // The frame with any hand edited override applied. Overrides are keyed "<pose>.<dir>" and stored at the size they
+  // were drawn; left falls back to mirroring right.
+  function spriteFrame(art, spr, poseKey, dir, size, accentOverride) {
+    // Overrides on the sprite itself win over the ones it inherits from a shared base.
+    var b = baseSprite(art, spr), ov = Object.assign({}, b && b.overrides || {}, spr && spr !== b && spr.overrides || {});
+    var key = poseKey + '.' + dir, o = ov[key];
+    var spec = spriteSpec(art, spr, size);
+    if (accentOverride) spec.accent = accentOverride;
+    if (!o && dir === 'left' && ov[poseKey + '.right']) { var f = spriteFrame(art, spr, poseKey, 'right', size, accentOverride); return { w: f.w, h: f.h, ax: f.w - 1 - f.ax, ay: f.ay, idx: mirror(f.idx, f.w, f.h), override: f.override }; }
+    var g = compose(spec, poseKey, dir);
+    if (o) {
+      try {
+        var a = decodePx(o.d, o.w, o.h);
+        if (o.w !== g.w || o.h !== g.h) a = resample(a, o.w, o.h, g.w, g.h);
+        return { w: g.w, h: g.h, ax: g.ax, ay: g.ay, idx: a, override: true, resampled: o.w !== g.w || o.h !== g.h };
+      } catch (e) { g.badOverride = e.message; }
+    }
+    return g;
+  }
+  function portraitFrame(art, por, expr, size) {
+    var ov = por && por.overrides || {}, o = ov[expr], P = por && por.size || portraitSize(size);
+    var e = Object.assign({}, EXPRESSIONS[expr] || EXPRESSIONS.neutral, (por && por.expressions && por.expressions[expr]) || {});
+    var g = portrait(por && por.recipe, e, P);
+    if (o) { try { var a = decodePx(o.d, o.w, o.h); if (o.w !== P || o.h !== P) a = resample(a, o.w, o.h, P, P); return { w: P, h: P, ax: g.ax, ay: g.ay, idx: a, override: true }; } catch (e2) { g.badOverride = e2.message; } }
+    return g;
+  }
+  function iconFrame(art, ico, size) {
+    var N = ico && ico.size || iconSize(size);
+    if (ico && ico.px && ico.px.d) { try { var a = decodePx(ico.px.d, ico.px.w, ico.px.h); if (ico.px.w !== N || ico.px.h !== N) a = resample(a, ico.px.w, ico.px.h, N, N); return { w: N, h: N, ax: N >> 1, ay: N >> 1, idx: a, override: true }; } catch (e) {} }
+    return icon(ico && ico.gen && ico.gen.glyph, N);
+  }
+  // Local slots to master indices for one record: the sprite's pal_, with an icon's tint ramp swapped into 8 to 10.
+  function slotsFor(art, palId, tintRamp) {
+    var p = rec(art, palId), s = p && Array.isArray(p.slots) ? p.slots.slice() : null;
+    if (s && tintRamp && tintRamp.length === 3) { s[8] = tintRamp[0]; s[9] = tintRamp[1]; s[10] = tintRamp[2]; }
+    return s;
+  }
+  function rgba(idx, slots, entries) {
+    var out = new Uint8ClampedArray(idx.length * 4), lut = [];
+    for (var k = 0; k < 32; k++) { var m = slots && k ? slots[k] : null, rgb = typeof m === 'number' && entries[m] ? hexToRgb(entries[m]) : null; lut.push(rgb); }
+    for (var i = 0; i < idx.length; i++) {
+      var c = lut[idx[i]];
+      if (!c) continue;
+      out[i * 4] = c[0]; out[i * 4 + 1] = c[1]; out[i * 4 + 2] = c[2]; out[i * 4 + 3] = 255;
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- bake cache
+  // createCache(art, {size, entries, makeCanvas(w, h), budget}) bakes frames once and keeps them in an LRU capped by an
+  // estimate of their memory (index plus RGBA plus canvas). makeCanvas is the host's; without it frames carry RGBA only.
+  function createCache(art, opts) {
+    opts = opts || {};
+    var map = new Map(), bytes = 0, cap = opts.budget || 8e6, st = { hits: 0, misses: 0, evictions: 0 };
+    function put(k, v) {
+      v.bytes = v.w * v.h * (v.canvas ? 9 : 5);
+      map.set(k, v); bytes += v.bytes;
+      var it = map.keys();
+      while (bytes > cap && map.size > 1) { var old = it.next().value; if (old === k) continue; bytes -= map.get(old).bytes; map.delete(old); st.evictions++; }
+    }
+    function get(k, make) {
+      if (map.has(k)) { var v = map.get(k); map.delete(k); map.set(k, v); st.hits++; return v; }
+      st.misses++;
+      var f = make();
+      if (!f) return null;
+      if (opts.makeCanvas) {
+        var cv = opts.makeCanvas(f.w, f.h), ctx = cv && cv.getContext && cv.getContext('2d');
+        if (ctx) { var im = ctx.createImageData(f.w, f.h); im.data.set(f.rgba); ctx.putImageData(im, 0, 0); f.canvas = cv; }
+      }
+      put(k, f);
+      return f;
+    }
+    var T = opts.size || 16, entries = opts.entries || [];
+    function finish(f, slots) { if (!f) return null; f.rgba = rgba(f.idx, slots, entries); return f; }
+    return {
+      sprite: function (sprId, poseKey, dir, palId) {
+        var spr = rec(art, sprId);
+        if (!spr) return null;
+        var pal = palId || spr.pal;
+        return get('s|' + sprId + '|' + poseKey + '|' + dir + '|' + pal, function () { return finish(spriteFrame(art, spr, poseKey, dir, T), slotsFor(art, pal)); });
+      },
+      portrait: function (porId, expr) {
+        var por = rec(art, porId);
+        if (!por) return null;
+        return get('p|' + porId + '|' + expr, function () { return finish(portraitFrame(art, por, expr, T), slotsFor(art, por.pal)); });
+      },
+      icon: function (icoId) {
+        var ico = rec(art, icoId);
+        if (!ico) return null;
+        return get('i|' + icoId, function () { return finish(iconFrame(art, ico, T), slotsFor(art, ico.pal, ico.tintRamp)); });
+      },
+      invalidate: function (id) { var tag = '|' + id + '|', tail = '|' + id; Array.from(map.keys()).forEach(function (k) { if (k.indexOf(tag) >= 0 || k.slice(-tail.length) === tail) { bytes -= map.get(k).bytes; map.delete(k); } }); },
+      stats: function () { return { entries: map.size, bytes: bytes, budget: cap, hits: st.hits, misses: st.misses, evictions: st.evictions }; },
+      clear: function () { map.clear(); bytes = 0; },
+      budget: function (n) { if (n > 0) { cap = n; var it = map.keys(); while (bytes > cap && map.size > 1) { var k = it.next().value; bytes -= map.get(k).bytes; map.delete(k); st.evictions++; } } return cap; }
+    };
+  }
+
+  R.sprite = {
+    LAYERS: LAYERS, ORDER: ORDER, POSES: POSES, BODY_PLANS: BODY_PLANS, LIBRARY: LIBRARY, RIGS: RIGS, RIG_PARAMS: RIG_PARAMS,
+    GENERATORS: Object.keys(HUMANOID).concat(RIGS.map(function (k) { return 'enemy.' + k; })),
+    DIRS: ['down', 'up', 'right', 'left'], FIELD_POSES: ['stand', 'stepA', 'stepB'], BATTLE_POSES: ['idle'],
+    framePx: framePx, compose: compose, partFrame: partFrame, mirror: mirror, resample: resample, slotCell: slotCell,
+    spec: spriteSpec, frame: spriteFrame, base: baseSprite, slotsFor: slotsFor, rgba: rgba
+  };
+  R.portrait = { EXPRESSIONS: EXPRESSIONS, size: portraitSize, compose: portrait, frame: portraitFrame };
+  R.icon = { GLYPHS: GLYPHS, STATUS_SHAPES: STATUS_SHAPES, size: iconSize, compose: icon, frame: iconFrame };
+  R.createCache = createCache;
+
   // ---------------------------------------------------------------- later phases insert sections above this line
   Object.keys(R).forEach(function (k) { if (R[k] && typeof R[k] === 'object') Object.freeze(R[k]); });
   return Object.freeze(R);
@@ -4026,7 +5070,12 @@ var ENGINE_RENDER = (function () {
   };
   P.entries = function (b) { var m = P.master(b); return m && Array.isArray(m.entries) ? m.entries : []; };
   P.size = function (b) { b = b || cur(); return E.size(b && b.charter); };
-  P.locals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local'; }); };
+  // Colorways only: humanoid local palettes. Other local layouts (the icon palette) belong to the fence that made them.
+  P.locals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local' && (r.layout || 'humanoid') === 'humanoid'; }); };
+  P.otherLocals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local' && (r.layout || 'humanoid') !== 'humanoid'; }); };
+  // Later fences refit their own palette dependents after a master rebuild: fn(b, map) with map old index to new.
+  var rebuildHooks = [];
+  P.onRebuild = function (fn) { rebuildHooks.push(fn); };
   P.tiers = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'tier'; }); };
   P.effects = function (b) { return ART.records.list('efx_', b || cur()); };
   function bundleSeed(b) { return H((b.kit && b.kit.bundleId) || 'bundle'); }
@@ -4105,6 +5154,7 @@ var ENGINE_RENDER = (function () {
       if (P.isKept(r)) { r.palette = (r.palette || []).map(mv); r.flash = mv(r.flash); r.tint = mv(r.tint); }
     });
     P.buildElements(b, {}, { refit: true });
+    rebuildHooks.forEach(function (fn) { fn(b, map); });
   };
 
   // ---------------------------------------------------------------- local palettes (colorways)
@@ -4210,7 +5260,7 @@ var ENGINE_RENDER = (function () {
     var n = P.entries(b).length, out = [];
     for (var i = 0; i < n; i++) out.push([]);
     function hit(i, id) { if (typeof i === 'number' && out[i] && out[i].indexOf(id) < 0) out[i].push(id); }
-    P.locals(b).concat(P.tiers(b)).forEach(function (r) { (r.slots || []).forEach(function (s) { hit(s, r.id); }); });
+    P.locals(b).concat(P.tiers(b), P.otherLocals(b)).forEach(function (r) { (r.slots || []).forEach(function (s) { hit(s, r.id); }); });
     P.effects(b).forEach(function (r) { (r.palette || []).forEach(function (s) { hit(s, r.id); }); hit(r.flash, r.id); hit(r.tint, r.id); });
     return out;
   };
@@ -4694,6 +5744,1357 @@ var ENGINE_RENDER = (function () {
   ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor };
 })();
 // === WS:PALETTE END ===
+// === ART:SPRITES BEGIN ===
+(function () {
+  'use strict';
+  // Sprites, parts, portraits, and icons as records. The composer lives in ENGINE_RENDER.sprite, .portrait, and .icon;
+  // this fence decides what each subject gets and keeps the records in step with the bundle.
+  //   prt_  part library: {layer, rig, lib, gen: {shape, params}} or {layer, rig, px: {base, variants}}
+  //   spr_  {kind: character|villain|npc|enemy, mode: field|battle, recipe | shares, pal, overrides}
+  //   por_  {size, recipe: {head, hair, mouth, collar, accent}, pal, expressions, overrides}
+  //   ico_  {size, gen: {glyph, tint}, pal, tintRamp, px}
+  var U = Kit.util, ES = ENGINE_RENDER.sprite, EP = ENGINE_RENDER.portrait, EI = ENGINE_RENDER.icon, EC = ENGINE_RENDER.codec;
+  var C = ENGINE_RENDER.color, PE = ENGINE_RENDER.palette, H = ENGINE_RENDER.util.hash32, rng = ENGINE_RENDER.util.rng;
+  var P = ART.palette, S = ART.sprites = {};
+  S.KINDS = ['character', 'villain', 'npc', 'enemy'];
+  S.MODES = ['field', 'battle'];
+  function cur() { return Kit.bundle.current(); }
+  function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(U.isObj); }
+  function bundleSeed(b) { return H((b.kit && b.kit.bundleId) || 'bundle'); }
+  function bump(report, k) { report[k] = (report[k] || 0) + 1; }
+  S.tileSize = function (b) { b = b || cur(); var n = b && b.charter && b.charter.specs ? Math.round(Number(b.charter.specs.tileSize)) : NaN; return isFinite(n) ? Math.max(4, Math.min(128, n)) : 16; };
+
+  // Defaults the user deleted stay deleted: Quick Build skips any library key or role listed here.
+  function retired(b) { ART.ensure(b); var st = b.art.settings; if (!Array.isArray(st.retired)) st.retired = []; return st.retired; }
+  S.retire = function (b, key) { var r = retired(b); if (r.indexOf(key) < 0) r.push(key); };
+  S.unretire = function (b, key) { var r = retired(b), i = r.indexOf(key); if (i >= 0) r.splice(i, 1); };
+
+  // ---------------------------------------------------------------- parts
+  S.parts = function (b) { return ART.records.list('prt_', b || cur()); };
+  S.partByLib = function (b, key) { return S.parts(b).filter(function (p) { return p.lib === key; })[0] || null; };
+  S.buildParts = function (b, report) {
+    var ret = retired(b);
+    ES.LIBRARY.forEach(function (d) {
+      if (ret.indexOf(d.key) >= 0) return;
+      if (S.partByLib(b, d.key)) { bump(report, 'kept'); return; }
+      ART.records.put(ART.envelope('prt_', d.label, { kind: 'role', ref: 'part:' + d.key }, 'default', H('prt|' + d.key), { layer: d.layer, rig: d.rig, lib: d.key, gen: U.clone(d.gen) }), b);
+      bump(report, 'created');
+    });
+  };
+  // The part a recipe should use for a library key, or the first part on that layer and rig if the default is gone.
+  function partId(b, key) {
+    var p = S.partByLib(b, key);
+    if (p) return p.id;
+    var d = ES.LIBRARY.filter(function (x) { return x.key === key; })[0];
+    var alt = d ? S.parts(b).filter(function (x) { return x.layer === d.layer && x.rig === d.rig; })[0] : null;
+    return alt ? alt.id : null;
+  }
+
+  // ---------------------------------------------------------------- recipes from the bundle
+  var WEAPON = [
+    [/staff|rod|wand|cane|scepter|stave/, 'staff'], [/shield|buckler|aegis/, 'shield'], [/hammer|tool|wrench|axe|pick|mace|club/, 'tool'],
+    [/bow|gun|rifle|pistol|sling|crossbow|device|launcher|cannon|dart|thrown|whip/, 'device'], [/claw|fist|glove|knuckle|unarmed|bare|martial/, 'bare'],
+    [/blade|sword|knife|dagger|katana|saber|sabre|rapier|spear|lance|scythe/, 'blade']
+  ];
+  S.frontFor = function (weaponClass) {
+    var t = String(weaponClass || '').toLowerCase();
+    for (var i = 0; i < WEAPON.length; i++) if (WEAPON[i][0].test(t)) return WEAPON[i][1];
+    return t ? 'blade' : 'bare';
+  };
+  // A character's look from its stats and weapon class, varied by its seed. Same bundle, same look.
+  S.characterLook = function (chr, seed) {
+    var r = rng(seed), st = chr.baseStats || {}, n = function (k) { return Number(st[k]) || 0; };
+    var phys = n('str') + n('def'), mag = n('mag') + n('mdef'), spd = n('spd') * 2;
+    var lead = mag > phys && mag >= spd ? 'mag' : spd > phys ? 'spd' : 'phys';
+    var tough = n('def') >= n('spd') && n('hp') >= 140;
+    var body = tough ? 'broad' : lead === 'mag' ? (r() < 0.6 ? 'slight' : 'tall') : lead === 'spd' ? (r() < 0.7 ? 'average' : 'slight') : (r() < 0.5 ? 'average' : 'tall');
+    var torso = lead === 'mag' ? (r() < 0.7 ? 'robe' : 'coat') : tough ? 'plate' : lead === 'spd' ? (r() < 0.5 ? 'vest' : 'bodysuit') : (r() < 0.5 ? 'tunic' : 'coat');
+    var legs = torso === 'robe' ? 'longrobe' : torso === 'plate' ? 'boots' : r() < 0.25 ? 'skirt' : r() < 0.5 ? 'boots' : 'trousers';
+    var hair = ['short', 'long', 'tied', 'spiked', 'cropped'][Math.floor(r() * 5)];
+    var head = ['round', 'round', 'square', 'long'][Math.floor(r() * 4)];
+    var back = torso === 'robe' || torso === 'coat' ? (r() < 0.4 ? 'cape' : null) : lead === 'spd' && r() < 0.4 ? 'pack' : null;
+    return { body: body, head: head, hair: hair, torso: torso, legs: legs, back: back, front: S.frontFor(chr.weaponClass) };
+  };
+  S.NPC_LOOKS = {
+    elder: { body: 'slight', head: 'long', hair: 'cropped', torso: 'robe', legs: 'longrobe', back: null, front: 'staff' },
+    child: { body: 'small', head: 'round', hair: 'tied', torso: 'tunic', legs: 'trousers', back: null, front: 'bare' },
+    merchant: { body: 'broad', head: 'round', hair: 'short', torso: 'vest', legs: 'trousers', back: 'pack', front: 'bare' },
+    guard: { body: 'broad', head: 'square', hair: 'cropped', torso: 'plate', legs: 'boots', back: null, front: 'blade' },
+    worker: { body: 'average', head: 'square', hair: 'short', torso: 'tunic', legs: 'boots', back: null, front: 'tool' },
+    scholar: { body: 'slight', head: 'long', hair: 'long', torso: 'robe', legs: 'longrobe', back: null, front: 'bare' },
+    healer: { body: 'average', head: 'round', hair: 'covered', torso: 'robe', legs: 'longrobe', back: null, front: 'staff' },
+    traveler: { body: 'tall', head: 'long', hair: 'short', torso: 'coat', legs: 'boots', back: 'pack', front: 'bare' },
+    noble: { body: 'tall', head: 'long', hair: 'long', torso: 'coat', legs: 'trousers', back: 'cape', front: 'bare' },
+    innkeeper: { body: 'broad', head: 'round', hair: 'tied', torso: 'vest', legs: 'skirt', back: null, front: 'bare' }
+  };
+  S.VILLAIN_LOOK = { body: 'tall', head: 'long', hair: 'long', torso: 'coat', legs: 'boots', back: 'cape', front: 'blade' };
+  function recipeFromLook(b, look, pal) {
+    var parts = {};
+    ['body', 'head', 'hair', 'torso', 'legs', 'back', 'front'].forEach(function (layer) { parts[layer] = look[layer] ? partId(b, layer + '.' + look[layer]) : null; });
+    return { rig: 'humanoid', parts: parts, proportions: { height: 1.5, headScale: 1 }, look: U.clone(look), accent: pal && pal.colorway ? pal.colorway.accent : 'clothB' };
+  }
+  // Enemy rig from the family's name, then its type, then its seed. The keywords are genre neutral shapes.
+  var RIG_WORDS = [
+    [/slime|ooze|jelly|blob|pudding|goo|sludge|mimic/, 'ooze'], [/wisp|ghost|spirit|phantom|specter|spectre|eye|orb|will|soul|flame|ember/, 'floater'],
+    [/wolf|dog|hound|beast|cat|boar|bear|rat|fox|lion|tiger|horse|stag|deer|bull|lizard|drake|hyena|jackal/, 'quadruped'],
+    [/bird|hawk|crow|raven|harpy|roc|eagle|owl|bat|griffin|gryphon|wing|moth|wasp|bee/, 'avian'], [/snake|serpent|worm|eel|naga|wyrm|viper|cobra|larva|centipede/, 'serpent'],
+    [/golem|robot|construct|armor|armour|machine|gear|sentinel|statue|automaton|drone|mech/, 'construct'], [/plant|flower|vine|tree|fungus|mushroom|treant|root|bloom|thorn|weed/, 'plant'],
+    [/goblin|orc|knight|bandit|soldier|man|skeleton|zombie|imp|troll|ogre|cultist|thief|mage|warrior|ghoul|lich|demon/, 'humanoid']
+  ];
+  var TYPE_RIG = [[/beast|animal|earth|ground/, 'quadruped'], [/water|aqua|ice|frost/, 'ooze'], [/fire|air|wind|holy|light|spirit|lightning|thunder/, 'floater'], [/undead|unholy|dark|shadow|death/, 'humanoid'], [/machine|metal|steel/, 'construct'], [/plant|nature|wood/, 'plant']];
+  S.rigFor = function (fam) {
+    var n = String(fam && fam.name || '').toLowerCase().replace(/\s+t\d+$/, ''), t = String(fam && fam.type || '').toLowerCase();
+    for (var i = 0; i < RIG_WORDS.length; i++) if (RIG_WORDS[i][0].test(n)) return RIG_WORDS[i][1];
+    for (var j = 0; j < TYPE_RIG.length; j++) if (TYPE_RIG[j][0].test(t)) return TYPE_RIG[j][1];
+    return ES.RIGS[H(fam && fam.id || n) % ES.RIGS.length];
+  };
+  // Seeded variation of a rig's default parameters, so two families on the same rig still look different.
+  S.rigParams = function (rig, seed) {
+    var r = rng(seed), base = U.clone(ES.RIG_PARAMS[rig] || {}), out = {};
+    Object.keys(base).forEach(function (k) {
+      var v = base[k];
+      if (k === 'eyes') out[k] = 1 + Math.floor(r() * 2);
+      else if (k === 'tails' || k === 'petals' || k === 'coils') out[k] = Math.max(1, Math.round(v + (r() - 0.5) * 2));
+      else if (v === 0 || v === 1) out[k] = r() < (v ? 0.8 : 0.3) ? 1 : 0;
+      else out[k] = Math.round((v * (0.85 + r() * 0.3)) * 100) / 100;
+    });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- sprites
+  S.sprites = function (b) { return ART.records.list('spr_', b || cur()); };
+  S.spriteFor = function (b, kind, ref, mode) {
+    return S.sprites(b).filter(function (r) { return r.subject && r.subject.kind === kind && r.subject.ref === ref && r.mode === mode; })[0] || null;
+  };
+  var KEEP = { user: 1, claude: 1 };
+  function kept(r) { return !!(r && KEEP[r.origin]); }
+  S.isKept = kept;
+  // Creates or refreshes one sprite. body is {kind, mode, recipe|shares, pal}. A kept sprite only gets its pal relinked
+  // when that palette has vanished, never its recipe.
+  function ensureSprite(b, subject, mode, name, body, origin, report) {
+    var r = S.spriteFor(b, subject.kind, subject.ref, mode);
+    if (r) {
+      if (kept(r)) { if (!ART.records.get(r.pal, b) && body.pal) r.pal = body.pal; bump(report, 'kept'); return r; }
+      if (r.origin === 'default') { if (!ART.records.get(r.pal, b) && body.pal) r.pal = body.pal; bump(report, 'kept'); return r; }
+      var same = U.canonical({ k: r.kind, re: r.recipe || null, sh: r.shares || null, p: r.pal }) === U.canonical({ k: body.kind, re: body.recipe || null, sh: body.shares || null, p: body.pal });
+      if (same) { bump(report, 'kept'); return r; }
+      r.kind = body.kind; r.pal = body.pal; r.name = name;
+      if (body.shares) { r.shares = body.shares; delete r.recipe; } else { r.recipe = body.recipe; delete r.shares; }
+      bump(report, 'refreshed');
+      return r;
+    }
+    var rec = ART.envelope('spr_', name, subject, origin, H('spr|' + subject.ref + '|' + mode + '|' + bundleSeed(b)), { kind: body.kind, mode: mode, pal: body.pal, overrides: {} });
+    if (body.shares) rec.shares = body.shares; else rec.recipe = body.recipe;
+    ART.records.put(rec, b);
+    bump(report, 'created');
+    return rec;
+  }
+  S.ensureSprite = ensureSprite;
+  function humanSet(b, subject, kind, label, look, palRec, origin, report, battle) {
+    var field = ensureSprite(b, subject, 'field', label + ' (field)', { kind: kind, recipe: recipeFromLook(b, look, palRec), pal: palRec && palRec.id }, origin, report);
+    if (battle) ensureSprite(b, subject, 'battle', label + ' (battle)', { kind: kind, shares: field.id, pal: palRec && palRec.id }, origin, report);
+    return field;
+  }
+  S.buildSprites = function (b, report) {
+    var seed = bundleSeed(b);
+    rulesList(b, 'chr_').forEach(function (c) {
+      var pal = ART.bySubject('pal_', 'chr', c.id, b);
+      humanSet(b, { kind: 'chr', ref: c.id }, 'character', c.name || c.id, S.characterLook(c, H(c.id + '|' + seed)), pal, 'procedural', report, true);
+    });
+    var vpal = ART.bySubject('pal_', 'role', 'villain', b);
+    if (retired(b).indexOf('villain') < 0) humanSet(b, { kind: 'role', ref: 'villain' }, 'villain', villainName(b), S.VILLAIN_LOOK, vpal, 'procedural', report, true);
+    ART.NPC_ARCHETYPES.forEach(function (k) {
+      if (retired(b).indexOf('npc:' + k) >= 0) return;
+      var pal = ART.bySubject('pal_', 'role', 'npc:' + k, b);
+      humanSet(b, { kind: 'role', ref: 'npc:' + k }, 'npc', k.charAt(0).toUpperCase() + k.slice(1), S.NPC_LOOKS[k], pal, 'default', report, false);
+    });
+    // Enemy families: the lowest tier of each family name owns the recipe; Day 146 tier families share it.
+    var info = P.familyInfo(b), byId = {};
+    info.forEach(function (x) { byId[x.id] = x; });
+    info.filter(function (x) { return x.id === x.baseId; }).concat(info.filter(function (x) { return x.id !== x.baseId; })).forEach(function (x) {
+      var pal = ART.bySubject('pal_', 'fam', x.id, b);
+      if (x.id === x.baseId) {
+        var rig = S.rigFor(x.fam), body = partId(b, 'enemy.' + rig);
+        var params = {}; params.body = S.rigParams(rig, H('rig|' + x.id + '|' + seed));
+        ensureSprite(b, { kind: 'fam', ref: x.id }, 'battle', x.baseName + ' (battle)', { kind: 'enemy', recipe: { rig: rig, parts: { body: body }, params: params }, pal: pal && pal.id }, 'procedural', report);
+      } else {
+        var base = S.spriteFor(b, 'fam', x.baseId, 'battle');
+        ensureSprite(b, { kind: 'fam', ref: x.id }, 'battle', x.name + ' (battle)', { kind: 'enemy', shares: base ? base.id : null, pal: pal && pal.id }, 'procedural', report);
+      }
+    });
+  };
+  function villainName(b) {
+    var v = b.charter && b.charter.sections && b.charter.sections.villain;
+    return v && typeof v.villain === 'string' && v.villain.trim() ? v.villain.split(/[,.]/)[0].trim().slice(0, 40) : 'Villain';
+  }
+  S.villainName = villainName;
+  // Makes a sharing sprite (a tier family, or a battle sprite sharing its field sprite) independent: it copies the
+  // resolved recipe and inherited overrides onto itself.
+  S.unshare = function (b, spr) {
+    if (!spr || !spr.shares) return false;
+    var base = ES.base(b.art, spr);
+    spr.recipe = U.clone(base.recipe || {});
+    spr.overrides = Object.assign(U.clone(base.overrides || {}), spr.overrides || {});
+    delete spr.shares;
+    spr.origin = 'user';
+    return true;
+  };
+
+  // ---------------------------------------------------------------- portraits
+  S.portraits = function (b) { return ART.records.list('por_', b || cur()); };
+  function portraitRecipe(spr, pal) {
+    var look = spr && spr.recipe && spr.recipe.look || {};
+    return { head: look.head || 'round', hair: look.hair || 'short', mouth: 1, collar: look.torso === 'plate' ? 'plate' : 'cloth', accent: pal && pal.colorway ? pal.colorway.accent : 'clothB' };
+  }
+  function ensurePortrait(b, subject, name, report) {
+    var spr = S.spriteFor(b, subject.kind, subject.ref, 'field'), pal = spr ? ART.records.get(spr.pal, b) : null;
+    var r = ART.bySubject('por_', subject.kind, subject.ref, b), recipe = portraitRecipe(spr && ES.base(b.art, spr), pal);
+    var size = EP.size(S.tileSize(b));
+    if (r) {
+      if (kept(r)) { if (!ART.records.get(r.pal, b) && pal) r.pal = pal.id; bump(report, 'kept'); return r; }
+      if (U.canonical(r.recipe) === U.canonical(recipe) && r.size === size && r.pal === (pal && pal.id)) { bump(report, 'kept'); return r; }
+      r.recipe = recipe; r.size = size; r.pal = pal && pal.id; bump(report, 'refreshed');
+      return r;
+    }
+    r = ART.envelope('por_', name + ' portrait', subject, 'procedural', H('por|' + subject.ref), { size: size, recipe: recipe, pal: pal && pal.id, expressions: {}, overrides: {} });
+    ART.records.put(r, b);
+    bump(report, 'created');
+    return r;
+  }
+  S.buildPortraits = function (b, report) {
+    rulesList(b, 'chr_').forEach(function (c) { ensurePortrait(b, { kind: 'chr', ref: c.id }, c.name || c.id, report); });
+    if (retired(b).indexOf('villain') < 0) ensurePortrait(b, { kind: 'role', ref: 'villain' }, villainName(b), report);
+  };
+
+  // ---------------------------------------------------------------- icons
+  S.ICON_RAMPS = { metal: [2, 3, 4], wood: [5, 6, 7], tint: [8, 9, 10], cloth: [11, 12, 13], light: [14, 15] };
+  var ICON_SRC = { metal: '#a3abba', wood: '#8a5e3a', tint: '#c4a04c', cloth: '#e2d4ae', light: '#f4f1ea' };
+  S.iconPalette = function (b) { return ART.bySubject('pal_', 'role', 'ui:icons', b || cur()); };
+  function ensureIconPalette(b, report) {
+    var m = P.entries(b), r = S.iconPalette(b);
+    if (!m.length) return null;
+    if (r && kept(r)) { bump(report, 'kept'); return r; }
+    var mats = {}, taken = {};
+    taken[PE.outline(m)] = 1;
+    Object.keys(S.ICON_RAMPS).forEach(function (k) { mats[k] = PE.rampFor(m, ICON_SRC[k], S.ICON_RAMPS[k].length, k === 'light' ? 0.07 : 0.12, taken); mats[k].forEach(function (i) { taken[i] = 1; }); });
+    var slots = PE.slotsFrom(m, mats, S.ICON_RAMPS);
+    if (r) { if (U.canonical(r.slots) === U.canonical(slots)) { bump(report, 'kept'); return r; } r.slots = slots; r.colorway = mats; bump(report, 'refreshed'); return r; }
+    r = ART.envelope('pal_', 'Icon palette', { kind: 'role', ref: 'ui:icons' }, 'procedural', H('icons|' + bundleSeed(b)), { kind: 'local', layout: 'icon', slots: slots, ramps: U.clone(S.ICON_RAMPS), colorway: mats });
+    ART.records.put(r, b);
+    bump(report, 'created');
+    return r;
+  }
+  S.ensureIconPalette = ensureIconPalette;
+  // After the master palette is rebuilt: a generated icon palette refits, a kept one moves to the nearest new colors, and
+  // every icon's tint ramp is recomputed from its tint.
+  P.onRebuild(function (b, map) {
+    var r = S.iconPalette(b);
+    if (r && kept(r)) r.slots = r.slots.map(function (s) { return s === null ? null : map[s] !== undefined ? map[s] : s; });
+    else if (r) ensureIconPalette(b, {});
+    S.icons(b).forEach(function (ic) { var t = ic.gen && ic.gen.tint; if (t != null) ic.tintRamp = S.tintRamp(b, t) || ic.tintRamp; else if (Array.isArray(ic.tintRamp)) ic.tintRamp = ic.tintRamp.map(function (i) { return map[i] !== undefined ? map[i] : i; }); });
+  });
+  var TINTS = [
+    [/poison|venom|toxic|antidote|bile/, '#5aa83c'], [/ether|mana|magic|mp|spirit|focus/, '#4a7ad8'], [/tonic|potion|heal|cure|remedy|elixir|life|blood|mend|restore/, '#d04848'],
+    [/sleep|slumber|drowse/, '#8a8ad8'], [/stone|petri|stop|freeze|paraly|stun/, '#9a9a9a'], [/gold|key|crown|letter|seal/, '#d8b048'], [/haste|speed|quick/, '#e8d048'],
+    [/slow|delay|chill|frost|cold|ice/, '#5ab0c0'], [/berserk|rage|fury/, '#e06030'], [/regen|bloom|growth/, '#60c060'], [/blind|dark|shadow|doom|death|curse/, '#6a4a8a'], [/protect|shell|barrier|guard|ward/, '#5a9ad0']
+  ];
+  function tintHex(text) { var t = String(text || '').toLowerCase(); for (var i = 0; i < TINTS.length; i++) if (TINTS[i][0].test(t)) return TINTS[i][1]; return null; }
+  var STATUS_WORDS = [[/poison|venom|toxic|bleed/, 'drop'], [/death|doom|ko|zombie|curse/, 'skull'], [/sleep|slumber|drowse/, 'sleep'], [/confus|charm|dizz|daze/, 'spiral'],
+    [/haste|bless|shine|lucky/, 'star'], [/chill|frost|cold|ice|numb/, 'clock'], [/regen|protect|shell|boost|up|faith|bravery|barrier/, 'up'], [/weak|break|down|slow|frail/, 'down'], [/slow|stop|time|delay|doom/, 'clock'],
+    [/regen|love|charm|reraise|life/, 'heart'], [/haste|shock|volt|paraly|stun/, 'bolt'], [/burn|berserk|rage|fury|fire/, 'flame'], [/regen|bloom|leaf|nature/, 'leaf'],
+    [/blind|dark|seal|silence|mute/, 'eye'], [/stone|petri|stop|bind|root|freeze|imprison/, 'chain']];
+  S.statusShape = function (sta, i) { var t = String(sta && sta.name || '').toLowerCase(); for (var k = 0; k < STATUS_WORDS.length; k++) if (STATUS_WORDS[k][0].test(t)) return STATUS_WORDS[k][1]; return EI.STATUS_SHAPES[(i || 0) % EI.STATUS_SHAPES.length]; };
+  var EQ_WORDS = [[/helm|hat|cap|hood|crown|circlet|mask/, 'helm'], [/shield|buckler/, 'shield'], [/ring|band/, 'ring'], [/amulet|charm|gem|pendant|brooch|necklace|earring|jewel/, 'gem']];
+  // What each rules record's icon shows: {glyph, tint} with tint an element key or a hex.
+  S.iconLook = function (prefix, r, i) {
+    var nm = String(r.name || '').toLowerCase();
+    if (prefix === 'itm_') {
+      if (r.kind === 'key') return { glyph: /letter|scroll|map|note|book|page/.test(nm) ? 'scroll' : 'gem', tint: tintHex(nm) || '#d8b048' };
+      if (/seed|nut|bean/.test(nm)) return { glyph: 'seed', tint: tintHex(nm) || '#70b050' };
+      if (/scroll|tome|book/.test(nm)) return { glyph: 'scroll', tint: tintHex(nm) || '#c06040' };
+      return { glyph: 'vial', tint: tintHex(nm) || '#d04848' };
+    }
+    if (prefix === 'eqp_') {
+      if (r.slot === 'weapon') { var f = S.frontFor(r.weaponClass || nm); return { glyph: f === 'bare' ? 'ring' : f, tint: '#b04a3a' }; }
+      if (r.slot === 'armor') { for (var k = 0; k < EQ_WORDS.length - 2; k++) if (EQ_WORDS[k][0].test(nm)) return { glyph: EQ_WORDS[k][1], tint: '#5a7ac0' }; return { glyph: 'body', tint: '#5a7ac0' }; }
+      for (var j = 0; j < EQ_WORDS.length; j++) if (EQ_WORDS[j][0].test(nm)) return { glyph: EQ_WORDS[j][1], tint: '#c04a8a' };
+      return { glyph: 'ring', tint: '#c04a8a' };
+    }
+    if (prefix === 'abl_') {
+      if (r.element) return { glyph: r.kind === 'magic' ? 'gem' : 'blade', tint: r.element };
+      if (r.kind === 'magic') return { glyph: 'staff', tint: tintHex(nm) || '#4a7ad8' };
+      if (r.kind === 'heal' || /heal|cure|mend|life|raise|regen/.test(nm)) return { glyph: 'status.heart', tint: tintHex(nm) && !/heal|cure|mend/.test(nm) ? tintHex(nm) : '#5ab85a' };
+      if (r.kind === 'limit') return { glyph: 'status.star', tint: '#e0b040' };
+      if (r.kind === 'item') return { glyph: 'vial', tint: tintHex(nm) || '#d04848' };
+      return { glyph: 'blade', tint: tintHex(nm) || '#b04a3a' };
+    }
+    if (prefix === 'mat_') return { glyph: 'gem', tint: r.element || tintHex(nm) || '#60c060' };
+    if (prefix === 'sta_') return { glyph: 'status.' + S.statusShape(r, i), tint: tintHex(nm) || '#a060c0' };
+    return { glyph: 'gem', tint: '#c0c0c0' };
+  };
+  // A tint (element key, hex, or master index) to three master indices, dark to light.
+  S.tintRamp = function (b, tint) {
+    var m = P.entries(b);
+    if (!m.length) return null;
+    if (typeof tint === 'number') return PE.ramp(m, tint, 3);
+    var fx = ART.bySubject('efx_', 'element', tint, b);
+    if (fx && Array.isArray(fx.palette) && fx.palette.length >= 3) return fx.palette.slice(0, 3);
+    var els = b.charter && b.charter.ruleset && Array.isArray(b.charter.ruleset.elements) ? b.charter.ruleset.elements : [];
+    var el = els.filter(function (e) { return e && e.key === tint; })[0];
+    var hex = C.normHex(el ? el.color : tint) || '#c4a04c';
+    return PE.rampFor(m, hex, 3, 0.12);
+  };
+  S.ICON_SOURCES = ['itm_', 'eqp_', 'abl_', 'sta_', 'mat_'];
+  S.icons = function (b) { return ART.records.list('ico_', b || cur()); };
+  S.buildIcons = function (b, report) {
+    var pal = ensureIconPalette(b, report), size = EI.size(S.tileSize(b));
+    if (!pal) return;
+    S.ICON_SOURCES.forEach(function (prefix) {
+      var usedShapes = {};
+      rulesList(b, prefix).forEach(function (rr, i) {
+        var kind = prefix.slice(0, 3), look = S.iconLook(prefix, rr, i), r = ART.bySubject('ico_', kind, rr.id, b);
+        // Statuses with no keyword match take the next shape no other status in the bundle uses.
+        if (prefix === 'sta_') {
+          var sh = look.glyph.slice(7), j = 0;
+          while (usedShapes[sh] && j < EI.STATUS_SHAPES.length) { sh = EI.STATUS_SHAPES[(EI.STATUS_SHAPES.indexOf(sh) + 1) % EI.STATUS_SHAPES.length]; j++; }
+          usedShapes[sh] = 1; look.glyph = 'status.' + sh;
+        }
+        var ramp = S.tintRamp(b, look.tint);
+        if (r) {
+          if (kept(r)) { r.tintRamp = S.tintRamp(b, r.gen && r.gen.tint != null ? r.gen.tint : look.tint) || r.tintRamp; if (!ART.records.get(r.pal, b)) r.pal = pal.id; bump(report, 'kept'); return; }
+          var same = U.canonical({ g: r.gen, s: r.size, p: r.pal, t: r.tintRamp }) === U.canonical({ g: look, s: size, p: pal.id, t: ramp });
+          if (same) { bump(report, 'kept'); return; }
+          r.gen = look; r.size = size; r.pal = pal.id; r.tintRamp = ramp; r.name = (rr.name || rr.id) + ' icon';
+          bump(report, 'refreshed');
+          return;
+        }
+        ART.records.put(ART.envelope('ico_', (rr.name || rr.id) + ' icon', { kind: kind, ref: rr.id }, 'procedural', H('ico|' + rr.id), { size: size, gen: look, pal: pal.id, tintRamp: ramp }), b);
+        bump(report, 'created');
+      });
+    });
+  };
+  // ---------------------------------------------------------------- frames and the host cache
+  // One engine cache per bundle state. Any bundle change clears it; previews rebake lazily, which is cheap at these sizes.
+  var cache = null, cacheFor = null;
+  S.cache = function () {
+    var b = cur();
+    if (!cache || cacheFor !== b) {
+      cacheFor = b;
+      cache = ENGINE_RENDER.createCache(b.art, { size: S.tileSize(b), entries: P.entries(b), budget: 12e6, makeCanvas: function (w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; } });
+    }
+    return cache;
+  };
+  Kit.on('change', function () { if (cache) cache.clear(); cache = null; });
+  Kit.on('load', function () { if (cache) cache.clear(); cache = null; });
+  S.frame = function (id, a, c) {
+    var p = Kit.ids.prefixOf(id), k = S.cache();
+    if (p === 'spr_') { var r = ART.records.get(id); return k.sprite(id, a || (r && r.mode === 'battle' ? (r.kind === 'enemy' ? 'idle' : 'idle') : 'stand'), c || (r && r.mode === 'battle' ? (r.kind === 'enemy' ? 'right' : 'left') : 'down')); }
+    if (p === 'por_') return k.portrait(id, a || 'neutral');
+    if (p === 'ico_') return k.icon(id);
+    return null;
+  };
+  // A frame as a pixel crisp canvas at an integer scale. Works without a 2D context (tests), returning a sized blank.
+  S.canvas = function (f, scale, label) {
+    var cv = document.createElement('canvas');
+    cv.className = 'a7-fig';
+    if (!f) { cv.width = cv.height = 1; return cv; }
+    cv.width = f.w; cv.height = f.h;
+    var sc = scale || 3;
+    cv.style.width = f.w * sc + 'px'; cv.style.height = f.h * sc + 'px';
+    cv.setAttribute('role', 'img');
+    if (label) cv.setAttribute('aria-label', label);
+    var ctx = cv.getContext && cv.getContext('2d');
+    if (ctx && f.rgba) { var im = ctx.createImageData(f.w, f.h); im.data.set(f.rgba); ctx.putImageData(im, 0, 0); }
+    return cv;
+  };
+  // Picks a preview scale that keeps a frame near a target width in CSS pixels.
+  S.fit = function (f, px) { return f ? Math.max(1, Math.min(8, Math.floor((px || 72) / Math.max(f.w, f.h)))) : 1; };
+
+  // ---------------------------------------------------------------- Quick Build
+  ART.quickBuild.register({ key: 'sprites', label: 'Sprites, portraits, and icons', order: 20, run: function (b, r) {
+    if (!P.master(b)) return;
+    S.buildParts(b, r);
+    S.buildSprites(b, r);
+    S.buildPortraits(b, r);
+    S.buildIcons(b, r);
+  } });
+
+  // ---------------------------------------------------------------- validation
+  Kit.validate.register('art.sprites', function (b, ctx) {
+    var recs = b.art && U.isObj(b.art.records) ? b.art.records : {};
+    function list(p) { return U.isObj(recs[p]) ? Object.keys(recs[p]).map(function (k) { return recs[p][k]; }).filter(U.isObj) : []; }
+    function has(p, id) { return typeof id === 'string' && U.isObj(recs[p]) && !!recs[p][id]; }
+    function add(id, path, msg, level) { ctx.add({ recordId: id, fieldPath: path, message: msg, level: level || 'error' }); }
+    var T = S.tileSize(b), gens = {};
+    ES.GENERATORS.forEach(function (g) { gens[g] = 1; });
+    function pxOk(id, path, o, max) {
+      if (!U.isObj(o)) { add(id, path, 'Pixel data must be an object with w, h, and d.'); return; }
+      var v = EC.validate(o.d, o.w, o.h, max == null ? 15 : max);
+      if (!v.ok) add(id, path, v.error);
+    }
+    function subjectOk(r) {
+      var sj = r.subject;
+      if (!sj) return;
+      var p = sj.kind + '_';
+      if (['chr', 'fam', 'itm', 'eqp', 'abl', 'sta', 'mat'].indexOf(sj.kind) >= 0 && !(b.rules && U.isObj(b.rules[p]) && b.rules[p][sj.ref]))
+        add(r.id, 'subject.ref', 'This record belongs to ' + sj.ref + ', which no longer exists.', 'warning');
+    }
+    list('prt_').forEach(function (r) {
+      if (ES.LAYERS.indexOf(r.layer) < 0) add(r.id, 'layer', 'Layer must be one of ' + ES.LAYERS.join(', ') + '.');
+      var hasPx = r.px && U.isObj(r.px.variants) && Object.keys(r.px.variants).length;
+      if (hasPx) Object.keys(r.px.variants).forEach(function (k) { pxOk(r.id, 'px.variants.' + k, r.px.variants[k]); });
+      else if (!r.gen || !gens[r.gen.shape]) add(r.id, 'gen.shape', 'Unknown part generator ' + (r.gen && r.gen.shape) + '.');
+      if (hasPx && r.px.base && r.px.base !== T) add(r.id, 'px.base', 'Drawn at tile size ' + r.px.base + ' but the Charter uses ' + T + '. It is resampled, which can look rough.', 'warning');
+    });
+    var sprs = list('spr_');
+    sprs.forEach(function (r) {
+      if (S.KINDS.indexOf(r.kind) < 0) add(r.id, 'kind', 'Sprite kind must be ' + S.KINDS.join(', ') + '.');
+      if (S.MODES.indexOf(r.mode) < 0) add(r.id, 'mode', 'Sprite mode must be field or battle.');
+      if (!has('pal_', r.pal)) add(r.id, 'pal', r.pal ? 'Palette ' + r.pal + ' does not exist.' : 'This sprite has no palette.');
+      if (r.shares) {
+        if (!has('spr_', r.shares)) add(r.id, 'shares', 'Shares ' + r.shares + ', which does not exist.');
+        else { var seen = {}, s = r; while (s && s.shares && !seen[s.id]) { seen[s.id] = 1; s = recs.spr_[s.shares]; } if (s && s.shares) add(r.id, 'shares', 'Sharing loops back on itself.'); }
+      } else {
+        var rc = r.recipe || {};
+        if (!U.isObj(rc.parts) || !rc.parts.body) add(r.id, 'recipe.parts.body', 'A sprite needs a body part.');
+        Object.keys(rc.parts || {}).forEach(function (layer) {
+          var pid = rc.parts[layer];
+          if (!pid) return;
+          if (!has('prt_', pid)) add(r.id, 'recipe.parts.' + layer, 'Part ' + pid + ' does not exist.');
+          else if (recs.prt_[pid].layer !== layer) add(r.id, 'recipe.parts.' + layer, 'Part ' + pid + ' is a ' + recs.prt_[pid].layer + ' part on the ' + layer + ' layer.', 'warning');
+        });
+      }
+      Object.keys(r.overrides || {}).forEach(function (k) { pxOk(r.id, 'overrides.' + k, r.overrides[k]); });
+      subjectOk(r);
+    });
+    list('por_').forEach(function (r) {
+      if (!has('pal_', r.pal)) add(r.id, 'pal', 'This portrait has no palette.');
+      Object.keys(r.overrides || {}).forEach(function (k) { pxOk(r.id, 'overrides.' + k, r.overrides[k]); });
+      subjectOk(r);
+    });
+    var n = b.art && recs.pal_ ? (P.entries(b).length) : 0;
+    list('ico_').forEach(function (r) {
+      var g = r.gen && r.gen.glyph;
+      if (!r.px && !(EI.GLYPHS.indexOf(g) >= 0 || (/^status\./.test(g || '') && EI.STATUS_SHAPES.indexOf(g.slice(7)) >= 0))) add(r.id, 'gen.glyph', 'Unknown icon glyph ' + g + '.');
+      if (!has('pal_', r.pal)) add(r.id, 'pal', 'This icon has no palette.');
+      if (r.tintRamp != null && !(Array.isArray(r.tintRamp) && r.tintRamp.length === 3 && r.tintRamp.every(function (v) { return typeof v === 'number' && v >= 0 && v < n; }))) add(r.id, 'tintRamp', 'The tint is three master indices.');
+      if (r.px) pxOk(r.id, 'px', r.px);
+      subjectOk(r);
+    });
+  });
+  function goSprites(rid) { if (!Kit.go('sprites')) return false; if (ART.WS.sprites && ART.WS.sprites.focus) ART.WS.sprites.focus(rid); return true; }
+  Kit.jump.register({
+    test: function (rid) { var p = Kit.ids.prefixOf(rid); return p === 'spr_' || p === 'prt_' || p === 'por_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: goSprites
+  });
+  Kit.jump.register({
+    test: function (rid) { return Kit.ids.prefixOf(rid) === 'ico_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: function (rid) { if (!Kit.go('interface')) return false; if (ART.WS.interface && ART.WS.interface.focus) ART.WS.interface.focus(rid); return true; }
+  });
+})();
+// === ART:SPRITES END ===
+// === ART:PIXED BEGIN ===
+(function () {
+  'use strict';
+  // The touch pixel editor. It edits local slot indices (0 clear, 1 outline, 2 to 15 the ramps) for any frame: a sprite
+  // pose, a portrait expression, an icon, or a hand drawn part. Pointer events cover mouse, pen, and touch alike; the
+  // canvas sets touch-action none so drawing never scrolls the page.
+  //   ART.pixelEditor.open({title, w, h, idx, slots, entries, labels, note, canRevert}) -> Promise of
+  //   {action: 'save', idx} | {action: 'revert'} | null
+  var U = Kit.util, el = U.el, esc = U.esc, C = ENGINE_RENDER.color;
+  var TOOLS = [['pen', 'Pencil', 'B'], ['fill', 'Fill', 'G'], ['pick', 'Pick color', 'I'], ['erase', 'Eraser', 'E']];
+  var SLOT_NAMES = ['Clear', 'Outline', 'Skin dark', 'Skin', 'Skin light', 'Hair dark', 'Hair', 'Hair light', 'Cloth A dark', 'Cloth A', 'Cloth A light', 'Cloth B dark', 'Cloth B', 'Cloth B light', 'Metal dark', 'Metal light'];
+  ART.SLOT_NAMES = SLOT_NAMES;
+  function btn(label, cls, html) { var b = el('button', 'btn' + (cls ? ' ' + cls : ''), html || esc(label)); b.type = 'button'; return b; }
+
+  function open(o) {
+    return new Promise(function (resolve) {
+      var w = o.w, h = o.h, px = new Uint8Array(o.idx), names = o.labels || SLOT_NAMES;
+      var undo = [], redo = [], tool = 'pen', color = 1, mirror = false, grid = true, done = false;
+      var zoom = Math.max(4, Math.min(24, Math.floor(Math.min(560, (typeof window !== 'undefined' ? window.innerWidth : 560) - 64) / w)));
+      var cv, ctx, wrap, status, swatches = [], toolBtns = {}, dirty = false;
+      function colorOf(s) { var m = o.slots && s ? o.slots[s] : null; return typeof m === 'number' && o.entries[m] ? o.entries[m] : null; }
+      function paint() {
+        if (!ctx) return;
+        cv.width = w * zoom; cv.height = h * zoom;
+        for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+          var c = colorOf(px[y * w + x]);
+          if (c) { ctx.fillStyle = c; ctx.fillRect(x * zoom, y * zoom, zoom, zoom); }
+          else { ctx.fillStyle = (x + y) & 1 ? '#8a8a8a' : '#b8b8b8'; ctx.fillRect(x * zoom, y * zoom, zoom, zoom); }
+        }
+        if (grid && zoom >= 6) {
+          ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 1; ctx.beginPath();
+          for (var gx = 1; gx < w; gx++) { ctx.moveTo(gx * zoom + 0.5, 0); ctx.lineTo(gx * zoom + 0.5, h * zoom); }
+          for (var gy = 1; gy < h; gy++) { ctx.moveTo(0, gy * zoom + 0.5); ctx.lineTo(w * zoom, gy * zoom + 0.5); }
+          ctx.stroke();
+          if (mirror) { ctx.strokeStyle = 'rgba(255,80,80,.7)'; ctx.beginPath(); ctx.moveTo(w * zoom / 2 + 0.5, 0); ctx.lineTo(w * zoom / 2 + 0.5, h * zoom); ctx.stroke(); }
+        }
+      }
+      function setStatus(t) { if (status) status.textContent = t; }
+      function snapshot() { undo.push(new Uint8Array(px)); if (undo.length > 80) undo.shift(); redo.length = 0; dirty = true; }
+      function set(x, y, v) {
+        if (x < 0 || y < 0 || x >= w || y >= h) return;
+        px[y * w + x] = v;
+        if (mirror) px[y * w + (w - 1 - x)] = v;
+      }
+      function flood(x, y, v) {
+        var t = px[y * w + x];
+        if (t === v) return;
+        var stack = [[x, y]];
+        while (stack.length) {
+          var p = stack.pop(), X = p[0], Y = p[1];
+          if (X < 0 || Y < 0 || X >= w || Y >= h || px[Y * w + X] !== t) continue;
+          px[Y * w + X] = v;
+          stack.push([X + 1, Y], [X - 1, Y], [X, Y + 1], [X, Y - 1]);
+        }
+      }
+      function line(x0, y0, x1, y1, v) {
+        var dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, e = dx + dy;
+        for (var n = 0; n < 4096; n++) {
+          set(x0, y0, v);
+          if (x0 === x1 && y0 === y1) break;
+          var e2 = 2 * e;
+          if (e2 >= dy) { e += dy; x0 += sx; }
+          if (e2 <= dx) { e += dx; y0 += sy; }
+        }
+      }
+      function cell(ev) {
+        var r = cv.getBoundingClientRect();
+        var sx = r.width ? cv.width / r.width : 1, sy = r.height ? cv.height / r.height : 1;
+        return [Math.floor((ev.clientX - r.left) * sx / zoom), Math.floor((ev.clientY - r.top) * sy / zoom)];
+      }
+      function pickSlot(s) {
+        color = s;
+        swatches.forEach(function (b, i) { b.setAttribute('aria-pressed', i === s ? 'true' : 'false'); });
+        setStatus('Color: ' + names[s] + (colorOf(s) ? ' ' + colorOf(s) : ''));
+      }
+      function setTool(t) {
+        tool = t;
+        Object.keys(toolBtns).forEach(function (k) { toolBtns[k].setAttribute('aria-pressed', k === t ? 'true' : 'false'); });
+      }
+      var down = false, last = null;
+      function apply(c, first) {
+        var x = c[0], y = c[1];
+        if (x < 0 || y < 0 || x >= w || y >= h) return;
+        if (tool === 'pick') { pickSlot(px[y * w + x]); setTool(px[y * w + x] ? 'pen' : 'erase'); return; }
+        if (first) snapshot();
+        var v = tool === 'erase' ? 0 : color;
+        if (tool === 'fill') { if (first) flood(x, y, v); }
+        else if (last && !first) line(last[0], last[1], x, y, v);
+        else set(x, y, v);
+        last = c;
+        paint();
+      }
+      function undoStep() { if (!undo.length) return; redo.push(new Uint8Array(px)); px = undo.pop(); paint(); }
+      function redoStep() { if (!redo.length) return; undo.push(new Uint8Array(px)); px = redo.pop(); paint(); }
+
+      var handle = Kit.ui.dialog({
+        title: o.title || 'Edit pixels', wide: true, className: 'a7-pxdlg', dismissable: false,
+        body: function (body) {
+          if (o.note) body.appendChild(el('p', 'muted a7-small', esc(o.note)));
+          var bar = el('div', 'a7-pxbar');
+          bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Pixel tools');
+          TOOLS.forEach(function (t) {
+            var b = btn(t[1], 'a7-tool', '<span>' + esc(t[1]) + '</span>');
+            b.title = t[1] + ' (' + t[2] + ')';
+            b.addEventListener('click', function () { setTool(t[0]); });
+            toolBtns[t[0]] = b; bar.appendChild(b);
+          });
+          var sep = el('span', 'a7-sep'); bar.appendChild(sep);
+          var bu = btn('Undo'); bu.title = 'Undo (Ctrl+Z)'; bu.addEventListener('click', undoStep); bar.appendChild(bu);
+          var br = btn('Redo'); br.title = 'Redo (Ctrl+Y)'; br.addEventListener('click', redoStep); bar.appendChild(br);
+          var bm = btn('Mirror', 'a7-tool'); bm.setAttribute('aria-pressed', 'false'); bm.title = 'Draw on both halves at once';
+          bm.addEventListener('click', function () { mirror = !mirror; bm.setAttribute('aria-pressed', mirror ? 'true' : 'false'); paint(); }); bar.appendChild(bm);
+          var bg = btn('Grid', 'a7-tool'); bg.setAttribute('aria-pressed', 'true');
+          bg.addEventListener('click', function () { grid = !grid; bg.setAttribute('aria-pressed', grid ? 'true' : 'false'); paint(); }); bar.appendChild(bg);
+          var zo = btn('Zoom out'); zo.setAttribute('aria-label', 'Zoom out'); zo.innerHTML = '<span aria-hidden="true">-</span>';
+          zo.addEventListener('click', function () { zoom = Math.max(2, zoom - 2); paint(); }); bar.appendChild(zo);
+          var zi = btn('Zoom in'); zi.setAttribute('aria-label', 'Zoom in'); zi.innerHTML = '<span aria-hidden="true">+</span>';
+          zi.addEventListener('click', function () { zoom = Math.min(40, zoom + 2); paint(); }); bar.appendChild(zi);
+          body.appendChild(bar);
+          wrap = el('div', 'a7-pxwrap');
+          cv = document.createElement('canvas');
+          cv.className = 'a7-pxcanvas';
+          cv.setAttribute('role', 'img');
+          cv.setAttribute('aria-label', 'Pixel canvas, ' + w + ' by ' + h);
+          cv.tabIndex = 0;
+          ctx = cv.getContext && cv.getContext('2d');
+          wrap.appendChild(cv);
+          body.appendChild(wrap);
+          cv.addEventListener('pointerdown', function (e) { e.preventDefault(); down = true; last = null; try { cv.setPointerCapture(e.pointerId); } catch (x) {} apply(cell(e), true); });
+          cv.addEventListener('pointermove', function (e) { if (!down) return; e.preventDefault(); apply(cell(e), false); });
+          ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { cv.addEventListener(ev, function () { down = false; last = null; }); });
+          var pal = el('div', 'a7-pxpal');
+          pal.setAttribute('role', 'group'); pal.setAttribute('aria-label', 'Colors');
+          for (var s = 0; s <= (o.maxIndex || 15); s++) {
+            (function (s) {
+              var c = colorOf(s), b = el('button', 'a7-sw' + (c ? '' : ' a7-clear'));
+              b.type = 'button';
+              if (c) b.style.background = c;
+              b.setAttribute('aria-label', names[s] + (c ? ', ' + c : ''));
+              b.title = s + ' ' + names[s];
+              b.innerHTML = '<span class="n" style="color:' + (c ? C.contrastInk(c) : '#111') + '">' + s + '</span>';
+              b.addEventListener('click', function () { pickSlot(s); if (tool === 'erase' || tool === 'pick') setTool('pen'); });
+              swatches.push(b); pal.appendChild(b);
+            })(s);
+          }
+          body.appendChild(pal);
+          status = el('div', 'muted a7-small a7-pxstatus'); status.setAttribute('aria-live', 'polite');
+          body.appendChild(status);
+          body.addEventListener('keydown', function (e) {
+            if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+            var k = e.key.toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); if (e.shiftKey) redoStep(); else undoStep(); return; }
+            if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); redoStep(); return; }
+            TOOLS.forEach(function (t) { if (k === t[2].toLowerCase() && !e.ctrlKey && !e.metaKey) setTool(t[0]); });
+          });
+          setTool('pen'); pickSlot(1); paint();
+        },
+        actions: [
+          { label: 'Cancel', kind: 'ghost', value: null }
+        ].concat(o.canRevert ? [{ label: 'Revert to generated', kind: 'ghost', icon: 'x', value: 'revert' }] : []).concat([
+          { label: 'Save pixels', kind: 'primary', icon: 'check', value: 'save' }
+        ]),
+        onResult: function (v) {
+          if (done) return; done = true;
+          if (v === 'save') resolve({ action: 'save', idx: px, dirty: dirty });
+          else if (v === 'revert') resolve({ action: 'revert' });
+          else resolve(null);
+        }
+      });
+      // Test hooks: the jsdom harness has no layout, so it drives the editor through these.
+      handle.pixels = function () { return px; };
+      handle.paintAt = function (x, y, slot) { snapshot(); set(x, y, slot); paint(); };
+      handle.fillAt = function (x, y, slot) { snapshot(); flood(x, y, slot); paint(); };
+      handle.undo = undoStep; handle.redo = redoStep;
+      ART.pixelEditor.last = handle;
+    });
+  }
+  // Encodes an edited frame for storage, or null when it equals the generated frame (so nothing is stored).
+  function encodeOverride(idx, w, h, generated) {
+    if (generated && generated.length === idx.length) {
+      var same = true;
+      for (var i = 0; i < idx.length; i++) if (idx[i] !== generated[i]) { same = false; break; }
+      if (same) return null;
+    }
+    return { w: w, h: h, d: ENGINE_RENDER.codec.encode(idx) };
+  }
+  ART.pixelEditor = { open: open, encode: encodeOverride, SLOT_NAMES: SLOT_NAMES };
+})();
+// === ART:PIXED END ===
+// === WS:SPRITES BEGIN ===
+(function () {
+  'use strict';
+  // The Sprites tab: Characters, Villain and NPCs, Bestiary, Portraits, and Parts, plus the drawers that edit them.
+  var U = Kit.util, el = U.el, esc = U.esc, ES = ENGINE_RENDER.sprite, EP = ENGINE_RENDER.portrait, EC = ENGINE_RENDER.codec;
+  var S = ART.sprites, P = ART.palette;
+  ART.WS = ART.WS || {};
+  var SUBS = [['characters', 'Characters'], ['cast', 'Villain and NPCs'], ['bestiary', 'Bestiary'], ['portraits', 'Portraits'], ['parts', 'Parts']];
+  var ui = { sub: 'characters', focus: null };
+  var ENEMY_LABELS = ['Clear', 'Outline', 'Body dark', 'Body', 'Body light', 'Shade dark', 'Shade', 'Shade light', 'Accent dark', 'Accent', 'Accent light', 'Eye dark', 'Eye', 'Eye light', 'Metal dark', 'Metal light'];
+  var LAYER_LABELS = { shadow: 'Shadow', back: 'Back gear', body: 'Body', legs: 'Legs', torso: 'Torso', head: 'Head', hair: 'Hair', front: 'Front gear' };
+  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Battle idle' };
+  function cur() { return Kit.bundle.current(); }
+  function touch(reason) { Kit.bundle.touch(reason || 'sprites'); Kit.refreshValidation(); }
+  // Shared small widgets (WS:INTERFACE uses them too).
+  var W = ART.ui = ART.ui || {};
+  W.button = function (label, icon, cls, fn) {
+    var b = el('button', 'btn' + (cls ? ' ' + cls : ''), (icon ? Kit.icon(icon) : '') + '<span>' + esc(label) + '</span>');
+    b.type = 'button'; if (fn) b.addEventListener('click', fn); return b;
+  };
+  W.chip = function (text, kind) { return '<span class="chip chip-' + (kind || 'muted') + '">' + esc(text) + '</span>'; };
+  W.origin = function (r) { return S.isKept(r) ? W.chip('edited', 'accent') : W.chip(r.origin === 'default' ? 'default' : 'generated', 'muted'); };
+  W.select = function (label, value, options, onChange) {
+    var id = 'a7s' + U.rand36(6), w = el('label', 'a7-sel'); w.htmlFor = id; w.innerHTML = '<span>' + esc(label) + '</span>';
+    var s = el('select', 'inp'); s.id = id;
+    s.innerHTML = options.map(function (o) { return '<option value="' + esc(o[0]) + '">' + esc(o[1]) + '</option>'; }).join('');
+    s.value = value == null ? '' : value;
+    s.addEventListener('change', function () { onChange(s.value); });
+    w.appendChild(s); return w;
+  };
+  W.slider = function (label, value, min, max, step, onChange) {
+    var id = 'a7r' + U.rand36(6), w = el('label', 'a7-range'); w.htmlFor = id;
+    var out = el('output', null, esc(String(value)));
+    w.innerHTML = '<span>' + esc(label) + '</span>';
+    var r = el('input'); r.type = 'range'; r.id = id; r.min = min; r.max = max; r.step = step; r.value = value;
+    r.addEventListener('input', function () { out.textContent = r.value; });
+    r.addEventListener('change', function () { onChange(Number(r.value)); });
+    w.appendChild(r); w.appendChild(out); return w;
+  };
+  W.toggle = function (label, on, onChange) {
+    var id = 'a7t' + U.rand36(6), w = el('label', 'a7-check'); w.htmlFor = id;
+    var c = el('input'); c.type = 'checkbox'; c.id = id; c.checked = !!on;
+    c.addEventListener('change', function () { onChange(c.checked); });
+    w.appendChild(c); w.appendChild(el('span', null, esc(label))); return w;
+  };
+  W.figure = function (f, px, label) { return S.canvas(f, S.fit(f, px), label); };
+  function rowFor(r) { var d = el('div', 'a7-row'); d.dataset.rid = r.id; if (ui.focus === r.id) d.classList.add('a7-hit'); return d; }
+  function nameOf(id) { var b = cur(), p = Kit.ids.prefixOf(id), m = p && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : null; return m && m[id] && m[id].name ? m[id].name : String(id); }
+  function needQuick(host, what) {
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">No ' + esc(what) + ' yet</h3><p class="muted">Quick Build creates the master palette, colorways, the part library, and a sprite for every character, the villain, each NPC archetype, and every enemy family, all without an API key.</p>';
+    p.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+    host.appendChild(p);
+  }
+  function frameOf(spr, pose, dir) { return S.cache().sprite(spr.id, pose, dir); }
+  function previews(spr, px) {
+    var d = el('div', 'a7-figs'), dirs = spr.mode === 'battle' ? [['idle', spr.kind === 'enemy' ? 'right' : 'left']] : [['stand', 'down'], ['stand', 'right'], ['stand', 'up']];
+    dirs.forEach(function (pd) { d.appendChild(W.figure(frameOf(spr, pd[0], pd[1]), px || 64, spr.name + ', ' + POSE_LABELS[pd[0]] + ' ' + pd[1])); });
+    return d;
+  }
+
+  // ---------------------------------------------------------------- pixel editing of one frame
+  function editFrame(spr, pose, dir, after) {
+    var b = cur(), f = frameOf(spr, pose, dir), pal = ART.records.get(spr.pal);
+    if (!f) return;
+    var base = ES.base(b.art, spr), gen = ES.compose(ES.spec(b.art, spr, S.tileSize(b)), pose, dir);
+    var key = pose + '.' + dir, own = spr.overrides && spr.overrides[key];
+    var note = spr.shares ? 'This sprite shares its look with ' + (base.name || base.id) + '. Pixels you save here apply to this sprite only.' : 'Saved pixels replace the generated frame for this pose and direction. Other frames still follow the recipe.';
+    ART.pixelEditor.open({ title: spr.name + ': ' + (POSE_LABELS[pose] || pose) + ', ' + dir, w: f.w, h: f.h, idx: f.idx, slots: pal && pal.slots, entries: P.entries(b),
+      labels: spr.kind === 'enemy' ? ENEMY_LABELS : null, note: note, canRevert: !!own }).then(function (res) {
+      if (!res) return;
+      spr.overrides = U.isObj(spr.overrides) ? spr.overrides : {};
+      if (res.action === 'revert') { delete spr.overrides[key]; touch('sprite-revert'); Kit.ui.toast('Frame reverted to the generated pixels.', 'ok'); }
+      else {
+        var enc = ART.pixelEditor.encode(res.idx, f.w, f.h, gen.idx);
+        if (!enc) delete spr.overrides[key]; else { spr.overrides[key] = enc; spr.origin = 'user'; }
+        touch('sprite-pixels');
+        Kit.ui.toast(enc ? 'Pixels saved for ' + (POSE_LABELS[pose] || pose) + ', ' + dir + '.' : 'No change from the generated frame, so nothing was stored.', 'ok');
+      }
+      if (after) after();
+    });
+  }
+  ART.editSpriteFrame = editFrame;
+
+  // ---------------------------------------------------------------- the sprite drawer
+  function partOptions(layer, rig, allowNone) {
+    var opts = S.parts().filter(function (p) { return p.layer === layer && (p.rig || 'humanoid') === rig; }).map(function (p) { return [p.id, p.name]; });
+    return allowNone ? [['', 'None']].concat(opts) : opts;
+  }
+  function openSprite(id) {
+    Kit.ui.drawer({
+      title: 'Sprite',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), spr = ART.records.get(id);
+          U.clear(body);
+          if (!spr) { body.appendChild(el('div', 'empty-line', 'This sprite no longer exists.')); return; }
+          h.setTitle(spr.name);
+          var base = ES.base(b.art, spr), rc = base.recipe || {}, pal = ART.records.get(spr.pal);
+          var head = el('div', 'a7-edhead');
+          head.appendChild(previews(spr, 96));
+          var meta = el('div', 'a7-grow');
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(spr.id) + '</code></dd><dt>Kind</dt><dd>' + esc(spr.kind + ', ' + spr.mode) + '</dd><dt>Origin</dt><dd>' + W.origin(spr) + '</dd><dt>Palette</dt><dd>' + esc(pal ? pal.name : 'missing') + '</dd></dl>';
+          if (pal) meta.appendChild(W.button('Edit colorway', 'chart', 'btn-ghost', function () { if (ART.WS.palette && ART.WS.palette.openEditor) ART.WS.palette.openEditor(pal.id, paint); }));
+          head.appendChild(meta);
+          body.appendChild(head);
+          if (spr.shares) {
+            var sh = el('div', 'a7-note');
+            sh.innerHTML = 'Shares its recipe with <strong>' + esc(base.name) + '</strong>, so changes there show up here too, in this sprite\'s own palette.';
+            body.appendChild(sh);
+            var row = el('div', 'btn-row');
+            row.appendChild(W.button('Edit ' + base.name, 'edit', '', function () { h.close(); openSprite(base.id); }));
+            row.appendChild(W.button('Give it its own look', 'spark', 'btn-ghost', function () { S.unshare(b, spr); touch('sprite-unshare'); paint(); }));
+            body.appendChild(row);
+          } else if (spr.kind !== 'enemy') {
+            body.appendChild(el('h3', 'section-h', 'Look'));
+            var ctl = el('div', 'a7-ctl');
+            ['body', 'head', 'hair', 'torso', 'legs', 'back', 'front'].forEach(function (layer) {
+              ctl.appendChild(W.select(LAYER_LABELS[layer], (rc.parts || {})[layer] || '', partOptions(layer, 'humanoid', layer === 'back' || layer === 'front' || layer === 'hair'), function (v) {
+                rc.parts = rc.parts || {}; rc.parts[layer] = v || null;
+                var p = v && ART.records.get(v); rc.look = rc.look || {}; rc.look[layer] = p && p.lib ? p.lib.split('.')[1] : null;
+                spr.origin = 'user'; touch('sprite-part'); paint();
+              }));
+            });
+            ctl.appendChild(W.select('Accent', rc.accent || 'clothB', [['clothB', 'Cloth B'], ['metal', 'Metal'], ['clothA', 'Cloth A']], function (v) { rc.accent = v; spr.origin = 'user'; touch('sprite-accent'); paint(); }));
+            body.appendChild(ctl);
+            var pr = rc.proportions = rc.proportions || { height: 1.5, headScale: 1 };
+            var ctl2 = el('div', 'a7-ctl');
+            ctl2.appendChild(W.slider('Height (tiles)', pr.height || 1.5, 1.25, 2, 0.05, function (v) { pr.height = v; spr.origin = 'user'; touch('sprite-prop'); paint(); }));
+            ctl2.appendChild(W.slider('Head size', pr.headScale || 1, 0.8, 1.3, 0.05, function (v) { pr.headScale = v; spr.origin = 'user'; touch('sprite-prop'); paint(); }));
+            body.appendChild(ctl2);
+          } else {
+            body.appendChild(el('h3', 'section-h', 'Body'));
+            var ctl3 = el('div', 'a7-ctl');
+            ctl3.appendChild(W.select('Rig', rc.rig, ES.RIGS.map(function (k) { return [k, k.charAt(0).toUpperCase() + k.slice(1)]; }), function (v) {
+              rc.rig = v; var pid = S.partByLib(b, 'enemy.' + v); rc.parts = { body: pid ? pid.id : (rc.parts || {}).body };
+              rc.params = { body: S.rigParams(v, spr.seed) }; spr.origin = 'user'; touch('sprite-rig'); paint();
+            }));
+            body.appendChild(ctl3);
+            var prm = (rc.params = rc.params || {}).body = (rc.params.body || {}), defs = ES.RIG_PARAMS[rc.rig] || {};
+            var ctl4 = el('div', 'a7-ctl');
+            Object.keys(defs).forEach(function (k) {
+              var dv = defs[k], v = prm[k] != null ? prm[k] : dv;
+              if (dv === 0 || dv === 1) ctl4.appendChild(W.toggle(k, !!v, function (on) { prm[k] = on ? 1 : 0; spr.origin = 'user'; touch('sprite-param'); paint(); }));
+              else if (dv >= 2) ctl4.appendChild(W.slider(k, v, 0, Math.max(6, dv * 2), 1, function (n) { prm[k] = n; spr.origin = 'user'; touch('sprite-param'); paint(); }));
+              else ctl4.appendChild(W.slider(k, v, 0.3, 1.6, 0.05, function (n) { prm[k] = n; spr.origin = 'user'; touch('sprite-param'); paint(); }));
+            });
+            body.appendChild(ctl4);
+          }
+          body.appendChild(el('h3', 'section-h', 'Frames'));
+          body.appendChild(el('p', 'muted a7-small', 'Tap a frame to draw on it. A hand edited frame is stored as an override; the rest keep following the recipe. Left facing frames mirror right facing ones unless you edit them.'));
+          var grid = el('div', 'a7-frames');
+          var set = spr.mode === 'battle' ? ES.BATTLE_POSES.map(function (p) { return [p, spr.kind === 'enemy' ? 'right' : 'left']; }) : [];
+          if (spr.mode !== 'battle') ES.FIELD_POSES.forEach(function (p) { ES.DIRS.forEach(function (d) { set.push([p, d]); }); });
+          var ov = Object.assign({}, base.overrides || {}, spr.overrides || {});
+          set.forEach(function (pd) {
+            var f = frameOf(spr, pd[0], pd[1]), k = pd[0] + '.' + pd[1];
+            var t = el('button', 'a7-frame');
+            t.type = 'button';
+            t.setAttribute('aria-label', 'Edit pixels: ' + (POSE_LABELS[pd[0]] || pd[0]) + ', ' + pd[1] + (ov[k] ? ', hand edited' : ''));
+            t.appendChild(W.figure(f, 48));
+            t.appendChild(el('span', 'a7-frame-l', esc((POSE_LABELS[pd[0]] || pd[0]) + ' ' + pd[1]) + (ov[k] ? ' <span class="chip chip-accent">edited</span>' : '')));
+            t.addEventListener('click', function () { editFrame(spr, pd[0], pd[1], paint); });
+            grid.appendChild(t);
+          });
+          body.appendChild(grid);
+          var row2 = el('div', 'btn-row');
+          if (!spr.shares) row2.appendChild(W.button('Reroll look', 'spark', '', function () { reroll(b, spr); touch('sprite-reroll'); paint(); }));
+          row2.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () {
+            Kit.ui.confirm({ title: 'Reset this sprite?', message: 'The recipe goes back to what Quick Build makes from the bundle, and hand edited frames on this sprite are removed.', okLabel: 'Reset' }).then(function (ok) {
+              if (!ok) return;
+              resetSprite(b, spr); touch('sprite-reset'); paint();
+            });
+          }));
+          body.appendChild(row2);
+        }
+        paint();
+      }
+    });
+  }
+  function reroll(b, spr) {
+    var rc = spr.recipe;
+    if (!rc) return;
+    spr.seed = (Math.random() * 4294967295) >>> 0;
+    if (spr.kind === 'enemy') { rc.params = { body: S.rigParams(rc.rig, spr.seed) }; }
+    else {
+      var chr = spr.subject && spr.subject.kind === 'chr' ? (b.rules.chr_ || {})[spr.subject.ref] : null;
+      var look = chr ? S.characterLook(chr, spr.seed) : S.characterLook({ weaponClass: (rc.look || {}).front === 'bare' ? '' : 'blade', baseStats: {} }, spr.seed);
+      if (!chr && rc.look) look.front = rc.look.front;
+      Object.keys(look).forEach(function (layer) { (rc.parts = rc.parts || {})[layer] = look[layer] ? (S.partByLib(b, layer + '.' + look[layer]) || {}).id || null : null; });
+      rc.look = look;
+    }
+    spr.origin = 'user';
+  }
+  function resetSprite(b, spr) {
+    spr.overrides = {};
+    spr.origin = spr.kind === 'npc' ? 'default' : 'procedural';
+    if (spr.kind === 'npc') {
+      var k = (spr.subject.ref || '').replace(/^npc:/, ''), look = S.NPC_LOOKS[k];
+      if (look) {
+        Object.keys(look).forEach(function (layer) { (spr.recipe.parts = spr.recipe.parts || {})[layer] = look[layer] ? (S.partByLib(b, layer + '.' + look[layer]) || {}).id || null : null; });
+        spr.recipe.look = U.clone(look); spr.recipe.proportions = { height: 1.5, headScale: 1 };
+      }
+      return;
+    }
+    // A generated sprite rebuilds from the bundle on the next Quick Build pass; run the sprite step now.
+    var rep = {};
+    S.buildSprites(b, rep);
+  }
+
+  // ---------------------------------------------------------------- lists
+  function spriteRow(spr, host, extra) {
+    var row = rowFor(spr);
+    var figs = previews(spr, 56), battle = spr.mode === 'field' ? S.spriteFor(cur(), spr.subject.kind, spr.subject.ref, 'battle') : null;
+    if (battle) Array.prototype.slice.call(previews(battle, 56).children).forEach(function (c) { figs.appendChild(c); });
+    row.appendChild(figs);
+    var mid = el('div', 'a7-grow');
+    var look = (ES.base(cur().art, spr).recipe || {}).look || {};
+    mid.innerHTML = '<div class="a7-name"><strong>' + esc(spr.name.replace(/ \((field|battle)\)$/, '')) + '</strong> ' + W.origin(spr) + (spr.shares ? ' ' + W.chip('shares a look', 'muted') : '') + '</div>' +
+      '<div class="muted a7-small">' + esc(['body', 'torso', 'hair', 'front'].map(function (k) { return look[k]; }).filter(Boolean).join(', ')) + '</div>';
+    row.appendChild(mid);
+    var acts = el('div', 'a7-acts');
+    acts.appendChild(W.button(battle ? 'Field' : 'Edit', 'edit', '', function () { openSprite(spr.id); }));
+    if (battle) acts.appendChild(W.button('Battle', 'sword', 'btn-ghost', function () { openSprite(battle.id); }));
+    if (extra) extra(acts);
+    row.appendChild(acts);
+    host.appendChild(row);
+  }
+  function viewCharacters(host) {
+    var b = cur(), chrs = (b.rules && b.rules.chr_) || {}, list = S.sprites(b).filter(function (s) { return s.kind === 'character' && s.mode === 'field'; });
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">Party</h3><p class="muted">Each character has a field sprite (four directions, three walking frames) and a battle sprite that shares its look. Looks come from each character\'s stats and weapon class and are dressed in their colorway.</p>';
+    if (!Object.keys(chrs).length) p.appendChild(el('div', 'empty-line', 'The bundle has no characters.'));
+    else if (!list.length) { host.appendChild(p); needQuick(host, 'character sprites'); return; }
+    list.forEach(function (s) { spriteRow(s, p); });
+    host.appendChild(p);
+  }
+  function viewCast(host, repaint) {
+    var b = cur(), all = S.sprites(b);
+    var vil = all.filter(function (s) { return s.kind === 'villain' && s.mode === 'field'; }), npcs = all.filter(function (s) { return s.kind === 'npc'; });
+    if (!vil.length && !npcs.length) { needQuick(host, 'villain or NPC sprites'); return; }
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">Villain</h3>';
+    vil.forEach(function (s) { spriteRow(s, p); });
+    if (!vil.length) p.appendChild(el('div', 'empty-line', 'No villain sprite.'));
+    host.appendChild(p);
+    var q = el('section', 'panel');
+    q.innerHTML = '<h3 class="section-h">NPC archetypes</h3><p class="muted">World Forge places these on Day 148. Duplicate one to add an archetype; delete the ones your world does not need.</p>';
+    npcs.forEach(function (s) {
+      spriteRow(s, q, function (acts) {
+        acts.appendChild(W.button('Duplicate', 'plus', 'btn-ghost', function () { duplicateNpc(s, repaint); }));
+        var del = W.button('Delete', 'trash', 'btn-ghost', function () { deleteNpc(s, repaint); });
+        del.setAttribute('aria-label', 'Delete ' + s.name);
+        acts.appendChild(del);
+      });
+    });
+    host.appendChild(q);
+  }
+  function duplicateNpc(spr, repaint) {
+    Kit.ui.prompt({ title: 'New NPC archetype', label: 'Archetype name', value: '', placeholder: 'for example ferryman', validate: function (v) {
+      var k = U.slug(v); if (!k) return 'Enter a name.';
+      if (S.spriteFor(cur(), 'role', 'npc:' + k, 'field')) return 'That archetype already exists.';
+      return null;
+    } }).then(function (v) {
+      if (!v) return;
+      var b = cur(), k = U.slug(v), label = v.trim(), opal = ART.records.get(spr.pal);
+      var pal = ART.envelope('pal_', label + ' colorway', { kind: 'role', ref: 'npc:' + k }, 'user', 0, { kind: 'local', layout: 'humanoid', hint: { hue: (Math.random() * 360) | 0 } });
+      if (opal && opal.colorway) { pal.colorway = U.clone(opal.colorway); pal.slots = opal.slots.slice(); pal.ramps = U.clone(opal.ramps); pal.source = U.clone(opal.source); }
+      else P.refitLocal(b, pal);
+      ART.records.put(pal, b);
+      var rec = ART.envelope('spr_', label + ' (field)', { kind: 'role', ref: 'npc:' + k }, 'user', 0, { kind: 'npc', mode: 'field', pal: pal.id, recipe: U.clone(ES.base(b.art, spr).recipe), overrides: {} });
+      ART.records.put(rec, b);
+      touch('npc-add'); repaint();
+      Kit.ui.toast('Added the ' + label + ' archetype.', 'ok');
+      openSprite(rec.id);
+    });
+  }
+  function deleteNpc(spr, repaint) {
+    Kit.ui.confirm({ title: 'Delete ' + spr.name + '?', message: 'The sprite and its colorway are removed. Quick Build will not bring a default archetype back.', okLabel: 'Delete', danger: true }).then(function (ok) {
+      if (!ok) return;
+      var b = cur(), ref = spr.subject.ref;
+      S.retire(b, ref);
+      var pal = ART.bySubject('pal_', 'role', ref, b);
+      ART.records.del(spr.id);
+      if (pal) ART.records.del(pal.id);
+      touch('npc-delete'); repaint();
+    });
+  }
+  function viewBestiary(host) {
+    var b = cur(), all = S.sprites(b).filter(function (s) { return s.kind === 'enemy'; }), info = P.familyInfo(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Bestiary</h3><p class="muted">One battle sprite per enemy family. A family\'s body rig comes from its name, then its type. Day 146 tier families (T2 and up) share the base family\'s look in their own tier palette.</p>';
+    host.appendChild(intro);
+    if (!info.length) { intro.appendChild(el('div', 'empty-line', 'The bundle has no enemy families.')); return; }
+    if (!all.length) { needQuick(host, 'enemy sprites'); return; }
+    var groups = {}, order = [];
+    info.forEach(function (x) { if (!groups[x.baseId]) { groups[x.baseId] = []; order.push(x.baseId); } groups[x.baseId].push(x); });
+    order.forEach(function (bid) {
+      var p = el('section', 'panel');
+      var base = groups[bid][0];
+      p.appendChild(el('h3', 'section-h', esc(base.baseName)));
+      var strip = el('div', 'a7-tiers');
+      groups[bid].forEach(function (x) {
+        var spr = S.spriteFor(b, 'fam', x.id, 'battle');
+        if (!spr) return;
+        var t = el('div', 'a7-tier'); t.dataset.rid = spr.id; if (ui.focus === spr.id) t.classList.add('a7-hit');
+        t.appendChild(W.figure(frameOf(spr, 'idle', 'right'), 112, spr.name));
+        var lab = el('div', 'a7-name', '<strong>' + esc(x.name) + '</strong> ' + W.chip('Tier ' + x.tier, 'accent') + ' ' + W.origin(spr) + (spr.shares ? ' ' + W.chip('shares', 'muted') : ''));
+        t.appendChild(lab);
+        var rig = (ES.base(b.art, spr).recipe || {}).rig;
+        t.appendChild(el('div', 'muted a7-small', esc((rig || '') + ' rig, ' + (x.fam.type || 'no type'))));
+        t.appendChild(W.button('Edit', 'edit', '', function () { openSprite(spr.id); }));
+        strip.appendChild(t);
+      });
+      p.appendChild(strip);
+      host.appendChild(p);
+    });
+  }
+
+  // ---------------------------------------------------------------- portraits
+  function openPortrait(id) {
+    Kit.ui.drawer({
+      title: 'Portrait',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), por = ART.records.get(id);
+          U.clear(body);
+          if (!por) { body.appendChild(el('div', 'empty-line', 'This portrait no longer exists.')); return; }
+          h.setTitle(por.name);
+          var rc = por.recipe = por.recipe || {};
+          body.appendChild(el('p', 'muted a7-small', 'Neutral is required; the other expressions are for dialogue scenes on Day 149. Portraits use the character\'s colorway.'));
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(W.select('Head', rc.head || 'round', [['round', 'Round'], ['square', 'Square'], ['long', 'Long']], function (v) { rc.head = v; por.origin = 'user'; touch('portrait'); paint(); }));
+          ctl.appendChild(W.select('Hair', rc.hair || 'short', ['short', 'long', 'tied', 'spiked', 'cropped', 'covered', 'none'].map(function (k) { return [k, k === 'covered' ? 'Hood' : k.charAt(0).toUpperCase() + k.slice(1)]; }), function (v) { rc.hair = v; por.origin = 'user'; touch('portrait'); paint(); }));
+          ctl.appendChild(W.select('Collar', rc.collar || 'cloth', [['cloth', 'Cloth'], ['plate', 'Plate']], function (v) { rc.collar = v; por.origin = 'user'; touch('portrait'); paint(); }));
+          ctl.appendChild(W.slider('Mouth width', rc.mouth || 1, 0.6, 1.5, 0.05, function (v) { rc.mouth = v; por.origin = 'user'; touch('portrait'); paint(); }));
+          body.appendChild(ctl);
+          var grid = el('div', 'a7-frames a7-frames-l');
+          Object.keys(EP.EXPRESSIONS).forEach(function (ex) {
+            var f = S.cache().portrait(por.id, ex), edited = por.overrides && por.overrides[ex];
+            var cell = el('div', 'a7-expr');
+            var t = el('button', 'a7-frame'); t.type = 'button';
+            t.setAttribute('aria-label', 'Edit pixels: ' + ex + (edited ? ', hand edited' : ''));
+            t.appendChild(W.figure(f, 96));
+            t.appendChild(el('span', 'a7-frame-l', esc(ex) + (edited ? ' <span class="chip chip-accent">edited</span>' : '') + (ex === 'neutral' ? ' <span class="chip chip-muted">required</span>' : '')));
+            t.addEventListener('click', function () { editPortrait(por, ex, paint); });
+            cell.appendChild(t);
+            var e = (por.expressions = por.expressions || {})[ex] = por.expressions[ex] || {}, d = EP.EXPRESSIONS[ex];
+            var tw = el('div', 'a7-ctl a7-ctl-s');
+            tw.appendChild(W.slider('Brow', e.brow != null ? e.brow : d.brow, -2, 2, 0.1, function (v) { e.brow = v; por.origin = 'user'; touch('portrait'); paint(); }));
+            tw.appendChild(W.slider('Eyes', e.eye != null ? e.eye : d.eye, 0.3, 1.6, 0.05, function (v) { e.eye = v; por.origin = 'user'; touch('portrait'); paint(); }));
+            cell.appendChild(tw);
+            grid.appendChild(cell);
+          });
+          body.appendChild(grid);
+          var row = el('div', 'btn-row');
+          row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () {
+            por.origin = 'procedural'; por.expressions = {}; por.overrides = {}; S.buildPortraits(b, {}); touch('portrait-reset'); paint();
+          }));
+          body.appendChild(row);
+        }
+        paint();
+      }
+    });
+  }
+  function editPortrait(por, ex, after) {
+    var b = cur(), f = S.cache().portrait(por.id, ex), pal = ART.records.get(por.pal);
+    var gen = EP.compose(por.recipe, Object.assign({}, EP.EXPRESSIONS[ex], (por.expressions || {})[ex] || {}), f.w);
+    ART.pixelEditor.open({ title: por.name + ': ' + ex, w: f.w, h: f.h, idx: f.idx, slots: pal && pal.slots, entries: P.entries(b), canRevert: !!(por.overrides && por.overrides[ex]),
+      note: 'Saved pixels replace this expression. The recipe and sliders no longer change it until you revert.' }).then(function (res) {
+      if (!res) return;
+      por.overrides = U.isObj(por.overrides) ? por.overrides : {};
+      if (res.action === 'revert') delete por.overrides[ex];
+      else { var enc = ART.pixelEditor.encode(res.idx, f.w, f.h, gen.idx); if (enc) { por.overrides[ex] = enc; por.origin = 'user'; } else delete por.overrides[ex]; }
+      touch('portrait-pixels');
+      if (after) after();
+    });
+  }
+  function viewPortraits(host) {
+    var b = cur(), list = S.portraits(b);
+    if (!list.length) { needQuick(host, 'portraits'); return; }
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">Portraits</h3><p class="muted">Three tiles square (up to 96 pixels), built from the same face parts and colorway as each character\'s sprite.</p>';
+    list.forEach(function (por) {
+      var row = rowFor(por), figs = el('div', 'a7-figs');
+      Object.keys(EP.EXPRESSIONS).forEach(function (ex) { figs.appendChild(W.figure(S.cache().portrait(por.id, ex), 56, por.name + ', ' + ex)); });
+      row.appendChild(figs);
+      var mid = el('div', 'a7-grow');
+      mid.innerHTML = '<div class="a7-name"><strong>' + esc(por.name) + '</strong> ' + W.origin(por) + '</div><div class="muted a7-small">' + esc(por.size + ' by ' + por.size) + '</div>';
+      row.appendChild(mid);
+      row.appendChild(W.button('Edit', 'edit', '', function () { openPortrait(por.id); }));
+      p.appendChild(row);
+    });
+    host.appendChild(p);
+  }
+
+  // ---------------------------------------------------------------- parts
+  // A part is previewed alone on a mannequin: the body part plus this layer, in the first colorway.
+  function previewPal(b, rig) {
+    if (rig && rig !== 'humanoid') { var t = P.tiers(b)[0]; return t || null; }
+    return P.locals(b)[0] || null;
+  }
+  function partPreview(b, part, pose, dir) {
+    var T = S.tileSize(b), rig = part.rig || 'humanoid', spec;
+    if (rig !== 'humanoid') spec = { layout: 'enemy', rig: rig, size: T, seed: 7, layers: [part.px ? { layer: 'body', px: part.px } : { layer: 'body', gen: part.gen }] };
+    else {
+      var body = part.layer === 'body' ? part : S.partByLib(b, 'body.average') || S.parts(b).filter(function (p) { return p.layer === 'body' && (p.rig || 'humanoid') === 'humanoid'; })[0];
+      var layers = [];
+      if (body) layers.push(body.px ? { layer: 'body', px: body.px } : { layer: 'body', gen: body.gen });
+      if (part.layer !== 'body') layers.push(part.px ? { layer: part.layer, px: part.px } : { layer: part.layer, gen: part.gen });
+      spec = { layout: 'humanoid', rig: 'humanoid', size: T, layers: layers, shadow: false };
+    }
+    var f = ES.compose(spec, pose || (rig === 'humanoid' ? 'stand' : 'idle'), dir || (rig === 'humanoid' ? 'down' : 'right'));
+    var pal = previewPal(b, rig);
+    f.rgba = ES.rgba(f.idx, pal && pal.slots, P.entries(b));
+    return f;
+  }
+  // Converts a generated part into hand drawn pixels: one variant per pose and direction, rasterized alone.
+  function toPixels(b, part) {
+    var T = S.tileSize(b), rig = part.rig || 'humanoid', variants = {};
+    if (rig !== 'humanoid') {
+      var f = ES.compose({ layout: 'enemy', rig: rig, size: T, seed: 7, layers: [{ layer: 'body', gen: part.gen }] }, 'idle', 'right');
+      variants['idle.right'] = { w: f.w, h: f.h, d: EC.encode(f.idx) };
+    } else {
+      var body = S.partByLib(b, 'body.average');
+      var spec = { layout: 'humanoid', size: T, layers: (part.layer === 'body' ? [] : body ? [{ layer: 'body', gen: body.gen }] : []).concat([{ layer: part.layer, gen: part.gen }]) };
+      ES.FIELD_POSES.concat(ES.BATTLE_POSES).forEach(function (pose) {
+        ['down', 'up', 'right'].forEach(function (dir) {
+          if (pose === 'idle' && dir !== 'right') return;
+          var fr = ES.partFrame(spec, part.layer, pose, dir);
+          variants[pose + '.' + dir] = { w: fr.w, h: fr.h, d: EC.encode(fr.idx) };
+        });
+      });
+    }
+    return { base: T, variants: variants };
+  }
+  function openPart(id) {
+    Kit.ui.drawer({
+      title: 'Part',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), part = ART.records.get(id);
+          U.clear(body);
+          if (!part) { body.appendChild(el('div', 'empty-line', 'This part no longer exists.')); return; }
+          h.setTitle(part.name);
+          var humanoid = (part.rig || 'humanoid') === 'humanoid', isPx = !!(part.px && part.px.variants && Object.keys(part.px.variants).length);
+          var figs = el('div', 'a7-figs');
+          (humanoid ? [['stand', 'down'], ['stand', 'right'], ['stand', 'up'], ['idle', 'left']] : [['idle', 'right']]).forEach(function (pd) { figs.appendChild(W.figure(partPreview(b, part, pd[0], pd[1]), 96, part.name + ' ' + pd.join(' '))); });
+          body.appendChild(figs);
+          var users = S.sprites(b).filter(function (s) { return s.recipe && s.recipe.parts && Object.keys(s.recipe.parts).some(function (k) { return s.recipe.parts[k] === id; }); });
+          body.appendChild(el('div', null, '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(id) + '</code></dd><dt>Layer</dt><dd>' + esc(LAYER_LABELS[part.layer] || part.layer) + '</dd><dt>Rig</dt><dd>' + esc(part.rig || 'humanoid') + '</dd><dt>Kind</dt><dd>' + (isPx ? 'Hand drawn at tile size ' + esc(part.px.base) : 'Generator ' + esc(part.gen && part.gen.shape)) + '</dd><dt>Used by</dt><dd>' + (users.length ? users.length + ' sprite' + (users.length === 1 ? '' : 's') : 'no sprite') + '</dd></dl>'));
+          if (isPx && part.px.base !== S.tileSize(b)) body.appendChild(el('p', 'msg msg-warning', 'Drawn at tile size ' + esc(part.px.base) + '; the Charter uses ' + S.tileSize(b) + ', so it is resampled and may look rough. Generator parts redraw natively at any size.'));
+          if (!isPx && part.gen) {
+            var prm = part.gen.params = part.gen.params || {}, ctl = el('div', 'a7-ctl');
+            Object.keys(prm).forEach(function (k) {
+              var v = prm[k];
+              if (typeof v === 'number') ctl.appendChild(v === 0 || v === 1 ? W.toggle(k, !!v, function (on) { prm[k] = on ? 1 : 0; part.origin = 'user'; touch('part'); paint(); }) : W.slider(k, v, 0, Math.max(2, v * 2), v >= 2 ? 1 : 0.05, function (n) { prm[k] = n; part.origin = 'user'; touch('part'); paint(); }));
+            });
+            if (ctl.children.length) { body.appendChild(el('h3', 'section-h', 'Parameters')); body.appendChild(ctl); }
+            else body.appendChild(el('p', 'muted a7-small', 'A style part: duplicate it to make a variant, or draw it by hand.'));
+          }
+          if (isPx) {
+            body.appendChild(el('h3', 'section-h', 'Hand drawn frames'));
+            var grid = el('div', 'a7-frames');
+            Object.keys(part.px.variants).sort().forEach(function (k) {
+              var v = part.px.variants[k], t = el('button', 'a7-frame'); t.type = 'button';
+              var idx; try { idx = EC.decode(v.d, v.w, v.h); } catch (e) { idx = new Uint8Array(v.w * v.h); }
+              var pal = previewPal(b, part.rig), f = { w: v.w, h: v.h, rgba: ES.rgba(idx, pal && pal.slots, P.entries(b)) };
+              t.appendChild(W.figure(f, 48)); t.appendChild(el('span', 'a7-frame-l', esc(k)));
+              t.setAttribute('aria-label', 'Edit pixels: ' + k);
+              t.addEventListener('click', function () {
+                ART.pixelEditor.open({ title: part.name + ': ' + k, w: v.w, h: v.h, idx: idx, slots: pal && pal.slots, entries: P.entries(b), labels: humanoid ? null : ENEMY_LABELS,
+                  note: 'Only this layer is drawn here. Use the ramp colors of the layer\'s material; the sprite\'s colorway recolors them.' }).then(function (res) {
+                  if (!res || res.action !== 'save') return;
+                  part.px.variants[k] = { w: v.w, h: v.h, d: EC.encode(res.idx) }; part.origin = 'user'; touch('part-pixels'); paint();
+                });
+              });
+              grid.appendChild(t);
+            });
+            body.appendChild(grid);
+          }
+          var row = el('div', 'btn-row');
+          row.appendChild(W.button('Duplicate', 'plus', '', function () {
+            var copy = ART.envelope('prt_', 'Copy of ' + part.name, { kind: 'role', ref: 'part:custom' }, 'user', 0, { layer: part.layer, rig: part.rig, gen: part.gen ? U.clone(part.gen) : undefined, px: part.px ? U.clone(part.px) : undefined });
+            ART.records.put(copy, b); touch('part-copy'); id = copy.id; paint();
+            Kit.ui.toast('Duplicated. Pick it on any sprite\'s ' + (LAYER_LABELS[part.layer] || part.layer) + ' list.', 'ok');
+          }));
+          if (!isPx && part.gen) row.appendChild(W.button('Draw by hand', 'edit', 'btn-ghost', function () {
+            Kit.ui.confirm({ title: 'Draw this part by hand?', message: 'A copy of this part is turned into pixels at the current tile size, one frame per pose and direction, ready for the pixel editor. The original generator part stays as it is.', okLabel: 'Make a hand drawn copy' }).then(function (ok) {
+              if (!ok) return;
+              var copy = ART.envelope('prt_', part.name + ' (drawn)', { kind: 'role', ref: 'part:custom' }, 'user', 0, { layer: part.layer, rig: part.rig, px: toPixels(b, part) });
+              ART.records.put(copy, b); touch('part-draw'); id = copy.id; paint();
+            });
+          }));
+          row.appendChild(W.button('Delete', 'trash', 'btn-ghost', function () {
+            if (users.length) { Kit.ui.toast('Used by ' + users.length + ' sprite' + (users.length === 1 ? '' : 's') + '. Pick another part on them first.', 'warn', 6000); return; }
+            Kit.ui.confirm({ title: 'Delete ' + part.name + '?', message: part.lib ? 'This is a default part. Quick Build will not bring it back.' : 'The part is removed.', okLabel: 'Delete', danger: true }).then(function (ok) {
+              if (!ok) return;
+              if (part.lib) S.retire(b, part.lib);
+              ART.records.del(part.id); touch('part-delete'); h.close();
+            });
+          }));
+          body.appendChild(row);
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+  function viewParts(host) {
+    var b = cur(), parts = S.parts(b);
+    if (!parts.length) { needQuick(host, 'parts'); return; }
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Part library</h3><p class="muted">Genre neutral generator parts that redraw natively at any tile size. Colorways and parameters alone make them read as medieval, steampunk, or science fiction. Duplicate a part to vary it, or draw one by hand.</p>';
+    host.appendChild(intro);
+    var groups = [];
+    ES.LAYERS.forEach(function (layer) { groups.push(['humanoid', layer]); });
+    ES.RIGS.forEach(function (rig) { if (rig !== 'humanoid') groups.push([rig, 'body']); });
+    var shown = {};
+    [['Humanoid parts', function (g) { return g[0] === 'humanoid'; }], ['Enemy bodies', function (g) { return g[0] !== 'humanoid'; }]].forEach(function (sec) {
+      var p = el('section', 'panel');
+      p.appendChild(el('h3', 'section-h', esc(sec[0])));
+      groups.filter(sec[1]).forEach(function (g) {
+        var ps = parts.filter(function (x) { return (x.rig || 'humanoid') === g[0] && x.layer === g[1]; });
+        if (!ps.length) return;
+        p.appendChild(el('div', 'a7-sublabel', esc(g[0] === 'humanoid' ? LAYER_LABELS[g[1]] : g[0].charAt(0).toUpperCase() + g[0].slice(1))));
+        var grid = el('div', 'a7-parts');
+        ps.forEach(function (part) {
+          shown[part.id] = 1;
+          var t = el('button', 'a7-frame' + (ui.focus === part.id ? ' a7-hit' : '')); t.type = 'button'; t.dataset.rid = part.id;
+          t.setAttribute('aria-label', 'Open part ' + part.name);
+          t.appendChild(W.figure(partPreview(b, part), 56));
+          t.appendChild(el('span', 'a7-frame-l', esc(part.name) + (S.isKept(part) ? ' <span class="chip chip-accent">edited</span>' : '') + (part.px ? ' <span class="chip chip-muted">drawn</span>' : '')));
+          t.addEventListener('click', function () { openPart(part.id); });
+          grid.appendChild(t);
+        });
+        p.appendChild(grid);
+      });
+      host.appendChild(p);
+    });
+    var rest = parts.filter(function (x) { return !shown[x.id]; });
+    if (rest.length) {
+      var q = el('section', 'panel');
+      q.appendChild(el('h3', 'section-h', 'Other parts'));
+      rest.forEach(function (x) { var r = rowFor(x); r.appendChild(el('div', 'a7-grow', esc(x.name))); r.appendChild(W.button('Open', 'edit', '', function () { openPart(x.id); })); q.appendChild(r); });
+      host.appendChild(q);
+    }
+  }
+
+  var VIEWS = { characters: viewCharacters, cast: viewCast, bestiary: viewBestiary, portraits: viewPortraits, parts: viewParts };
+  function subtabs(host, subs, state, views, after) {
+    var tabs = el('div', 'a7-sub'); tabs.setAttribute('role', 'tablist');
+    var panel = el('div', 'a7-subpanel'); panel.setAttribute('role', 'tabpanel');
+    subs.forEach(function (s) {
+      var t = el('button', null, esc(s[1])); t.type = 'button'; t.setAttribute('role', 'tab'); t.dataset.sub = s[0];
+      t.addEventListener('click', function () { state.sub = s[0]; state.focus = null; paint(); });
+      tabs.appendChild(t);
+    });
+    host.appendChild(tabs); host.appendChild(panel);
+    function paint() {
+      Array.prototype.forEach.call(tabs.children, function (t) { t.setAttribute('aria-selected', t.dataset.sub === state.sub ? 'true' : 'false'); });
+      U.clear(panel);
+      if (!P.master()) {
+        var p = el('section', 'panel');
+        p.innerHTML = '<h3 class="section-h">No palette yet</h3><p class="muted">Sprites are drawn from the master palette. Run Quick Build to make the palettes and every sprite at once.</p>';
+        p.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+        panel.appendChild(p);
+      } else views[state.sub](panel, paint);
+      if (state.focus) {
+        var hit = panel.querySelector('[data-rid="' + state.focus + '"]');
+        if (hit && hit.scrollIntoView) setTimeout(function () { try { hit.scrollIntoView({ block: 'center' }); } catch (e) {} }, 0);
+      }
+      if (after) after();
+    }
+    paint();
+    return paint;
+  }
+  W.subtabs = subtabs;
+  function render(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Sprites</h2><p class="muted">Every sprite is a recipe of parts dressed in a palette, composed back to front (shadow, back gear, body, legs, torso, head, hair, front gear), outlined from its silhouette, and shaded from its ramps. Only hand edited frames are stored as pixels.</p>';
+    host.appendChild(head);
+    subtabs(host, SUBS, ui, VIEWS);
+  }
+  function focus(rid) {
+    var r = ART.records.get(rid);
+    if (!r) return;
+    ui.focus = rid;
+    var p = Kit.ids.prefixOf(rid);
+    ui.sub = p === 'prt_' ? 'parts' : p === 'por_' ? 'portraits' : r.kind === 'enemy' ? 'bestiary' : r.kind === 'character' ? 'characters' : 'cast';
+    Kit.rerender();
+  }
+  ART.WS.sprites = { render: render, focus: focus, ui: ui, views: VIEWS, openSprite: openSprite, openPortrait: openPortrait, openPart: openPart, toPixels: toPixels, partPreview: partPreview };
+})();
+// === WS:SPRITES END ===
+// === WS:INTERFACE BEGIN ===
+(function () {
+  'use strict';
+  // The Interface tab. Phase 2 delivers Icons; Window and font, Cursor, Touch skin, and Title arrive in Phase 5.
+  var U = Kit.util, el = U.el, esc = U.esc, EI = ENGINE_RENDER.icon, S = ART.sprites, P = ART.palette, W = ART.ui;
+  ART.WS = ART.WS || {};
+  var SUBS = [['icons', 'Icons'], ['window', 'Window and font'], ['cursor', 'Cursor'], ['touch', 'Touch skin'], ['title', 'Title']];
+  var ui = { sub: 'icons', focus: null };
+  var ICON_LABELS = ['Clear', 'Outline', 'Metal dark', 'Metal', 'Metal light', 'Wood dark', 'Wood', 'Wood light', 'Tint dark', 'Tint', 'Tint light', 'Cloth dark', 'Cloth', 'Cloth light', 'Light dark', 'Light'];
+  var GROUPS = [['itm_', 'Items'], ['eqp_', 'Equipment'], ['abl_', 'Abilities'], ['sta_', 'Statuses'], ['mat_', 'Materia']];
+  function cur() { return Kit.bundle.current(); }
+  function touch(reason) { Kit.bundle.touch(reason || 'icons'); Kit.refreshValidation(); }
+  function glyphOptions() {
+    return EI.GLYPHS.map(function (g) { return [g, g.charAt(0).toUpperCase() + g.slice(1)]; })
+      .concat(EI.STATUS_SHAPES.map(function (s) { return ['status.' + s, 'Status: ' + s]; }));
+  }
+  function tintOptions(b) {
+    var els = (b.charter.ruleset && b.charter.ruleset.elements) || [];
+    return els.map(function (e) { return [e.key, 'Element: ' + (e.label || e.key)]; }).concat([['#d04848', 'Red'], ['#e09040', 'Orange'], ['#d8b048', 'Gold'], ['#5ab85a', 'Green'], ['#5ab0c0', 'Teal'], ['#4a7ad8', 'Blue'], ['#8a6ad8', 'Violet'], ['#c04a8a', 'Rose'], ['#9a9a9a', 'Grey']]);
+  }
+  function editPixels(ico, after) {
+    var b = cur(), f = S.cache().icon(ico.id), slots = ENGINE_RENDER.sprite.slotsFor(b.art, ico.pal, ico.tintRamp);
+    var gen = EI.compose(ico.gen && ico.gen.glyph, f.w);
+    ART.pixelEditor.open({ title: ico.name, w: f.w, h: f.h, idx: f.idx, slots: slots, entries: P.entries(b), labels: ICON_LABELS, canRevert: !!ico.px,
+      note: 'Tint colors follow the icon\'s tint, so recoloring the tint later still works on hand drawn pixels.' }).then(function (res) {
+      if (!res) return;
+      if (res.action === 'revert') delete ico.px;
+      else { var enc = ART.pixelEditor.encode(res.idx, f.w, f.h, gen.idx); if (enc) { ico.px = enc; ico.origin = 'user'; } else delete ico.px; }
+      touch('icon-pixels');
+      if (after) after();
+    });
+  }
+  function openIcon(id) {
+    Kit.ui.drawer({
+      title: 'Icon',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), ico = ART.records.get(id);
+          U.clear(body);
+          if (!ico) { body.appendChild(el('div', 'empty-line', 'This icon no longer exists.')); return; }
+          h.setTitle(ico.name);
+          var f = S.cache().icon(id), head = el('div', 'a7-edhead');
+          var big = el('button', 'a7-frame'); big.type = 'button'; big.setAttribute('aria-label', 'Edit pixels for ' + ico.name);
+          big.appendChild(W.figure(f, 128)); big.appendChild(el('span', 'a7-frame-l', ico.px ? 'Hand drawn <span class="chip chip-accent">edited</span>' : 'Tap to draw'));
+          big.addEventListener('click', function () { editPixels(ico, paint); });
+          head.appendChild(big);
+          var meta = el('div', 'a7-grow');
+          var sj = ico.subject || {};
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(ico.id) + '</code></dd><dt>For</dt><dd>' + esc(nameOf(sj.ref)) + '</dd><dt>Size</dt><dd>' + esc(ico.size + ' by ' + ico.size) + '</dd><dt>Origin</dt><dd>' + W.origin(ico) + '</dd></dl>';
+          head.appendChild(meta);
+          body.appendChild(head);
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(W.select('Glyph', ico.gen && ico.gen.glyph, glyphOptions(), function (v) { ico.gen = ico.gen || {}; ico.gen.glyph = v; ico.origin = 'user'; touch('icon-glyph'); paint(); }));
+          var tint = ico.gen && ico.gen.tint, opts = tintOptions(b);
+          if (tint != null && !opts.some(function (o) { return o[0] === tint; })) opts.unshift([String(tint), 'Current: ' + tint]);
+          ctl.appendChild(W.select('Tint', tint, opts, function (v) { ico.gen = ico.gen || {}; ico.gen.tint = v; ico.tintRamp = S.tintRamp(b, v); ico.origin = 'user'; touch('icon-tint'); paint(); }));
+          body.appendChild(ctl);
+          if (ico.px) body.appendChild(el('p', 'muted a7-small', 'Hand drawn pixels replace the glyph. Changing the glyph has no effect until you revert the pixels.'));
+          var row = el('div', 'btn-row');
+          row.appendChild(W.button('Edit pixels', 'edit', '', function () { editPixels(ico, paint); }));
+          row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () { delete ico.px; ico.origin = 'procedural'; S.buildIcons(b, {}); touch('icon-reset'); paint(); }));
+          body.appendChild(row);
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+  function nameOf(id) { var b = cur(), p = Kit.ids.prefixOf(id), m = p && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : null; return m && m[id] && m[id].name ? m[id].name : String(id || ''); }
+  function viewIcons(host) {
+    var b = cur(), icons = S.icons(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Icons</h3><p class="muted">One icon for every item, piece of equipment, ability, status, and materia, drawn from its category and tinted by its element or name. ' +
+      esc(EI.size(S.tileSize(b)) + ' by ' + EI.size(S.tileSize(b))) + ' pixels at this tile size.</p>';
+    host.appendChild(intro);
+    if (!icons.length) {
+      intro.appendChild(el('div', 'empty-line', 'No icons yet. Quick Build makes one for every rules record.'));
+      intro.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+      return;
+    }
+    GROUPS.forEach(function (g) {
+      var kind = g[0].slice(0, 3), list = icons.filter(function (i) { return i.subject && i.subject.kind === kind; });
+      if (!list.length) return;
+      var p = el('section', 'panel');
+      p.appendChild(el('h3', 'section-h', esc(g[1])));
+      var grid = el('div', 'a7-icons');
+      list.forEach(function (ico) {
+        var t = el('button', 'a7-frame' + (ui.focus === ico.id ? ' a7-hit' : '')); t.type = 'button'; t.dataset.rid = ico.id;
+        t.setAttribute('aria-label', 'Open icon for ' + nameOf(ico.subject.ref));
+        t.appendChild(W.figure(S.cache().icon(ico.id), 48));
+        t.appendChild(el('span', 'a7-frame-l', esc(nameOf(ico.subject.ref)) + (S.isKept(ico) ? ' <span class="chip chip-accent">edited</span>' : '')));
+        t.addEventListener('click', function () { openIcon(ico.id); });
+        grid.appendChild(t);
+      });
+      p.appendChild(grid);
+      host.appendChild(p);
+    });
+  }
+  function later(title, lead) { return function (host) { host.appendChild(Kit.ui.stub({ title: title, lead: lead, status: 'Arrives in Phase 5.', icon: 'slots' })); }; }
+  var VIEWS = {
+    icons: viewIcons,
+    window: later('Window and font', 'Classic window frames, the gradient, and the original 5 by 7 pixel font.'),
+    cursor: later('Cursor', 'The menu cursor and its bob animation.'),
+    touch: later('Touch skin', 'The on screen controls for the Charter\'s mobileControls scheme.'),
+    title: later('Title', 'The title screen: logo text, background, layout, and prompt.')
+  };
+  function render(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Interface</h2><p class="muted">Icons now; the window, font, cursor, touch skin, and title screen arrive with the battle presenter in Phase 5.</p>';
+    host.appendChild(head);
+    W.subtabs(host, SUBS, ui, VIEWS);
+  }
+  function focus(rid) { ui.focus = rid; ui.sub = 'icons'; Kit.rerender(); }
+  ART.WS.interface = { render: render, focus: focus, ui: ui, views: VIEWS, openIcon: openIcon };
+})();
+// === WS:INTERFACE END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -4722,6 +7123,8 @@ var ENGINE_RENDER = (function () {
     var pct = Math.min(100, Math.round(s.total / Math.max(1, s.room) * 100));
     host.appendChild(el('div', 'a7-meter a7-' + s.level, '<i style="width:' + pct + '%"></i>'));
     host.appendChild(el('p', 'muted', esc(U.fmtSize(s.total) + ' of about ' + U.fmtSize(s.room) + ' available in this browser. Amber from 1.5 MB, red within 10 percent of the room left under 4.5 MB.')));
+    host.appendChild(el('p', 'muted', esc(s.where === 'idb' ? 'The draft is saved in IndexedDB, the browser\'s larger store, because localStorage filled up. Exports are still the safe copy.' :
+      'The draft is saved in localStorage under this forge\'s own keys, so Day 146 in another tab never overwrites it. If localStorage fills, the draft moves to IndexedDB on its own.')));
     var t = el('table', 'tbl');
     t.innerHTML = '<thead><tr><th scope="col">Namespace</th><th scope="col" class="num">Size</th></tr></thead><tbody>' +
       Object.keys(s.ns).map(function (k) { return '<tr><th scope="row">' + esc(k) + '</th><td class="num">' + esc(U.fmtSize(s.ns[k])) + '</td></tr>'; }).join('') + '</tbody>';
@@ -4819,6 +7222,18 @@ var ENGINE_RENDER = (function () {
       Kit.ui.confirm({ title: 'Load the demo bundle?', message: 'The current working draft will be replaced by the demo. Save it to a slot or export it first if you want to keep it.', okLabel: 'Load demo' });
     go.then(function (ok) { if (!ok) return; Kit.bundle.load(ART_DEMO.bundle()); Kit.ui.toast('Demo bundle loaded.', 'ok'); });
   }
+  // Copies Day 146's working draft into this forge. Day 146's copy is never written or removed.
+  function openDay146Draft() {
+    var d = ART.storage.day146Draft();
+    if (!d) { Kit.ui.toast('Day 146 has no draft in this browser.', 'warn'); return; }
+    var go = ART.isEmpty() && !(cur().charter && cur().charter.locked) ? Promise.resolve(true) :
+      Kit.ui.confirm({ title: 'Open the Day 146 draft?', message: 'This forge\'s current draft will be replaced by a copy of ' + ((d.kit && d.kit.title) || 'the Day 146 draft') + '. Save it to a slot or export it first if you want to keep it.', okLabel: 'Open Day 146 draft' });
+    go.then(function (ok) {
+      if (!ok) return;
+      try { Kit.bundle.load(d); Kit.ui.toast('Opened a copy of the Day 146 draft.', 'ok'); } catch (e) { Kit.ui.toast(e.message, 'error', 7000); }
+    });
+  }
+  ART.openDay146Draft = openDay146Draft;
   function renderStart(host) {
     var b = cur(), C = b.charter || {}, S = C.sections || {}, sp = C.specs || {};
     var head = el('section', 'panel a7-hero');
@@ -4830,7 +7245,15 @@ var ENGINE_RENDER = (function () {
     var qb = el('button', 'btn', Kit.icon('spark') + '<span>Quick Build</span>'); qb.type = 'button';
     if (ready(b) !== true) { qb.disabled = true; qb.title = ready(b); } else qb.addEventListener('click', ART.openQuickBuild);
     var st = el('button', 'btn btn-ghost', Kit.icon('gear') + '<span>Settings</span>'); st.type = 'button'; st.addEventListener('click', Kit.settings.open);
-    row.appendChild(imp); row.appendChild(demo); row.appendChild(qb); row.appendChild(st);
+    row.appendChild(imp); row.appendChild(demo); row.appendChild(qb);
+    var d146 = ART.storage.day146Draft();
+    if (d146 && d146.kit && d146.kit.bundleId !== b.kit.bundleId) {
+      var od = el('button', 'btn', Kit.icon('book') + '<span>Open the Day 146 draft</span>'); od.type = 'button';
+      od.title = 'Copy the draft Saga Forge left in this browser (' + ((d146.kit && d146.kit.title) || 'untitled') + ') into this forge';
+      od.addEventListener('click', openDay146Draft);
+      row.appendChild(od);
+    }
+    row.appendChild(st);
     head.appendChild(row);
     host.appendChild(head);
 
@@ -4940,7 +7363,7 @@ var ENGINE_RENDER = (function () {
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
       t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs) + '</td></tr>'; }).join('') + '</tbody>';
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);
@@ -4990,11 +7413,14 @@ var ENGINE_RENDER = (function () {
       if (Kit.bundle.save()) Kit.ui.toast('Draft saved in this browser.', 'ok');
     } else if (e.key === 'Escape' && Kit.ui.overlayCount() && !Kit.ui.busy.active()) { e.preventDefault(); Kit.ui.closeTop(); }
   });
-  var b = Kit.bundle.restoreDraft() || Kit.bundle.create('Untitled Saga');
-  if (ART.ensure(b) | ART.registerCodex(b)) Kit.bundle.touch('art-ensure');
-  var want = Kit.uiState.get().tab;
-  if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
-  ART.paintMeter();
+  // The draft may live in IndexedDB (see ART.storage), so restoring waits for the mirror to load. It always resolves.
+  ART.booted = ART.storage.ready().then(function () {
+    var b = Kit.bundle.restoreDraft() || Kit.bundle.create('Untitled Saga');
+    if (ART.ensure(b) | ART.registerCodex(b)) Kit.bundle.touch('art-ensure');
+    var want = Kit.uiState.get().tab;
+    if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
+    ART.paintMeter();
+  });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Kit.bundle.suspend.save(); });
   window.addEventListener('pagehide', function () { Kit.bundle.suspend.save(); });
 })();

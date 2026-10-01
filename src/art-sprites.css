@@ -1,0 +1,46 @@
+/* === ART:SPRITES CSS BEGIN === */
+.a7-figs { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; flex: none; }
+.a7-figs .a7-fig { padding: 3px; }
+.a7-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.a7-note { padding: 10px 12px; margin: 8px 0; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--line2); }
+.a7-ctl-s { gap: 4px 10px; margin-top: 4px; }
+.a7-range { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); min-height: 44px; }
+.a7-range input { width: 120px; min-height: 44px; accent-color: var(--accent); }
+.a7-range output { min-width: 3.2ch; font: 600 .85rem/1 var(--font-mono); color: var(--ink); }
+.a7-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); }
+.a7-check input { width: 22px; height: 22px; accent-color: var(--accent); }
+.a7-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.a7-frames-l { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.a7-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.a7-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.a7-frame { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-height: 44px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid var(--line2); background: var(--bg2); color: var(--ink); font: inherit; cursor: pointer; text-align: center; }
+.a7-frame:hover { border-color: var(--accent); }
+.a7-frame:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+.a7-frame.a7-hit { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.a7-frame .a7-fig { border: 0; padding: 0; background: none; }
+.a7-frame-l { font-size: .82rem; line-height: 1.25; color: var(--ink2); overflow-wrap: anywhere; }
+.a7-frame-l .chip { font-size: .7rem; }
+.a7-expr { display: flex; flex-direction: column; gap: 4px; }
+.a7-expr .a7-range input { width: 90px; }
+.a7-sublabel { margin: 12px 0 6px; font-weight: 800; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.a7-tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.a7-tier { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-tier.a7-hit { border-color: var(--accent); }
+.a7-tier .a7-fig { align-self: center; }
+.a7-pxdlg .dlg-body { display: flex; flex-direction: column; gap: 10px; }
+.a7-pxbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.a7-pxbar .btn { min-height: 44px; min-width: 44px; }
+.a7-tool[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.a7-pxwrap { overflow: auto; max-height: min(56vh, 560px); max-width: 100%; padding: 8px; border-radius: var(--radius-sm); background: var(--bg2); border: 1px solid var(--line2); text-align: center; }
+.a7-pxcanvas { display: inline-block; touch-action: none; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; vertical-align: top; }
+.a7-pxcanvas:focus-visible { outline: 3px solid var(--accent2); outline-offset: 2px; }
+.a7-pxpal { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
+.a7-pxpal .a7-sw[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+.a7-pxstatus { min-height: 1.3em; }
+@media (max-width: 520px) {
+  .a7-row > .a7-figs { width: 100%; }
+  .a7-frames { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .a7-range input { width: 96px; }
+  .a7-pxwrap { max-height: 46vh; }
+}
+/* === ART:SPRITES CSS END === */

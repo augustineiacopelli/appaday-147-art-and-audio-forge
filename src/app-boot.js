@@ -26,11 +26,14 @@
       if (Kit.bundle.save()) Kit.ui.toast('Draft saved in this browser.', 'ok');
     } else if (e.key === 'Escape' && Kit.ui.overlayCount() && !Kit.ui.busy.active()) { e.preventDefault(); Kit.ui.closeTop(); }
   });
-  var b = Kit.bundle.restoreDraft() || Kit.bundle.create('Untitled Saga');
-  if (ART.ensure(b) | ART.registerCodex(b)) Kit.bundle.touch('art-ensure');
-  var want = Kit.uiState.get().tab;
-  if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
-  ART.paintMeter();
+  // The draft may live in IndexedDB (see ART.storage), so restoring waits for the mirror to load. It always resolves.
+  ART.booted = ART.storage.ready().then(function () {
+    var b = Kit.bundle.restoreDraft() || Kit.bundle.create('Untitled Saga');
+    if (ART.ensure(b) | ART.registerCodex(b)) Kit.bundle.touch('art-ensure');
+    var want = Kit.uiState.get().tab;
+    if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
+    ART.paintMeter();
+  });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Kit.bundle.suspend.save(); });
   window.addEventListener('pagehide', function () { Kit.bundle.suspend.save(); });
 })();

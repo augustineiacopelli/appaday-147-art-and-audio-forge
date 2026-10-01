@@ -26,6 +26,7 @@ function boot(file, opts) {
       if (opts.storage) Object.keys(opts.storage).forEach((k) => win.localStorage.setItem(k, opts.storage[k]));
       win.fetch = () => Promise.reject(new Error('offline test'));
       win.HTMLCanvasElement.prototype.getContext = function () { return null; };
+      if (opts.setup) opts.setup(win);
     }
   });
   return { dom, win: dom.window, errors };

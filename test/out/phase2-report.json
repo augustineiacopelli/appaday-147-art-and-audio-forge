@@ -1,0 +1,770 @@
+{
+  "date": "2026-10-01T20:41:27.057Z",
+  "pass": 67,
+  "total": 67,
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "fences present in order",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        160477,
+        221516,
+        226019,
+        304747,
+        324641,
+        349369,
+        381503,
+        392939,
+        434138,
+        442057,
+        463643
+      ]
+    },
+    {
+      "name": "every fence opens and closes once",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:RENDER reads no host globals",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "ENGINE_RENDER frozen with the composer sections",
+      "ok": true
+    },
+    {
+      "name": "codec round trips random frames",
+      "ok": true
+    },
+    {
+      "name": "transparent runs chain correctly at every length",
+      "ok": true,
+      "detail": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "codec rejects bad characters, short and long data, and high indices",
+      "ok": true
+    },
+    {
+      "name": "encoding shrinks a sprite well",
+      "ok": true
+    },
+    {
+      "name": "every humanoid part composes at sizes 8 to 64, outlined, slots 0 to 15",
+      "ok": true,
+      "detail": "8:560 in 127ms 12:560 in 130ms 16:560 in 153ms 24:560 in 222ms 32:560 in 376ms 48:560 in 751ms 64:560 in 1219ms"
+    },
+    {
+      "name": "left mirrors right exactly",
+      "ok": true
+    },
+    {
+      "name": "compose is deterministic",
+      "ok": true
+    },
+    {
+      "name": "walking frames differ from standing",
+      "ok": true,
+      "detail": [
+        17,
+        24
+      ]
+    },
+    {
+      "name": "down, up, and right frames are distinct",
+      "ok": true
+    },
+    {
+      "name": "the accent alias changes which ramp gear uses",
+      "ok": true
+    },
+    {
+      "name": "all eight enemy rigs compose at 2 by 2 tiles, outlined",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "proportions change the frame height",
+      "ok": true
+    },
+    {
+      "name": "six expressions, each different from neutral",
+      "ok": true
+    },
+    {
+      "name": "portrait size is three tiles, clamped 24 to 96",
+      "ok": true
+    },
+    {
+      "name": "every glyph and status shape draws a distinct, outlined icon",
+      "ok": true
+    },
+    {
+      "name": "icon size follows the tile size",
+      "ok": true
+    },
+    {
+      "name": "Quick Build makes parts, sprites, portraits, icons",
+      "ok": true,
+      "detail": {
+        "prt": 42,
+        "spr": 24,
+        "por": 4,
+        "ico": 18,
+        "steps": {
+          "created": 89,
+          "refreshed": 0,
+          "kept": 0,
+          "ms": 11
+        }
+      }
+    },
+    {
+      "name": "every character has a field and a battle sprite; battle shares field",
+      "ok": true
+    },
+    {
+      "name": "villain has both modes; ten NPC archetypes have field sprites",
+      "ok": true
+    },
+    {
+      "name": "every family has a battle sprite; tier families share their base",
+      "ok": true
+    },
+    {
+      "name": "every sprite points at its own palette",
+      "ok": true
+    },
+    {
+      "name": "rigs come from family names",
+      "ok": true
+    },
+    {
+      "name": "weapon classes map to front gear",
+      "ok": true
+    },
+    {
+      "name": "demo validates clean after Quick Build",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Quick Build is idempotent",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 0,
+        "kept": 89,
+        "ms": 4
+      }
+    },
+    {
+      "name": "demo with sprites stays small",
+      "ok": true,
+      "detail": 97979
+    },
+    {
+      "name": "a kept sprite keeps its recipe through Quick Build",
+      "ok": true
+    },
+    {
+      "name": "a generated sprite follows a rules change",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 1,
+        "kept": 88,
+        "ms": 7
+      }
+    },
+    {
+      "name": "a tier shares pixels and differs only by palette",
+      "ok": true
+    },
+    {
+      "name": "an override replaces its frame",
+      "ok": true
+    },
+    {
+      "name": "left falls back to the mirrored right override",
+      "ok": true
+    },
+    {
+      "name": "a sharing battle sprite inherits field overrides keyed by its own poses only",
+      "ok": true
+    },
+    {
+      "name": "a corrupt override is a validation error",
+      "ok": true,
+      "detail": {
+        "errors": 1,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "unshare copies the recipe and keeps the palette",
+      "ok": true
+    },
+    {
+      "name": "the cache evicts least recently used frames under its budget",
+      "ok": true,
+      "detail": {
+        "entries": 3,
+        "bytes": 15360,
+        "budget": 20000,
+        "hits": 0,
+        "misses": 72,
+        "evictions": 69
+      }
+    },
+    {
+      "name": "the cache bakes to a host canvas when one is given",
+      "ok": true
+    },
+    {
+      "name": "drawing a part by hand makes a frame per pose and direction",
+      "ok": true,
+      "detail": [
+        "stand.down",
+        "stand.up",
+        "stand.right",
+        "stepA.down",
+        "stepA.up",
+        "stepA.right",
+        "stepB.down",
+        "stepB.up",
+        "stepB.right",
+        "idle.right"
+      ]
+    },
+    {
+      "name": "a hand drawn copy composes like its generator",
+      "ok": true,
+      "detail": "0.958"
+    },
+    {
+      "name": "a hand drawn part resamples to another tile size",
+      "ok": true
+    },
+    {
+      "name": "a resampled hand drawn part warns",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "name": "a deleted NPC archetype is not recreated",
+      "ok": true
+    },
+    {
+      "name": "restoring it brings it back",
+      "ok": true
+    },
+    {
+      "name": "master rebuild: icon tints and icon palette stay valid",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "the pixel editor paints, undoes, redoes, fills, and saves",
+      "ok": true
+    },
+    {
+      "name": "an unchanged frame encodes to nothing",
+      "ok": true
+    },
+    {
+      "name": "the editor canvas blocks touch scrolling",
+      "ok": true
+    },
+    {
+      "name": "every Sprites and Interface view renders",
+      "ok": true,
+      "detail": [
+        "sprites.characters:12",
+        "sprites.cast:34",
+        "sprites.bestiary:6",
+        "sprites.portraits:24",
+        "sprites.parts:42",
+        "interface.icons:18",
+        "interface.window:1",
+        "interface.cursor:1",
+        "interface.touch:1",
+        "interface.title:1"
+      ]
+    },
+    {
+      "name": "jumps open the right tab and section",
+      "ok": true,
+      "detail": [
+        "spr_slime_battle_mum5",
+        "por_courier_portrait_2qpq",
+        "prt_slight_build_8f2f",
+        "ico_tonic_icon_xw50"
+      ]
+    },
+    {
+      "name": "the sprite drawer lists every field frame",
+      "ok": true,
+      "detail": 12
+    },
+    {
+      "name": "Start offers the Day 146 draft only when one exists",
+      "ok": true
+    },
+    {
+      "name": "146 imports a 147 draft with sprites: hash ok, no errors",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "art": 6
+      }
+    },
+    {
+      "name": "manifest counts the new records",
+      "ok": true
+    },
+    {
+      "name": "every fixture bakes with no validation errors",
+      "ok": true,
+      "detail": "F0:139 frames in 42 ms | F1a:170 frames in 26 ms | F1b:170 frames in 27 ms | F2:413 frames in 263 ms | F3:413 frames in 725 ms | F4:216 frames in 52 ms | F5d:220 frames in 52 ms | F5s:220 frames in 53 ms | F5t:220 frames in 80 ms | F5h:220 frames in 98 ms"
+    },
+    {
+      "name": "F2 (32 px, 256 colors, eight characters) bakes every frame in under 2 s",
+      "ok": true,
+      "detail": {
+        "ms": 263,
+        "frames": 413,
+        "bytes": 6384640
+      }
+    },
+    {
+      "name": "the draft lives under art147:draft, not kit:draft",
+      "ok": true
+    },
+    {
+      "name": "a refused save falls back to IndexedDB without the banner",
+      "ok": true
+    },
+    {
+      "name": "a reload restores the draft from IndexedDB",
+      "ok": true,
+      "detail": {
+        "title": "Demo Saga",
+        "errors": []
+      }
+    },
+    {
+      "name": "once localStorage has room again the draft moves back",
+      "ok": true
+    },
+    {
+      "name": "an older Day 147 draft under kit:draft is adopted once",
+      "ok": true
+    }
+  ],
+  "selfTest": [
+    {
+      "key": "F0",
+      "purpose": "Empty and sparse",
+      "buildMs": 7,
+      "hashOk": true,
+      "quickBuild": "72 new in 18 ms",
+      "quickBuildMs": 18,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 11,
+        "tiers": 0,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 37259,
+      "records": 0,
+      "bakeMs": "139 frames in 42 ms",
+      "cacheBytes": 324480,
+      "bake": {
+        "ms": 42,
+        "frames": 139,
+        "bytes": 324480
+      }
+    },
+    {
+      "key": "F1a",
+      "purpose": "Tiny, two colors",
+      "buildMs": 25,
+      "hashOk": true,
+      "quickBuild": "86 new in 7 ms",
+      "quickBuildMs": 7,
+      "palette": {
+        "master": 2,
+        "want": 2,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 70995,
+      "records": 17,
+      "bakeMs": "170 frames in 26 ms",
+      "cacheBytes": 109440,
+      "bake": {
+        "ms": 26,
+        "frames": 170,
+        "bytes": 109440
+      }
+    },
+    {
+      "key": "F1b",
+      "purpose": "Tiny, four colors",
+      "buildMs": 8,
+      "hashOk": true,
+      "quickBuild": "86 new in 10 ms",
+      "quickBuildMs": 10,
+      "palette": {
+        "master": 4,
+        "want": 4,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 71009,
+      "records": 17,
+      "bakeMs": "170 frames in 27 ms",
+      "cacheBytes": 109440,
+      "bake": {
+        "ms": 27,
+        "frames": 170,
+        "bytes": 109440
+      }
+    },
+    {
+      "key": "F2",
+      "purpose": "Large",
+      "buildMs": 9,
+      "hashOk": true,
+      "quickBuild": "334 new in 155 ms",
+      "quickBuildMs": 155,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 238435,
+      "records": 262,
+      "bakeMs": "413 frames in 263 ms",
+      "cacheBytes": 6384640,
+      "bake": {
+        "ms": 263,
+        "frames": 413,
+        "bytes": 6384640
+      }
+    },
+    {
+      "key": "F3",
+      "purpose": "Budget stress",
+      "buildMs": 9,
+      "hashOk": true,
+      "quickBuild": "334 new in 128 ms",
+      "quickBuildMs": 128,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 237630,
+      "records": 259,
+      "bakeMs": "413 frames in 725 ms",
+      "cacheBytes": 18073600,
+      "bake": {
+        "ms": 725,
+        "frames": 413,
+        "bytes": 18073600
+      }
+    },
+    {
+      "key": "F4",
+      "purpose": "Optional fields missing",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "110 new in 16 ms",
+      "quickBuildMs": 16,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 87596,
+      "records": 37,
+      "bakeMs": "216 frames in 52 ms",
+      "cacheBytes": 655360,
+      "bake": {
+        "ms": 52,
+        "frames": 216,
+        "bytes": 655360
+      }
+    },
+    {
+      "key": "F5d",
+      "purpose": "Typical, dpad controls",
+      "buildMs": 5,
+      "hashOk": true,
+      "quickBuild": "114 new in 15 ms",
+      "quickBuildMs": 15,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 97905,
+      "records": 46,
+      "bakeMs": "220 frames in 52 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 52,
+        "frames": 220,
+        "bytes": 660480
+      }
+    },
+    {
+      "key": "F5s",
+      "purpose": "Typical, stick controls",
+      "buildMs": 3,
+      "hashOk": true,
+      "quickBuild": "114 new in 15 ms",
+      "quickBuildMs": 15,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 97956,
+      "records": 46,
+      "bakeMs": "220 frames in 53 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 53,
+        "frames": 220,
+        "bytes": 660480
+      }
+    },
+    {
+      "key": "F5t",
+      "purpose": "Typical, tap controls",
+      "buildMs": 6,
+      "hashOk": true,
+      "quickBuild": "114 new in 26 ms",
+      "quickBuildMs": 26,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 97936,
+      "records": 46,
+      "bakeMs": "220 frames in 80 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 80,
+        "frames": 220,
+        "bytes": 660480
+      }
+    },
+    {
+      "key": "F5h",
+      "purpose": "Typical, hybrid controls",
+      "buildMs": 8,
+      "hashOk": true,
+      "quickBuild": "114 new in 29 ms",
+      "quickBuildMs": 29,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 97978,
+      "records": 46,
+      "bakeMs": "220 frames in 98 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 98,
+        "frames": 220,
+        "bytes": 660480
+      }
+    }
+  ],
+  "sizes": [
+    "8:560 in 127ms",
+    "12:560 in 130ms",
+    "16:560 in 153ms",
+    "24:560 in 222ms",
+    "32:560 in 376ms",
+    "48:560 in 751ms",
+    "64:560 in 1219ms"
+  ]
+}

@@ -25,7 +25,7 @@
     'efx_': { name: 'ArtEffect', label: 'Element effect' }, 'wov_': { name: 'ArtWeather', label: 'Weather overlay' },
     'ins_': { name: 'ArtInstrument', label: 'Instrument' }, 'prt_': { name: 'ArtPart', label: 'Sprite part' }
   };
-  ART.SUBJECT_KINDS = ['chr', 'fam', 'sta', 'wth', 'abl', 'itm', 'eqp', 'element', 'role'];
+  ART.SUBJECT_KINDS = ['chr', 'fam', 'sta', 'wth', 'abl', 'itm', 'eqp', 'mat', 'element', 'role'];
   ART.ORIGINS = ['default', 'procedural', 'user', 'claude'];
   // The eight forward fields Day 146 reserved for this forge (Phase 7 fills them; nothing else outside art is written).
   ART.FORWARD_FIELDS = [
@@ -214,25 +214,123 @@
     });
     top.sort(function (x, y) { return y.size - x.size; });
     // Room under the 4.5 MB budget after everything else this origin keeps in localStorage (other drafts, slots).
-    var draft = 0;
-    try { draft = (localStorage.getItem('kit:draft') || '').length; } catch (e) {}
-    var other = Math.max(0, Kit.store.usage() - draft);
+    // A draft that has moved to IndexedDB is no longer squeezed by localStorage, so its room is the full budget.
+    var draft = 0, where = ART.storage.where('kit:draft');
+    try { draft = (localStorage.getItem('art147:draft') || '').length; } catch (e) {}
+    var other = where === 'idb' ? 0 : Math.max(0, Kit.store.usage() - draft);
     var room = Math.max(0, ART.LIMIT - other);
     var level = total >= room * 0.9 ? 'red' : total >= ART.AMBER ? 'amber' : 'ok';
-    return { total: total, ns: ns, top: top.slice(0, 25), other: other, room: room, level: level };
+    return { total: total, ns: ns, top: top.slice(0, 25), other: other, room: room, level: level, where: where };
   };
 
-  // ---------------------------------------------------------------- persistent storage banner
-  // KIT:CORE shows a toast when localStorage refuses a write. Phase 0 wraps the public Kit.store.set so a refused draft
-  // write also raises a banner that stays until a save succeeds or the bundle is exported.
-  var rawSet = Kit.store.set;
-  Kit.store.set = function (key, value) {
-    var ok = rawSet.apply(Kit.store, arguments);
-    if (key === 'kit:draft') ART.storageFailed(!ok);
-    return ok;
+  // ---------------------------------------------------------------- storage (decision of 2026-10-01, before Phase 2)
+  // Every AppADay app shares one origin and one localStorage quota, and Day 146 uses the same kit: keys. This forge keeps
+  // its draft, slots, suspend record, and UI state under its own art147: keys, so a Day 146 tab can never overwrite a Day
+  // 147 draft. The API key setting (kit:settings) stays shared on purpose. KIT:CORE reads and writes only through the
+  // public Kit.store methods, so wrapping them remaps every key without touching the fence.
+  // When localStorage refuses a write for a remapped key, the value goes to IndexedDB instead, a tiny marker in
+  // localStorage records where it lives, and an in-memory mirror keeps Kit.store.get synchronous. The banner prompting an
+  // export appears only when IndexedDB also refuses (or does not exist). APP:BOOT awaits ART.storage.ready() first.
+  var KEYMAP = { 'kit:draft': 'art147:draft', 'kit:slots': 'art147:slots', 'kit:suspend': 'art147:suspend', 'kit:ui': 'art147:ui' };
+  var WHERE = 'art147:where:', IDB_NAME = 'appaday-147', IDB_STORE = 'kv';
+  var raw = { get: Kit.store.get, set: Kit.store.set, del: Kit.store.del };
+  var mem = {}, idbKeys = {}, dbp = null;
+  function hasIdb() { try { return typeof indexedDB !== 'undefined' && !!indexedDB; } catch (e) { return false; } }
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (resolve, reject) {
+      var rq = indexedDB.open(IDB_NAME, 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore(IDB_STORE); };
+      rq.onsuccess = function () { resolve(rq.result); };
+      rq.onerror = function () { reject(rq.error); };
+    });
+    dbp.catch(function () { dbp = null; });
+    return dbp;
+  }
+  function idb(mode, fn) {
+    return db().then(function (d) {
+      return new Promise(function (resolve, reject) {
+        var tx = d.transaction(IDB_STORE, mode), st = tx.objectStore(IDB_STORE), out;
+        var rq = fn(st);
+        if (rq) rq.onsuccess = function () { out = rq.result; };
+        tx.oncomplete = function () { resolve(out); };
+        tx.onerror = tx.onabort = function () { reject(tx.error); };
+      });
+    });
+  }
+  function lsSet(k, s) { try { localStorage.setItem(k, s); return true; } catch (e) { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  ART.storage = {
+    KEYMAP: KEYMAP,
+    // Where a remapped key lives right now: 'local', 'idb', or 'none'.
+    where: function (key) { var k = KEYMAP[key] || key; if (idbKeys[k]) return 'idb'; try { return localStorage.getItem(k) != null ? 'local' : 'none'; } catch (e) { return 'none'; } },
+    hasIdb: hasIdb,
+    // Loads every key whose marker says IndexedDB into the mirror. Always resolves.
+    ready: function () {
+      var ks = [];
+      try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(WHERE) === 0) ks.push(k.slice(WHERE.length)); } } catch (e) {}
+      if (!ks.length) return Promise.resolve();
+      if (!hasIdb()) { ks.forEach(function (k) { lsDel(WHERE + k); }); return Promise.resolve(); }
+      return Promise.all(ks.map(function (k) {
+        return idb('readonly', function (st) { return st.get(k); }).then(function (v) {
+          if (typeof v === 'string') { mem[k] = v; idbKeys[k] = 1; } else lsDel(WHERE + k);
+        }, function () {});
+      })).then(function () {});
+    },
+    // The draft Day 146 left in this browser, if any (read only; this forge never writes kit:draft).
+    day146Draft: function () { return raw.get.call(Kit.store, 'kit:draft', null); }
   };
+  Kit.store.get = function (key, fallback) {
+    var k = KEYMAP[key];
+    if (!k) return raw.get.apply(Kit.store, arguments);
+    if (idbKeys[k]) { try { return JSON.parse(mem[k]); } catch (e) { return fallback; } }
+    return raw.get.call(Kit.store, k, fallback);
+  };
+  Kit.store.del = function (key) {
+    var k = KEYMAP[key];
+    if (!k) return raw.del.apply(Kit.store, arguments);
+    if (idbKeys[k]) { delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k); idb('readwrite', function (st) { return st.delete(k); }).catch(function () {}); }
+    return raw.del.call(Kit.store, k);
+  };
+  Kit.store.set = function (key, value) {
+    var k = KEYMAP[key];
+    if (!k) return raw.set.apply(Kit.store, arguments);
+    var s;
+    try { s = JSON.stringify(value); } catch (e) { return false; }
+    if (lsSet(k, s)) {
+      if (idbKeys[k]) { delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k); idb('readwrite', function (st) { return st.delete(k); }).catch(function () {}); }
+      if (key === 'kit:draft') ART.storageFailed(false);
+      return true;
+    }
+    // localStorage refused (quota). Free the stale copy so it is never read back, then fall back to IndexedDB.
+    lsDel(k);
+    if (!hasIdb() || !lsSet(WHERE + k, '1')) {
+      if (key === 'kit:draft') ART.storageFailed(true);
+      if (Kit.ui && Kit.ui.toast) Kit.ui.toast('Could not save to browser storage. Export your bundle now to keep your work.', 'error', 8000);
+      return false;
+    }
+    var first = !idbKeys[k];
+    mem[k] = s; idbKeys[k] = 1;
+    idb('readwrite', function (st) { return st.put(s, k); }).then(function () {
+      if (key === 'kit:draft') ART.storageFailed(false);
+      if (first && Kit.ui && Kit.ui.toast && key === 'kit:draft') Kit.ui.toast('This draft is now saved in IndexedDB, the browser\'s larger store, because localStorage is full.', 'warn', 7000);
+    }, function () {
+      delete idbKeys[k]; delete mem[k]; lsDel(WHERE + k);
+      if (key === 'kit:draft') ART.storageFailed(true);
+    });
+    return true;
+  };
+  // One time adoption: Phase 0 and 1 builds saved this forge's work under the shared kit:draft. When there is no Day 147
+  // draft yet and that shared draft already carries art records, it is copied into art147:draft (never moved or deleted).
+  (function adopt() {
+    try {
+      if (localStorage.getItem('art147:draft') != null || localStorage.getItem(WHERE + 'art147:draft') != null) return;
+      var d = raw.get.call(Kit.store, 'kit:draft', null);
+      if (d && d.art && U.isObj(d.art.records) && Object.keys(d.art.records).length) lsSet('art147:draft', JSON.stringify(d));
+    } catch (e) {}
+  })();
   ART.storageFailed = function (failed) {
-    var el = document.getElementById('storeBanner');
+    var el = typeof document !== 'undefined' && document.getElementById('storeBanner');
     if (!el) return;
     el.hidden = !failed;
   };

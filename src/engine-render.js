@@ -302,6 +302,13 @@ var ENGINE_RENDER = (function () {
   // colorway(master, src) -> {skin, hair, clothA, clothB: [m, m, m], metal: [m, m], accent}
   function colorway(master, src) {
     var cw = { accent: src.accent === 'metal' ? 'metal' : 'clothB' };
+    // Two colors: every material reads as light with a dark shadow step, so figures stay readable against the outline
+    // instead of collapsing into dark silhouettes.
+    if (master.length <= 2) {
+      var dk = outline(master), lt = master.length > 1 ? 1 - dk : dk;
+      Object.keys(RAMPS).forEach(function (k) { cw[k] = RAMPS[k].map(function (_, j) { return j === 0 ? dk : lt; }); });
+      return cw;
+    }
     var taken = {};
     taken[outline(master)] = 1;
     Object.keys(RAMPS).forEach(function (k) {

@@ -15,6 +15,9 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   let { win, errors } = boot(APP147, { url: 'https://augustineiacopelli.github.io/appaday/147/?dev=1' });
   await wait(60);
   let Kit = win.Kit, ART = win.ART;
+  // Phase 0 proves the envelope and the Day 146 contract with envelope-only records. The sprite validator (Phase 2)
+  // rightly calls those records incomplete, so it is switched off here; test/phase2.js covers it.
+  Kit.validate.unregister('art.sprites');
   const tabs = Array.from(win.document.querySelectorAll('#tabs .tab')).map((t) => t.dataset.ws + (t.classList.contains('locked') ? '(locked)' : ''));
   check('boots with no page errors', !errors.length, errors.slice(0, 2));
   check('tabs mounted', tabs.length === 10, tabs.join(' '));
@@ -79,17 +82,18 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
     fx.push(f.key + ':' + (r.rejected ? 'REJECTED' : (r.matches ? 'hash' : 'HASHBAD') + ' e' + r.summary.errors + ' b' + r.summary.broken + ' w' + r.summary.warnings));
   }
   check('all fixtures import into 146 with verified hashes', fx.every((s) => /:hash/.test(s)), fx.join(' | '));
-  // 7. Shared storage: a Day 146 draft on the same origin is what Day 147 opens.
+  // 7. Own storage keys (decision before Phase 2): a plain Day 146 draft is not opened automatically; Start offers it.
   ({ win, errors } = boot(APP147, { url: 'https://augustineiacopelli.github.io/appaday/147/', storage: { 'kit:draft': demoText, 'kit:ui': JSON.stringify({ tab: 'rules' }) } }));
   await wait(60);
-  check('147 restores the shared 146 draft and falls back to Start', win.Kit.bundle.current().kit.title === 'Demo Saga' && win.Kit.active() === 'start' && !errors.length, { title: win.Kit.bundle.current().kit.title, active: win.Kit.active(), errors: errors.slice(0, 2) });
-  // 8. Storage banner on a refused write.
+  const offer = !!Array.prototype.find.call(win.document.querySelectorAll('#ws button'), (x) => /Day 146 draft/.test(x.textContent));
+  check('147 keeps its own draft and offers the Day 146 draft on Start', win.Kit.bundle.current().kit.title === 'Untitled Saga' && win.Kit.active() === 'start' && offer && !errors.length, { title: win.Kit.bundle.current().kit.title, active: win.Kit.active(), offer, errors: errors.slice(0, 2) });
+  // 8. Storage banner on a refused write (jsdom has no IndexedDB, so the banner is the last resort).
   const SP = win.Storage.prototype, orig = SP.setItem;
-  SP.setItem = function (k, v) { if (k === 'kit:draft') throw new Error('QuotaExceededError'); return orig.call(this, k, v); };
+  SP.setItem = function (k, v) { if (k === 'art147:draft') throw new Error('QuotaExceededError'); return orig.call(this, k, v); };
   win.Kit.bundle.save();
   const shown = !win.document.getElementById('storeBanner').hidden;
   SP.setItem = orig; win.Kit.bundle.save();
-  check('storage banner shows on refused save and clears on success', shown && win.document.getElementById('storeBanner').hidden);
+  check('storage banner shows on refused save and clears on success', shown && win.document.getElementById('storeBanner').hidden && win.localStorage.getItem('kit:draft') === demoText, { shown });
   // 9. Stub tabs locked without a locked Charter.
   win.Kit.bundle.create('Blank');
   await wait(20);

@@ -42,7 +42,12 @@
   };
   P.entries = function (b) { var m = P.master(b); return m && Array.isArray(m.entries) ? m.entries : []; };
   P.size = function (b) { b = b || cur(); return E.size(b && b.charter); };
-  P.locals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local'; }); };
+  // Colorways only: humanoid local palettes. Other local layouts (the icon palette) belong to the fence that made them.
+  P.locals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local' && (r.layout || 'humanoid') === 'humanoid'; }); };
+  P.otherLocals = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'local' && (r.layout || 'humanoid') !== 'humanoid'; }); };
+  // Later fences refit their own palette dependents after a master rebuild: fn(b, map) with map old index to new.
+  var rebuildHooks = [];
+  P.onRebuild = function (fn) { rebuildHooks.push(fn); };
   P.tiers = function (b) { return ART.records.list('pal_', b || cur()).filter(function (r) { return r.kind === 'tier'; }); };
   P.effects = function (b) { return ART.records.list('efx_', b || cur()); };
   function bundleSeed(b) { return H((b.kit && b.kit.bundleId) || 'bundle'); }
@@ -121,6 +126,7 @@
       if (P.isKept(r)) { r.palette = (r.palette || []).map(mv); r.flash = mv(r.flash); r.tint = mv(r.tint); }
     });
     P.buildElements(b, {}, { refit: true });
+    rebuildHooks.forEach(function (fn) { fn(b, map); });
   };
 
   // ---------------------------------------------------------------- local palettes (colorways)
@@ -226,7 +232,7 @@
     var n = P.entries(b).length, out = [];
     for (var i = 0; i < n; i++) out.push([]);
     function hit(i, id) { if (typeof i === 'number' && out[i] && out[i].indexOf(id) < 0) out[i].push(id); }
-    P.locals(b).concat(P.tiers(b)).forEach(function (r) { (r.slots || []).forEach(function (s) { hit(s, r.id); }); });
+    P.locals(b).concat(P.tiers(b), P.otherLocals(b)).forEach(function (r) { (r.slots || []).forEach(function (s) { hit(s, r.id); }); });
     P.effects(b).forEach(function (r) { (r.palette || []).forEach(function (s) { hit(s, r.id); }); hit(r.flash, r.id); hit(r.tint, r.id); });
     return out;
   };

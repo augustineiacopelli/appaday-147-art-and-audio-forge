@@ -26,6 +26,8 @@
     var pct = Math.min(100, Math.round(s.total / Math.max(1, s.room) * 100));
     host.appendChild(el('div', 'a7-meter a7-' + s.level, '<i style="width:' + pct + '%"></i>'));
     host.appendChild(el('p', 'muted', esc(U.fmtSize(s.total) + ' of about ' + U.fmtSize(s.room) + ' available in this browser. Amber from 1.5 MB, red within 10 percent of the room left under 4.5 MB.')));
+    host.appendChild(el('p', 'muted', esc(s.where === 'idb' ? 'The draft is saved in IndexedDB, the browser\'s larger store, because localStorage filled up. Exports are still the safe copy.' :
+      'The draft is saved in localStorage under this forge\'s own keys, so Day 146 in another tab never overwrites it. If localStorage fills, the draft moves to IndexedDB on its own.')));
     var t = el('table', 'tbl');
     t.innerHTML = '<thead><tr><th scope="col">Namespace</th><th scope="col" class="num">Size</th></tr></thead><tbody>' +
       Object.keys(s.ns).map(function (k) { return '<tr><th scope="row">' + esc(k) + '</th><td class="num">' + esc(U.fmtSize(s.ns[k])) + '</td></tr>'; }).join('') + '</tbody>';
@@ -123,6 +125,18 @@
       Kit.ui.confirm({ title: 'Load the demo bundle?', message: 'The current working draft will be replaced by the demo. Save it to a slot or export it first if you want to keep it.', okLabel: 'Load demo' });
     go.then(function (ok) { if (!ok) return; Kit.bundle.load(ART_DEMO.bundle()); Kit.ui.toast('Demo bundle loaded.', 'ok'); });
   }
+  // Copies Day 146's working draft into this forge. Day 146's copy is never written or removed.
+  function openDay146Draft() {
+    var d = ART.storage.day146Draft();
+    if (!d) { Kit.ui.toast('Day 146 has no draft in this browser.', 'warn'); return; }
+    var go = ART.isEmpty() && !(cur().charter && cur().charter.locked) ? Promise.resolve(true) :
+      Kit.ui.confirm({ title: 'Open the Day 146 draft?', message: 'This forge\'s current draft will be replaced by a copy of ' + ((d.kit && d.kit.title) || 'the Day 146 draft') + '. Save it to a slot or export it first if you want to keep it.', okLabel: 'Open Day 146 draft' });
+    go.then(function (ok) {
+      if (!ok) return;
+      try { Kit.bundle.load(d); Kit.ui.toast('Opened a copy of the Day 146 draft.', 'ok'); } catch (e) { Kit.ui.toast(e.message, 'error', 7000); }
+    });
+  }
+  ART.openDay146Draft = openDay146Draft;
   function renderStart(host) {
     var b = cur(), C = b.charter || {}, S = C.sections || {}, sp = C.specs || {};
     var head = el('section', 'panel a7-hero');
@@ -134,7 +148,15 @@
     var qb = el('button', 'btn', Kit.icon('spark') + '<span>Quick Build</span>'); qb.type = 'button';
     if (ready(b) !== true) { qb.disabled = true; qb.title = ready(b); } else qb.addEventListener('click', ART.openQuickBuild);
     var st = el('button', 'btn btn-ghost', Kit.icon('gear') + '<span>Settings</span>'); st.type = 'button'; st.addEventListener('click', Kit.settings.open);
-    row.appendChild(imp); row.appendChild(demo); row.appendChild(qb); row.appendChild(st);
+    row.appendChild(imp); row.appendChild(demo); row.appendChild(qb);
+    var d146 = ART.storage.day146Draft();
+    if (d146 && d146.kit && d146.kit.bundleId !== b.kit.bundleId) {
+      var od = el('button', 'btn', Kit.icon('book') + '<span>Open the Day 146 draft</span>'); od.type = 'button';
+      od.title = 'Copy the draft Saga Forge left in this browser (' + ((d146.kit && d146.kit.title) || 'untitled') + ') into this forge';
+      od.addEventListener('click', openDay146Draft);
+      row.appendChild(od);
+    }
+    row.appendChild(st);
     head.appendChild(row);
     host.appendChild(head);
 
@@ -244,7 +266,7 @@
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
       t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs) + '</td></tr>'; }).join('') + '</tbody>';
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);

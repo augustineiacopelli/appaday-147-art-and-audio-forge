@@ -89,7 +89,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   const rep = ART.quickBuild.run(b);
   const P = ART.palette;
   check('Quick Build creates master, 14 colorways, 6 tier palettes, 4 element palettes',
-    P.master(b) && P.entries(b).length === 64 && P.locals(b).length === 14 && P.tiers(b).length === 6 && P.effects(b).length === 4 && rep.created === 25, { created: rep.created, steps: rep.steps });
+    P.master(b) && P.entries(b).length === 64 && P.locals(b).length === 14 && P.tiers(b).length === 6 && P.effects(b).length === 4 && rep.steps.palette.created === 25, { created: rep.created, steps: rep.steps });
   let res = Kit.refreshValidation();
   check('Quick Build leaves 0 errors, 0 broken, 0 warnings', !res.errors.length && !res.broken.length && !res.warnings.length, Kit.validate.summary(res));
   const subj = P.locals(b).map((r) => r.subject.kind + ':' + r.subject.ref);
@@ -198,7 +198,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   const rf = await in146(fin.files[0].text, async (w2, K, r) => { let blocked = null; try { K.buildExport('final'); } catch (e) { blocked = e.message; } return { blocked }; });
   check('Final export with palettes opens art and 146 still allows Final', JSON.parse(fin.files[0].text).kit.opened.includes('art') && rf.matches && !rf.summary.errors && !rf.summary.broken && !rf.blocked, rf);
   const sz = ART.size(Kit.bundle.current());
-  check('demo bundle with palettes stays small', sz.total < 120000 && sz.ns.art < 40000, { total: sz.total, art: sz.ns.art });
+  check('demo bundle with palettes stays small', sz.total < 160000 && JSON.stringify([b.art.records.pal_, b.art.records.efx_]).length < 40000, { total: sz.total, art: sz.ns.art });
 
   const pass = results.filter((r) => r.ok).length;
   results.forEach((r) => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : '  ' + JSON.stringify(r.detail).slice(0, 900))));

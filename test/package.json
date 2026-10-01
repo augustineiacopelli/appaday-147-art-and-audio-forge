@@ -1,6 +1,9 @@
 {
   "name": "appaday-147-tests",
   "private": true,
-  "description": "Execution workspace tests for Day 147. Run npm install here once, then node phase0.js and node phase1.js.",
-  "dependencies": { "jsdom": "^24.1.3" }
+  "description": "Execution workspace tests for Day 147. Run npm install here once, then node phase0.js, node phase1.js, and node phase2.js.",
+  "dependencies": {
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^24.1.3"
+  }
 }

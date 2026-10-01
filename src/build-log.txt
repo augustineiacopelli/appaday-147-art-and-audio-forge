@@ -76,11 +76,72 @@ SESSION 1 / PHASE 1 (2026-10-01, Opus): PALETTE PIPELINE. COMPLETE.
   Known limits: a 64 color master has few colors in some hues, so cloth A and cloth B can share one step (soft penalty only).
     Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
 === END SESSION 1 ===
+SESSION 2 / PHASE 2 (2026-10-01, Opus): COMPOSER. COMPLETE.
+  Storage: ART:STORE wraps the public Kit.store get, set, and del. kit:draft, kit:slots, kit:suspend, and kit:ui map to
+    art147: keys, so a Day 146 tab never overwrites this forge; kit:settings (API key) stays shared on purpose. A refused
+    localStorage write goes to IndexedDB (db appaday-147, store kv) with a marker key art147:where:<key> and an in-memory
+    mirror so Kit.store.get stays synchronous; APP:BOOT awaits ART.storage.ready() (ART.booted) before restoreDraft. The
+    banner shows only when IndexedDB also refuses or is missing. A later successful localStorage write moves the value
+    back. One time adoption: a kit:draft that already holds art records is copied to art147:draft when none exists (never
+    moved or deleted). Start shows "Open the Day 146 draft" when Day 146 left a different draft in this browser.
+  Fences, in order: ... ENGINE:RENDER, ART:PALETTE, WS:PALETTE, ART:SPRITES, ART:PIXED, WS:SPRITES, WS:INTERFACE, WS:ART147,
+    APP:BOOT. CSS adds ART:SPRITES CSS. KIT:CORE still verbatim.
+  Engine: Phase 2 engine code lives in src/engine-sprites.js; build.js splices it into ENGINE:RENDER above the freeze line
+    (ENGINE_SECTIONS), so the output is still one fence that reads no host global. New sections: codec {ALPHABET, decode,
+    encode, validate}, sprite {LAYERS, ORDER, POSES, BODY_PLANS, LIBRARY, RIGS, RIG_PARAMS, GENERATORS, DIRS, FIELD_POSES,
+    BATTLE_POSES, framePx, compose, partFrame, mirror, resample, slotCell, spec, frame, base, slotsFor, rgba}, portrait
+    {EXPRESSIONS, size, compose, frame}, icon {GLYPHS, STATUS_SHAPES, size, compose, frame}, createCache(art, {size,
+    entries, makeCanvas, budget}) -> {sprite, portrait, icon, invalidate, stats, clear, budget}.
+  Composer: a raster of cell codes (material 1 outline, 2 to 6 the five ramps in slot order, 7 accent alias, 8 ground
+    shadow; high nibble a fixed step) and layer ids. Generators draw in unit coordinates scaled by tileSize / 16 (sprites,
+    32 for enemies, 48 for portraits, 16 for icons), so every size rasterizes natively. Shading: top and left edges of a
+    region (one material in one layer) light, bottom and right shade, a later layer on top casts shade; bands widen with
+    scale. Outline from the alpha mask; the outer pixel ring is reserved so it always fits. Slots resolve through the
+    shared 16 slot ramp positions (2-4, 5-7, 8-10, 11-13, 14-15) for every layout. Left mirrors right. Ground shadow is a
+    dither in slot 1. Two color masters: colorways map step 0 dark and the rest light (engine palette.colorway).
+  Humanoid: body plans slight, average, broad, small, tall define the skeleton (the body part is the anchor source); poses
+    are parameter sets (Phase 2: stand, stepA, stepB, idle; Phase 3 adds entries). Layer order per direction; up puts front
+    gear behind and back gear on top. Default library: 5 bodies, 3 heads, 7 hair, 6 torsos, 4 legs, 3 back, 6 front, and
+    one body per enemy rig (humanoid, quadruped, avian, serpent, ooze, construct, floater, plant): 42 prt_ records.
+  Records: prt_ {layer, rig, lib, gen {shape, params} | px {base, variants {"<pose>.<dir>": {w, h, d}}}}. spr_ {kind
+    character|villain|npc|enemy, mode field|battle, recipe {rig, parts {layer: prt_}, params {layer: {...}}, proportions,
+    look, accent} | shares spr_, pal, overrides {"<pose>.<dir>": {w, h, d}}}. A battle character sprite shares its field
+    sprite; Day 146 tier families share the base family sprite with their own tier pal_. Overrides on a sprite win over
+    inherited ones; left falls back to the mirrored right override. por_ {size 3T clamped 24..96, recipe {head, hair,
+    mouth, collar, accent}, pal (the colorway), expressions {name: {brow, tilt, eye}}, overrides}. ico_ {size, gen {glyph,
+    tint (element key or hex)}, pal (the icon pal_, layout icon, role ui:icons), tintRamp [m,m,m] swapped into slots
+    8-10, px}. Icons cover itm_, eqp_, abl_, sta_, and mat_ (subject kind mat added to ART.SUBJECT_KINDS).
+  Looks: characters from stats and weapon class (S.characterLook, seeded); villain and the ten NPC archetypes have fixed
+    looks; enemy rig from family name keywords, then type, then seed, with seeded parameter variation.
+  Quick Build 'sprites' (order 20): parts, sprites, portraits, icon palette, icons. Kept (user, claude) never change;
+    default records (parts, NPCs) are created once; procedural ones refresh from the bundle. Deleted defaults go on
+    art.settings.retired and are never recreated. ART.palette.locals now means humanoid colorways only (otherLocals has the
+    icon palette); ART.palette.onRebuild hooks let this fence refit icon palettes and tints after a master rebuild.
+  Validator art.sprites: kinds, modes, missing pal, shares loops, missing or wrong layer parts, codec errors in overrides
+    and px, unknown generators and glyphs, tintRamp range, orphaned subjects (warning), resampled px parts (warning).
+  UI: Sprites tab (Characters, Villain and NPCs, Bestiary, Portraits, Parts) with drawers for sprites (look, accent,
+    proportions, rig parameters, every frame), portraits (face recipe, expression sliders, per expression pixels), and
+    parts (parameters, duplicate, draw by hand, delete). Interface tab: Icons live; Window and font, Cursor, Touch skin,
+    Title are Phase 5 stubs. ART:PIXED: pencil, fill, pick, eraser, undo and redo, mirror drawing, grid, zoom, keyboard
+    shortcuts, pointer events with touch-action none. Overrides equal to the generated frame are not stored. ART.ui holds
+    the shared widgets (button, chip, origin, select, slider, toggle, figure, subtabs).
+  Self test: bake column now real (every frame, portrait expression, and icon through the engine cache). Demo: 220 frames
+    in about 60 ms, 0.65 MB cache. F2: 413 frames in about 0.3 s. F3 (64 px): about 0.8 s and 17.6 MB if everything were
+    kept; the UI cache is capped at 12 MB and evicts.
+  Tests: test/phase2.js 67 of 67 (adds fake-indexeddb for the fallback path), phase1 59 of 59, phase0 27 of 27 (phase0
+    switches off art.sprites since its envelope-only records are incomplete sprites by design). test/png.js writes
+    contact sheets for eyeballing.
+  Checked in a real browser (Chromium, 390 and 1280 wide, night and parchment): no horizontal scroll, pixel editor draws
+    by pointer and saves to art147:draft, kit:draft untouched.
+  Known limits: 8 px and two color fixtures are legible but abstract; portrait eye whites are not possible in the
+    humanoid slot map (no white ramp), so eyes are dark pupils with a skin highlight. Poses beyond stand, steps, and battle
+    idle arrive with the anm_ player in Phase 3.
+=== END SESSION 2 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
     Tilesets keep the full 32 slot alphabet.
   Enemy tiers: one spr_ and one pal_ per fam_ record. Day 146 tier families (name suffix " T2" and so on, own shifted
     palette) share the base family's recipe; the tiers array on enemy sprites is dropped.
-  Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
+  Storage (decided 2026-10-01 before Phase 2): own keys plus IndexedDB fallback. See Session 2.
 === END BUILD LOG ===

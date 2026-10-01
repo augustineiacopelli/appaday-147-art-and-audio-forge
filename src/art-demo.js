@@ -139,13 +139,27 @@
           collapsed: tiers.filter(function (t) { return t.collapsed; }).length, offset: tiers.filter(function (t) { return t.derivedFrom && (t.derivedFrom.rampOffset || t.derivedFrom.inverted); }).length,
           effects: ART.palette.effects(copy).length };
       }
+      // Phase 2: bake every frame the forge owns (field poses in four directions, battle idle, every portrait
+      // expression, every icon) through the engine cache, without canvases, and report time and cache memory.
+      var bake = null;
+      if (ART.sprites && ART.palette.master(copy)) {
+        var tb = performance.now(), ER = ENGINE_RENDER, n = 0;
+        var k = ER.createCache(copy.art, { size: ART.sprites.tileSize(copy), entries: ART.palette.entries(copy), budget: 64e6 });
+        ART.sprites.sprites(copy).forEach(function (s) {
+          if (s.mode === 'battle') { k.sprite(s.id, 'idle', s.kind === 'enemy' ? 'right' : 'left'); n++; }
+          else ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+        });
+        ART.sprites.portraits(copy).forEach(function (p) { Object.keys(ER.portrait.EXPRESSIONS).forEach(function (e) { k.portrait(p.id, e); n++; }); });
+        ART.sprites.icons(copy).forEach(function (i) { k.icon(i.id); n++; });
+        bake = { ms: Math.round(performance.now() - tb), frames: n, bytes: k.stats().bytes };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
         quickBuild: qb, quickBuildMs: qbMs, palette: pal, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
-        bakeMs: 'pending (Phase 2)', cacheBytes: 'pending (Phase 2)'
+        bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
       };
     });
   };

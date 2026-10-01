@@ -38,9 +38,9 @@
       "name": "art records indexed",
       "ok": true,
       "detail": [
-        "por_courier_portrait_kr13",
-        "til_forest_s415",
-        "efx_fire_effect_dajz"
+        "por_courier_portrait_ccs9",
+        "til_forest_c6gq",
+        "efx_fire_effect_2j6d"
       ]
     },
     {
@@ -68,7 +68,7 @@
       "detail": {
         "total": 50924,
         "level": "ok",
-        "room": 4499970
+        "room": 4499964
       }
     },
     {
@@ -112,7 +112,7 @@
         },
         "pageErrors": [],
         "forward": [
-          "por_courier_portrait_kr13",
+          "por_courier_portrait_ccs9",
           "spr_missing_zz99"
         ],
         "opened": [
@@ -132,7 +132,7 @@
         },
         "147": {
           "status": "final",
-          "exportedAt": "2026-10-01T19:47:56.253Z",
+          "exportedAt": "2026-10-01T20:41:10.106Z",
           "artVersion": "1.0.0",
           "charterVersion": 1
         }
@@ -143,18 +143,18 @@
       "ok": true,
       "detail": {
         "forge": 147,
-        "bundleHash": "5b6cb193bbabfc6dfd70f675d8ab6f5fe79b08641408377f13429b9205f0dd00",
+        "bundleHash": "a4786b8fbd3b88dfc0174c1649b9c20cf611126648cbb43b5235127584dcd5e8",
         "artVersion": "1.0.0",
         "charterVersion": 1,
         "created": [
-          "efx_fire_effect_dajz",
-          "por_courier_portrait_kr13",
-          "spr_slime_sprite_174d",
-          "til_forest_s415"
+          "efx_fire_effect_2j6d",
+          "por_courier_portrait_ccs9",
+          "spr_slime_sprite_0lnd",
+          "til_forest_c6gq"
         ],
         "referenced": [
-          "por_courier_portrait_kr13",
-          "spr_slime_sprite_174d"
+          "por_courier_portrait_ccs9",
+          "spr_slime_sprite_0lnd"
         ],
         "unresolved": [],
         "artOpened": true,
@@ -190,17 +190,21 @@
       "detail": "F0:hash e0 b0 w3 | F1a:hash e0 b0 w2 | F1b:hash e0 b0 w2 | F2:hash e0 b0 w1 | F3:hash e0 b0 w1 | F4:hash e2 b0 w1 | F5d:hash e0 b0 w1 | F5s:hash e0 b0 w1 | F5t:hash e0 b0 w1 | F5h:hash e0 b0 w1"
     },
     {
-      "name": "147 restores the shared 146 draft and falls back to Start",
+      "name": "147 keeps its own draft and offers the Day 146 draft on Start",
       "ok": true,
       "detail": {
-        "title": "Demo Saga",
+        "title": "Untitled Saga",
         "active": "start",
+        "offer": true,
         "errors": []
       }
     },
     {
       "name": "storage banner shows on refused save and clears on success",
-      "ok": true
+      "ok": true,
+      "detail": {
+        "shown": true
+      }
     },
     {
       "name": "later tabs lock until a locked Charter is loaded",
@@ -224,10 +228,10 @@
     {
       "key": "F0",
       "purpose": "Empty and sparse",
-      "buildMs": 2,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "16 new in 25 ms",
-      "quickBuildMs": 25,
+      "quickBuild": "72 new in 35 ms",
+      "quickBuildMs": 35,
       "palette": {
         "master": 64,
         "want": 64,
@@ -245,18 +249,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 16762,
+      "size": 37259,
       "records": 0,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "139 frames in 75 ms",
+      "cacheBytes": 324480,
+      "bake": {
+        "ms": 75,
+        "frames": 139,
+        "bytes": 324480
+      }
     },
     {
       "key": "F1a",
       "purpose": "Tiny, two colors",
       "buildMs": 5,
       "hashOk": true,
-      "quickBuild": "15 new in 7 ms",
-      "quickBuildMs": 7,
+      "quickBuild": "86 new in 13 ms",
+      "quickBuildMs": 13,
       "palette": {
         "master": 2,
         "want": 2,
@@ -274,18 +283,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 45686,
+      "size": 70995,
       "records": 17,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "170 frames in 43 ms",
+      "cacheBytes": 109440,
+      "bake": {
+        "ms": 43,
+        "frames": 170,
+        "bytes": 109440
+      }
     },
     {
       "key": "F1b",
       "purpose": "Tiny, four colors",
-      "buildMs": 7,
+      "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "15 new in 3 ms",
-      "quickBuildMs": 3,
+      "quickBuild": "86 new in 11 ms",
+      "quickBuildMs": 11,
       "palette": {
         "master": 4,
         "want": 4,
@@ -303,18 +317,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 45706,
+      "size": 71009,
       "records": 17,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "170 frames in 26 ms",
+      "cacheBytes": 109440,
+      "bake": {
+        "ms": 26,
+        "frames": 170,
+        "bytes": 109440
+      }
     },
     {
       "key": "F2",
       "purpose": "Large",
       "buildMs": 9,
       "hashOk": true,
-      "quickBuild": "132 new in 130 ms",
-      "quickBuildMs": 130,
+      "quickBuild": "334 new in 144 ms",
+      "quickBuildMs": 144,
       "palette": {
         "master": 256,
         "want": 256,
@@ -332,18 +351,23 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 168817,
+      "size": 238435,
       "records": 262,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "413 frames in 292 ms",
+      "cacheBytes": 6384640,
+      "bake": {
+        "ms": 292,
+        "frames": 413,
+        "bytes": 6384640
+      }
     },
     {
       "key": "F3",
       "purpose": "Budget stress",
       "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "132 new in 115 ms",
-      "quickBuildMs": 115,
+      "quickBuild": "334 new in 129 ms",
+      "quickBuildMs": 129,
       "palette": {
         "master": 256,
         "want": 256,
@@ -361,18 +385,23 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 167995,
+      "size": 237630,
       "records": 259,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "413 frames in 761 ms",
+      "cacheBytes": 18073600,
+      "bake": {
+        "ms": 761,
+        "frames": 413,
+        "bytes": 18073600
+      }
     },
     {
       "key": "F4",
       "purpose": "Optional fields missing",
-      "buildMs": 4,
+      "buildMs": 9,
       "hashOk": true,
-      "quickBuild": "25 new in 12 ms",
-      "quickBuildMs": 12,
+      "quickBuild": "110 new in 26 ms",
+      "quickBuildMs": 26,
       "palette": {
         "master": 64,
         "want": 64,
@@ -390,18 +419,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 57023,
+      "size": 87596,
       "records": 37,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "216 frames in 58 ms",
+      "cacheBytes": 655360,
+      "bake": {
+        "ms": 58,
+        "frames": 216,
+        "bytes": 655360
+      }
     },
     {
       "key": "F5d",
       "purpose": "Typical, dpad controls",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "25 new in 12 ms",
-      "quickBuildMs": 12,
+      "quickBuild": "114 new in 18 ms",
+      "quickBuildMs": 18,
       "palette": {
         "master": 64,
         "want": 64,
@@ -419,18 +453,23 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 65990,
+      "size": 97905,
       "records": 46,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "220 frames in 67 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 67,
+        "frames": 220,
+        "bytes": 660480
+      }
     },
     {
       "key": "F5s",
       "purpose": "Typical, stick controls",
-      "buildMs": 4,
+      "buildMs": 5,
       "hashOk": true,
-      "quickBuild": "25 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "114 new in 16 ms",
+      "quickBuildMs": 16,
       "palette": {
         "master": 64,
         "want": 64,
@@ -448,18 +487,23 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 66013,
+      "size": 97956,
       "records": 46,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "220 frames in 58 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 58,
+        "frames": 220,
+        "bytes": 660480
+      }
     },
     {
       "key": "F5t",
       "purpose": "Typical, tap controls",
-      "buildMs": 4,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "25 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "114 new in 18 ms",
+      "quickBuildMs": 18,
       "palette": {
         "master": 64,
         "want": 64,
@@ -477,18 +521,23 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 66010,
+      "size": 97936,
       "records": 46,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "220 frames in 69 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 69,
+        "frames": 220,
+        "bytes": 660480
+      }
     },
     {
       "key": "F5h",
       "purpose": "Typical, hybrid controls",
-      "buildMs": 3,
+      "buildMs": 5,
       "hashOk": true,
-      "quickBuild": "25 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "114 new in 16 ms",
+      "quickBuildMs": 16,
       "palette": {
         "master": 64,
         "want": 64,
@@ -506,10 +555,15 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 66015,
+      "size": 97978,
       "records": 46,
-      "bakeMs": "pending (Phase 2)",
-      "cacheBytes": "pending (Phase 2)"
+      "bakeMs": "220 frames in 60 ms",
+      "cacheBytes": 660480,
+      "bake": {
+        "ms": 60,
+        "frames": 220,
+        "bytes": 660480
+      }
     }
   ]
 }
