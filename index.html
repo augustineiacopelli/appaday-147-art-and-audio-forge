@@ -38,6 +38,13 @@ SESSION 0 / PHASE 0 (2026-10-01, Opus): SCAFFOLD AND COMPATIBILITY PROOF. COMPLE
     the plan's separate art key and the IndexedDB fallback need a decision before Phase 2. Tier sprites map to Day 146's
     separate tier families. Quick Build is Phase 1.
 === END SESSION 0 ===
+DECISIONS (2026-10-01, accepted by Stino before Phase 1):
+  Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
+    11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
+    Tilesets keep the full 32 slot alphabet.
+  Enemy tiers: one spr_ and one pal_ per fam_ record. Day 146 tier families (name suffix " T2" and so on, own shifted
+    palette) share the base family's recipe; the tiers array on enemy sprites is dropped.
+  Still open, due before Phase 2: shared localStorage keys with Day 146 versus a separate art key or IndexedDB.
 === END BUILD LOG ===
 -->
 <!doctype html>
