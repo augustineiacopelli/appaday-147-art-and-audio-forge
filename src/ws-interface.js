@@ -59,6 +59,7 @@
           var row = el('div', 'btn-row');
           row.appendChild(W.button('Edit pixels', 'edit', '', function () { editPixels(ico, paint); }));
           row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () { delete ico.px; ico.origin = 'procedural'; S.buildIcons(b, {}); touch('icon-reset'); paint(); }));
+          if (ART.ai) row.appendChild(ART.ai.button('icon', ico.id, paint));
           body.appendChild(row);
         }
         paint();
@@ -78,6 +79,7 @@
       intro.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
       return;
     }
+    if (ART.ai) { var air = el('div', 'btn-row'); air.appendChild(ART.ai.button('icons', null, function () { Kit.rerender(); })); intro.appendChild(air); }
     GROUPS.forEach(function (g) {
       var kind = g[0].slice(0, 3), list = icons.filter(function (i) { return i.subject && i.subject.kind === kind; });
       if (!list.length) return;
@@ -119,6 +121,7 @@
     p.innerHTML = '<h3 class="section-h">' + esc(r.name) + ' ' + W.origin(r) + '</h3><p class="muted">' + esc(lead) + '</p><p class="muted a7-small"><code class="id">' + esc(r.id) + '</code></p>';
     var row = el('div', 'btn-row');
     row.appendChild(W.button('Reset to default', 'check', 'btn-ghost', function () { I.reset(cur(), key); touch('ui-reset'); Kit.rerender(); }));
+    if (ART.ai && ART.ai.has(key)) row.appendChild(ART.ai.button(key, r.id, function () { Kit.rerender(); }));
     row.appendChild(W.button('Delete', 'trash', 'btn-ghost', function () {
       Kit.ui.dialog({ title: 'Delete ' + r.name + '?', body: 'Interface previews fall back to the built in look until you restore it. Quick Build will not recreate it.', actions: [{ label: 'Cancel' }, { label: 'Delete', kind: 'danger', onClick: function () { I.remove(cur(), key); touch('ui-delete'); Kit.rerender(); } }] });
     }));

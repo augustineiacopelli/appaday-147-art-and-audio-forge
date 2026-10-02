@@ -166,6 +166,7 @@
           body.appendChild(grid);
           var row2 = el('div', 'btn-row');
           if (!spr.shares) row2.appendChild(W.button('Reroll look', 'spark', '', function () { reroll(b, spr); touch('sprite-reroll'); paint(); }));
+          if (!spr.shares && ART.ai) row2.appendChild(ART.ai.button(spr.kind === 'enemy' ? 'enemy' : 'look', spr.id, paint));
           row2.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () {
             Kit.ui.confirm({ title: 'Reset this sprite?', message: 'The recipe goes back to what Quick Build makes from the bundle, and hand edited frames on this sprite are removed.', okLabel: 'Reset' }).then(function (ok) {
               if (!ok) return;
@@ -357,6 +358,7 @@
           row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () {
             por.origin = 'procedural'; por.expressions = {}; por.overrides = {}; S.buildPortraits(b, {}); touch('portrait-reset'); paint();
           }));
+          if (ART.ai) row.appendChild(ART.ai.button('portrait', por.id, paint));
           body.appendChild(row);
         }
         paint();

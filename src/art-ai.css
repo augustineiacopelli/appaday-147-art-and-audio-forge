@@ -1,0 +1,14 @@
+/* === ART:AI CSS BEGIN === */
+.a7-ai-btn { vertical-align: top; }
+.a7-ai-btn .btn { min-height: 44px; }
+.a7-ai-dlg .a7-ai-field { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; font-weight: 700; }
+.a7-ai-dlg .a7-ai-field textarea { width: 100%; min-height: 88px; resize: vertical; font-weight: 400; }
+.a7-ai-dlg .a7-ai-count { flex-direction: row; align-items: center; gap: 10px; }
+.a7-ai-dlg .a7-ai-count select { min-height: 44px; min-width: 88px; }
+.a7-ai-prev { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 8px; min-width: 0; }
+.a7-ai-prev .a7-figs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.a7-ai-prev .a7-fig { image-rendering: pixelated; background: var(--bg); border: 1px solid var(--line2); border-radius: 6px; max-width: 100%; }
+.a7-ai-prev code { overflow-wrap: anywhere; }
+.a7-ai-strip { display: flex; min-width: 120px; max-width: 100%; }
+.a7-ai-strip i { flex: 1 1 18px; min-width: 14px; height: 22px; }
+/* === ART:AI CSS END === */

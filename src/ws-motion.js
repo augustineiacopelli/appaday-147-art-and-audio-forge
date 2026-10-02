@@ -459,6 +459,7 @@
             var look = M.abilityLook(abl, abl.element ? ART.bySubject('efx_', 'element', abl.element, b) : null);
             Object.keys(look).forEach(function (k) { a[k] = look[k]; }); a.origin = 'procedural'; touch('ability-reset'); paint(); if (repaintList) repaintList();
           }));
+          if (ART.ai) row.appendChild(ART.ai.button('ability', a.id, function () { paint(); if (repaintList) repaintList(); }));
           body.appendChild(row);
         }
         paint();
@@ -527,7 +528,10 @@
           c2.appendChild(W.slider('Spread', pt.spread == null ? 1 : pt.spread, 0.2, 2, 0.05, function (v) { pt.spread = v; done('fx-spread'); }));
           c2.appendChild(W.slider('Speed', pt.speed == null ? 1 : pt.speed, 0.2, 3, 0.05, function (v) { pt.speed = v; done('fx-speed'); }));
           body.appendChild(c2);
-          body.appendChild(W.button('Edit colors on the Palette tab', 'chart', 'btn-ghost', function () { h.close(); Kit.jump(r.id); }));
+          var frow = el('div', 'btn-row');
+          frow.appendChild(W.button('Edit colors on the Palette tab', 'chart', 'btn-ghost', function () { h.close(); Kit.jump(r.id); }));
+          if (ART.ai) frow.appendChild(ART.ai.button('effect', r.id, function () { paint(); if (repaintList) repaintList(); }));
+          body.appendChild(frow);
         }
         paint();
       }
@@ -630,6 +634,7 @@
             var nb = M.weatherBody(M.inferWeather(M.weatherText(w)), P.entries(b));
             Object.keys(nb).forEach(function (k) { r[k] = nb[k]; }); r.origin = 'procedural'; touch('wov-infer'); paint(); if (repaintList) repaintList();
           }));
+          if (ART.ai) row.appendChild(ART.ai.button('weather', r.id, function () { paint(); if (repaintList) repaintList(); }));
           body.appendChild(row);
         }
         paint();

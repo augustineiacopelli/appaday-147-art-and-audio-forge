@@ -1,0 +1,541 @@
+{
+  "date": "2026-10-02T11:43:54.604Z",
+  "pass": 91,
+  "total": 91,
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "fences present in order: ART:LINKS and ART:AI after WS:SOUND, before WS:ART147",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        160477,
+        227953,
+        232915,
+        454783,
+        507129,
+        527023,
+        551880,
+        584051,
+        596266,
+        638158,
+        663355,
+        691114,
+        739618,
+        777119,
+        808367,
+        823633,
+        836536,
+        864733,
+        890583,
+        928458,
+        979469,
+        984416,
+        1067134,
+        1091299
+      ]
+    },
+    {
+      "name": "every fence opens and closes once",
+      "ok": true
+    },
+    {
+      "name": "ART:AI CSS fence present",
+      "ok": true
+    },
+    {
+      "name": "ART:AI never builds its own fetch or hardcodes a model (it goes through Kit.claude and getModel)",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Quick Build fills the forward fields as its last step",
+      "ok": true,
+      "detail": {
+        "created": 37,
+        "refreshed": 0,
+        "kept": 0,
+        "ms": 1
+      }
+    },
+    {
+      "name": "characters get their portrait and leitmotif",
+      "ok": true
+    },
+    {
+      "name": "abilities get animation, sound, and icon (passives get the icon only)",
+      "ok": true
+    },
+    {
+      "name": "items and equipment get their icons; families get their battle sprites",
+      "ok": true
+    },
+    {
+      "name": "every forward field resolves, so a Final export is possible",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "a second Quick Build changes no forward field",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 0,
+        "kept": 1,
+        "ms": 0
+      }
+    },
+    {
+      "name": "a field pointed at another existing record of the right kind is kept",
+      "ok": true
+    },
+    {
+      "name": "the plan finds a dangling pointer and a deleted record, and leaves a non art value alone",
+      "ok": true,
+      "detail": [
+        {
+          "recordId": "chr_courier_jonc",
+          "prefix": "chr_",
+          "field": "portrait",
+          "from": "por_gone_zz99",
+          "to": "por_courier_portrait_gcu5"
+        },
+        {
+          "recordId": "itm_tonic_10jm",
+          "prefix": "itm_",
+          "field": "icon",
+          "from": "ico_tonic_icon_bwqr",
+          "to": null
+        }
+      ]
+    },
+    {
+      "name": "fill relinks the subject's record and empties a field whose record is gone",
+      "ok": true
+    },
+    {
+      "name": "Quick Build recreates the deleted icon and links it again",
+      "ok": true
+    },
+    {
+      "name": "the forward field table covers all eight fields",
+      "ok": true
+    },
+    {
+      "name": "the Export tab offers Fill forward fields (disabled when nothing is owed)",
+      "ok": true
+    },
+    {
+      "name": "seventeen drafters are registered, one per editor plus the batch icon drafter",
+      "ok": true,
+      "detail": [
+        "colorway",
+        "look",
+        "enemy",
+        "portrait",
+        "icon",
+        "icons",
+        "ability",
+        "effect",
+        "weather",
+        "biome",
+        "background",
+        "window",
+        "title",
+        "motif",
+        "track",
+        "sound",
+        "pixels"
+      ]
+    },
+    {
+      "name": "each drafter has a runtime review type with no prefix",
+      "ok": true
+    },
+    {
+      "name": "without a key, run returns nothing and makes no request",
+      "ok": true
+    },
+    {
+      "name": "an AI button with no key shows the Settings hint instead",
+      "ok": true
+    },
+    {
+      "name": "the request dialog asks what to aim for and how many options",
+      "ok": true
+    },
+    {
+      "name": "one request to the Messages API with the key, version, and browser access headers",
+      "ok": true,
+      "detail": {
+        "content-type": "application/json",
+        "x-api-key": "sk-test-key",
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      }
+    },
+    {
+      "name": "the model comes from getModel (fallback offline) and thinking is disabled",
+      "ok": true,
+      "detail": {
+        "model": "claude-sonnet-5-5",
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    },
+    {
+      "name": "the system prompt asks for strict JSON options and forbids IDs",
+      "ok": true
+    },
+    {
+      "name": "the prompt carries the Charter, specs, the subject, and the field vocabulary",
+      "ok": true,
+      "detail": {
+        "kind": "party member",
+        "name": "Courier",
+        "weaponClass": "blade",
+        "baseStats": {
+          "hp": 120,
+          "mp": 20,
+          "str": 12,
+          "mag": 8,
+          "def": 10,
+          "mdef": 8,
+          "spd": 14,
+          "luck": 10
+        }
+      }
+    },
+    {
+      "name": "the request text is the user's own",
+      "ok": true
+    },
+    {
+      "name": "no art record ID appears in the prompt",
+      "ok": true
+    },
+    {
+      "name": "three options open in the shared review drawer",
+      "ok": true
+    },
+    {
+      "name": "the broken option shows its issues; the good ones read valid",
+      "ok": true
+    },
+    {
+      "name": "every card gets a preview",
+      "ok": true
+    },
+    {
+      "name": "accepting applies the colorway with origin claude and keeps the record ID",
+      "ok": true
+    },
+    {
+      "name": "a single target review closes after one accept, and the palette drawer repaints",
+      "ok": true,
+      "detail": {
+        "cards": 0,
+        "drawers": 1,
+        "text": "Courier colorwayRecordpal_courier_colorway_hyvqForCourierOrigineditedSkinHairCloth ACloth BMetalAccentCloth BMetalRerollDraft colorwaysAdd a Claude API key in Settings to use this.Reset to generated"
+      }
+    },
+    {
+      "name": "Quick Build keeps a Claude colorway",
+      "ok": true
+    },
+    {
+      "name": "look: options validate against the part library (a made up build is an error, height is clamped)",
+      "ok": true
+    },
+    {
+      "name": "look: previews run the real composer in a scratch copy",
+      "ok": true
+    },
+    {
+      "name": "look: accepting sets the recipe from library parts, and the battle sprite still shares it",
+      "ok": true
+    },
+    {
+      "name": "enemy: unknown parameters warn, values clamp to the editor ranges",
+      "ok": true
+    },
+    {
+      "name": "enemy: accepting switches the rig and its body part",
+      "ok": true
+    },
+    {
+      "name": "portrait: four expression previews",
+      "ok": true
+    },
+    {
+      "name": "portrait: the face recipe and expressions apply; untouched expressions keep their defaults",
+      "ok": true
+    },
+    {
+      "name": "icon: unknown glyphs and tints are errors",
+      "ok": true
+    },
+    {
+      "name": "icon: accepting sets glyph and tint, recomputes the tint ramp, and drops hand drawn pixels",
+      "ok": true
+    },
+    {
+      "name": "icons: one request asks for one option per listed record",
+      "ok": true
+    },
+    {
+      "name": "icons: an option for a record not in the list is flagged",
+      "ok": true
+    },
+    {
+      "name": "icons: Accept All Valid applies each to its own record (names match without case)",
+      "ok": true
+    },
+    {
+      "name": "ability: accepting sets caster, travel, the element's effect, impact, and hits",
+      "ok": true
+    },
+    {
+      "name": "effect: particle and screen apply, colors snap to master indices, counts clamp",
+      "ok": true
+    },
+    {
+      "name": "weather: layers, tint, and lightning apply (a reversed range is put in order); the overlay is no longer generic",
+      "ok": true
+    },
+    {
+      "name": "biome: an inverted climate range is an error",
+      "ok": true
+    },
+    {
+      "name": "biome: the prompt lists the existing biomes and every style's materials",
+      "ok": true
+    },
+    {
+      "name": "biome: an invented biome gets its role, palette, priority slot, and battle background",
+      "ok": true
+    },
+    {
+      "name": "biome: restyling keeps the record, changes flags, animation, and material colors",
+      "ok": true
+    },
+    {
+      "name": "background: a style that does not belong to its layer kind is an error",
+      "ok": true
+    },
+    {
+      "name": "background: layers apply with seeds and master colors",
+      "ok": true
+    },
+    {
+      "name": "window: colors, corner, thickness, and opening apply",
+      "ok": true
+    },
+    {
+      "name": "title: text, style, layout, and colors apply",
+      "ok": true
+    },
+    {
+      "name": "motif: the notation guide is in the system prompt; mismatched counts are an error",
+      "ok": true
+    },
+    {
+      "name": "motif: a valid option has a Play button",
+      "ok": true
+    },
+    {
+      "name": "motif: the melody applies and generated tracks that follow it re-derive",
+      "ok": true
+    },
+    {
+      "name": "track: the MML guide is in the system prompt; undefined patterns and parse errors are caught",
+      "ok": true
+    },
+    {
+      "name": "track: the request gets a larger token budget",
+      "ok": true,
+      "detail": 9500
+    },
+    {
+      "name": "track: accepting makes it your own track (no longer derived) that compiles cleanly",
+      "ok": true
+    },
+    {
+      "name": "sound: parameters are normalized to the sfxr ranges and unknown keys dropped",
+      "ok": true
+    },
+    {
+      "name": "the bundle validates clean after every accepted draft",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 37,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "the pixel editor has a Draft with Claude button",
+      "ok": true
+    },
+    {
+      "name": "pixels: the prompt carries the frame size, the slot names and colors, and the current rows",
+      "ok": true
+    },
+    {
+      "name": "pixels: a valid draft reaches review with a preview",
+      "ok": true
+    },
+    {
+      "name": "pixels: accepting loads the draft into the editor only (nothing stored yet), and Undo restores",
+      "ok": true
+    },
+    {
+      "name": "pixels: undo brings the previous frame back",
+      "ok": true
+    },
+    {
+      "name": "pixels: a draft that does not fit triggers one repair request that names the problems",
+      "ok": true
+    },
+    {
+      "name": "pixels: whatever still does not fit after the repair is dropped before review",
+      "ok": true
+    },
+    {
+      "name": "pixels: when nothing fits, nothing reaches review",
+      "ok": true
+    },
+    {
+      "name": "pixels: the alphabet check names the bad character",
+      "ok": true
+    },
+    {
+      "name": "pixels: the tile editor opens all 32 slots",
+      "ok": true
+    },
+    {
+      "name": "pixels: frames over the size limit get no draft button, and run refuses them",
+      "ok": true
+    },
+    {
+      "name": "an id in a reply is stripped from the draft",
+      "ok": true
+    },
+    {
+      "name": "accepting never adds or renames records",
+      "ok": true
+    },
+    {
+      "name": "an empty reply is reported, not reviewed",
+      "ok": true
+    },
+    {
+      "name": "unparseable JSON gets the shared one time repair",
+      "ok": true
+    },
+    {
+      "name": "an API error is shown and nothing changes",
+      "ok": true
+    },
+    {
+      "name": "a model override in Settings reaches every editor through getModel",
+      "ok": true
+    },
+    {
+      "name": "every editor carries its Claude button",
+      "ok": true,
+      "detail": {
+        "colorway": true,
+        "look": true,
+        "enemy": true,
+        "portrait": true,
+        "icon": true,
+        "ability": true,
+        "effect": true,
+        "weather": true,
+        "biome": true,
+        "background": true,
+        "sound": true,
+        "motif": true,
+        "track": true,
+        "icons": true,
+        "window": true,
+        "title": true,
+        "invent": true
+      }
+    },
+    {
+      "name": "no page errors through the drafting flows",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "a Final export opens art with every forward field resolved",
+      "ok": true,
+      "detail": {
+        "unresolved": 0,
+        "referenced": 37
+      }
+    },
+    {
+      "name": "Day 146 opens it: hash ok, no broken or forward references, its own Final still allowed, art untouched",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "broken": 0,
+        "forward": 0,
+        "blocked": null,
+        "artKept": true,
+        "portrait": "por_courier_portrait_gcu5"
+      }
+    },
+    {
+      "name": "a Draft export keeps art closed, so Day 146 reads the filled fields as forward",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "forward": 0
+      }
+    },
+    {
+      "name": "every fixture links its forward fields in Quick Build and validates clean",
+      "ok": true,
+      "detail": "F0:0/0 F1a:0/0 F1b:0/0 F2:0/0 F3:0/0 F4:0/0 F5d:0/0 F5s:0/0 F5t:0/0 F5h:0/0"
+    }
+  ],
+  "requests": 27
+}

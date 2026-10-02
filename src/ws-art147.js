@@ -235,7 +235,15 @@
     host.appendChild(p);
     var f = el('section', 'panel');
     f.appendChild(el('h3', 'section-h', 'Forward fields'));
-    if (!fw.length) f.appendChild(el('div', 'empty-line', 'No forward field is filled yet. Phase 7 fills portrait, leitmotif, animation, sfx, icon, and sprite fields.'));
+    var plan = ART.links.plan(b);
+    f.appendChild(el('p', 'muted', 'Day 146 reserved eight fields for this forge: a character\'s portrait and leitmotif, an ability\'s animation, sound, and icon, item and equipment icons, and an enemy family\'s sprite. Quick Build fills them from the art made for each record; fields you pointed elsewhere are kept. ' +
+      (plan.length ? plan.length + ' field' + (plan.length === 1 ? ' is' : 's are') + ' empty or point at a deleted record.' : 'Every field that can be filled is filled.')));
+    var lrow = el('div', 'btn-row');
+    var lb = el('button', 'btn' + (plan.length ? ' btn-primary' : ''), Kit.icon('check') + '<span>Fill forward fields</span>'); lb.type = 'button';
+    lb.disabled = !plan.length;
+    lb.addEventListener('click', function () { var ch = ART.links.fill(cur()); Kit.bundle.touch('links'); Kit.refreshValidation(); Kit.rerender(); Kit.ui.toast(ch.length + ' forward field' + (ch.length === 1 ? '' : 's') + ' updated.', 'ok'); });
+    lrow.appendChild(lb); f.appendChild(lrow);
+    if (!fw.length) f.appendChild(el('div', 'empty-line', 'No forward field is filled yet. Run Quick Build, or Fill forward fields once the art exists.'));
     else {
       var t = el('table', 'tbl');
       t.innerHTML = '<thead><tr><th scope="col">Record</th><th scope="col">Field</th><th scope="col">Points at</th><th scope="col">State</th></tr></thead><tbody>' +

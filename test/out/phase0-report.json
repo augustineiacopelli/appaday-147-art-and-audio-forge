@@ -38,9 +38,9 @@
       "name": "art records indexed",
       "ok": true,
       "detail": [
-        "por_courier_portrait_pwpj",
-        "til_forest_c43u",
-        "efx_fire_effect_q952"
+        "por_courier_portrait_nxuz",
+        "til_forest_ojaa",
+        "efx_fire_effect_z1ig"
       ]
     },
     {
@@ -112,7 +112,7 @@
         },
         "pageErrors": [],
         "forward": [
-          "por_courier_portrait_pwpj",
+          "por_courier_portrait_nxuz",
           "spr_missing_zz99"
         ],
         "opened": [
@@ -132,7 +132,7 @@
         },
         "147": {
           "status": "final",
-          "exportedAt": "2026-10-02T02:16:09.945Z",
+          "exportedAt": "2026-10-02T11:41:34.835Z",
           "artVersion": "1.0.0",
           "charterVersion": 1
         }
@@ -143,18 +143,18 @@
       "ok": true,
       "detail": {
         "forge": 147,
-        "bundleHash": "f6a59506d7427080fb08a34343e25eb7f6649e2fa64356daf0e41e3baa5bdae2",
+        "bundleHash": "dda6bfa8c0ca784dce6c7fdbdf6f790e74380e2767f9ce7f2fd4900ec4a42a49",
         "artVersion": "1.0.0",
         "charterVersion": 1,
         "created": [
-          "efx_fire_effect_q952",
-          "por_courier_portrait_pwpj",
-          "spr_slime_sprite_z98j",
-          "til_forest_c43u"
+          "efx_fire_effect_z1ig",
+          "por_courier_portrait_nxuz",
+          "spr_slime_sprite_njuj",
+          "til_forest_ojaa"
         ],
         "referenced": [
-          "por_courier_portrait_pwpj",
-          "spr_slime_sprite_z98j"
+          "por_courier_portrait_nxuz",
+          "spr_slime_sprite_njuj"
         ],
         "unresolved": [],
         "artOpened": true,
@@ -230,8 +230,8 @@
       "purpose": "Empty and sparse",
       "buildMs": 2,
       "hashOk": true,
-      "quickBuild": "185 new in 76 ms",
-      "quickBuildMs": 76,
+      "quickBuild": "185 new in 50 ms",
+      "quickBuildMs": 50,
       "palette": {
         "master": 64,
         "want": 64,
@@ -247,16 +247,16 @@
         "overlays": 0,
         "generic": 0,
         "steps": 497,
-        "ms": 3
+        "ms": 4
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 322,
+        "ms": 208,
         "bytes": 2048000,
-        "roomMs": 312,
+        "roomMs": 256,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -281,8 +281,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.9,
-        "renderMs": 391,
-        "ms": 394
+        "renderMs": 318,
+        "ms": 321
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -292,12 +292,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 109630,
+      "size": 109631,
       "records": 0,
-      "bakeMs": "261 frames in 111 ms",
+      "bakeMs": "261 frames in 87 ms",
       "cacheBytes": 581760,
       "bake": {
-        "ms": 111,
+        "ms": 87,
         "frames": 261,
         "bytes": 581760
       }
@@ -305,10 +305,10 @@
     {
       "key": "F1a",
       "purpose": "Tiny, two colors",
-      "buildMs": 5,
+      "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "203 new in 21 ms",
-      "quickBuildMs": 21,
+      "quickBuild": "220 new in 19 ms",
+      "quickBuildMs": 19,
       "palette": {
         "master": 2,
         "want": 2,
@@ -324,16 +324,16 @@
         "overlays": 0,
         "generic": 0,
         "steps": 588,
-        "ms": 3
+        "ms": 2
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 107,
+        "ms": 84,
         "bytes": 512000,
-        "roomMs": 293,
+        "roomMs": 209,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -343,7 +343,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 9,
+        "ms": 7,
         "ended": "win",
         "real": null
       },
@@ -358,23 +358,23 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 344,
-        "ms": 345
+        "renderMs": 260,
+        "ms": 261
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 17,
         "warnings": 0
       },
       "roles": 9,
-      "size": 144724,
+      "size": 145271,
       "records": 17,
-      "bakeMs": "316 frames in 81 ms",
+      "bakeMs": "316 frames in 57 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 81,
+        "ms": 57,
         "frames": 316,
         "bytes": 192640
       }
@@ -384,8 +384,8 @@
       "purpose": "Tiny, four colors",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "203 new in 18 ms",
-      "quickBuildMs": 18,
+      "quickBuild": "220 new in 15 ms",
+      "quickBuildMs": 15,
       "palette": {
         "master": 4,
         "want": 4,
@@ -401,16 +401,16 @@
         "overlays": 0,
         "generic": 0,
         "steps": 588,
-        "ms": 4
+        "ms": 2
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 117,
+        "ms": 68,
         "bytes": 512000,
-        "roomMs": 277,
+        "roomMs": 207,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -420,7 +420,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 6,
+        "ms": 5,
         "ended": "win",
         "real": null
       },
@@ -435,23 +435,23 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 340,
-        "ms": 341
+        "renderMs": 247,
+        "ms": 248
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 17,
         "warnings": 0
       },
       "roles": 9,
-      "size": 144990,
+      "size": 145535,
       "records": 17,
-      "bakeMs": "316 frames in 57 ms",
+      "bakeMs": "316 frames in 44 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 57,
+        "ms": 44,
         "frames": 316,
         "bytes": 192640
       }
@@ -459,10 +459,10 @@
     {
       "key": "F2",
       "purpose": "Large",
-      "buildMs": 11,
+      "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "503 new in 204 ms",
-      "quickBuildMs": 204,
+      "quickBuild": "666 new in 183 ms",
+      "quickBuildMs": 183,
       "palette": {
         "master": 256,
         "want": 256,
@@ -478,16 +478,16 @@
         "overlays": 5,
         "generic": 0,
         "steps": 1100,
-        "ms": 9
+        "ms": 16
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 889,
+        "ms": 678,
         "bytes": 8192000,
-        "roomMs": 293,
+        "roomMs": 217,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -497,7 +497,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 15,
+        "ms": 12,
         "ended": "win",
         "real": null
       },
@@ -512,23 +512,23 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 745,
-        "ms": 746
+        "renderMs": 479,
+        "ms": 480
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 163,
         "warnings": 0
       },
       "roles": 16,
-      "size": 344787,
+      "size": 350418,
       "records": 262,
-      "bakeMs": "911 frames in 680 ms",
+      "bakeMs": "911 frames in 569 ms",
       "cacheBytes": 13598720,
       "bake": {
-        "ms": 680,
+        "ms": 569,
         "frames": 911,
         "bytes": 13598720
       }
@@ -536,10 +536,10 @@
     {
       "key": "F3",
       "purpose": "Budget stress",
-      "buildMs": 9,
+      "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "500 new in 185 ms",
-      "quickBuildMs": 185,
+      "quickBuild": "663 new in 171 ms",
+      "quickBuildMs": 171,
       "palette": {
         "master": 256,
         "want": 256,
@@ -562,9 +562,9 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 3364,
+        "ms": 2433,
         "bytes": 32768000,
-        "roomMs": 284,
+        "roomMs": 189,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -574,7 +574,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 35,
+        "ms": 16,
         "ended": "win",
         "real": null
       },
@@ -589,23 +589,23 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 637,
-        "ms": 638
+        "renderMs": 454,
+        "ms": 456
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 163,
         "warnings": 0
       },
       "roles": 16,
-      "size": 342618,
+      "size": 348251,
       "records": 259,
-      "bakeMs": "911 frames in 2088 ms",
+      "bakeMs": "911 frames in 1499 ms",
       "cacheBytes": 46929920,
       "bake": {
-        "ms": 2088,
+        "ms": 1499,
         "frames": 911,
         "bytes": 46929920
       }
@@ -613,10 +613,10 @@
     {
       "key": "F4",
       "purpose": "Optional fields missing",
-      "buildMs": 7,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "241 new in 48 ms",
-      "quickBuildMs": 48,
+      "quickBuild": "276 new in 30 ms",
+      "quickBuildMs": 30,
       "palette": {
         "master": 64,
         "want": 64,
@@ -632,16 +632,16 @@
         "overlays": 3,
         "generic": 1,
         "steps": 775,
-        "ms": 5
+        "ms": 7
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 231,
+        "ms": 166,
         "bytes": 2048000,
-        "roomMs": 269,
+        "roomMs": 194,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -651,7 +651,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 7,
+        "ms": 5,
         "ended": "win",
         "real": null
       },
@@ -666,23 +666,23 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 7.4,
-        "renderMs": 373,
-        "ms": 375
+        "renderMs": 260,
+        "ms": 262
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 35,
         "warnings": 1
       },
       "roles": 9,
-      "size": 169618,
+      "size": 170799,
       "records": 38,
-      "bakeMs": "416 frames in 127 ms",
+      "bakeMs": "416 frames in 93 ms",
       "cacheBytes": 1169920,
       "bake": {
-        "ms": 127,
+        "ms": 93,
         "frames": 416,
         "bytes": 1169920
       }
@@ -690,10 +690,10 @@
     {
       "key": "F5d",
       "purpose": "Typical, dpad controls",
-      "buildMs": 11,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "247 new in 53 ms",
-      "quickBuildMs": 53,
+      "quickBuild": "284 new in 52 ms",
+      "quickBuildMs": 52,
       "palette": {
         "master": 64,
         "want": 64,
@@ -716,86 +716,9 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 246,
+        "ms": 167,
         "bytes": 2048000,
-        "roomMs": 284,
-        "walkable": 649,
-        "cells": 1200,
-        "town": true,
-        "ruin": true
-      },
-      "battle": {
-        "beats": 28,
-        "hits": 15,
-        "frames": 1071,
-        "ms": 14,
-        "ended": "win",
-        "real": null
-      },
-      "audio": {
-        "instruments": 12,
-        "sounds": 33,
-        "motifs": 5,
-        "tracks": 11,
-        "notes": 893,
-        "errors": 0,
-        "seconds": 117,
-        "roles": 11,
-        "required": 11,
-        "sfxSeconds": 7.3,
-        "renderMs": 377,
-        "ms": 378
-      },
-      "coverage": "pending (Phase 8)",
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      },
-      "roles": 11,
-      "size": 181591,
-      "records": 46,
-      "bakeMs": "420 frames in 151 ms",
-      "cacheBytes": 1175040,
-      "bake": {
-        "ms": 151,
-        "frames": 420,
-        "bytes": 1175040
-      }
-    },
-    {
-      "key": "F5s",
-      "purpose": "Typical, stick controls",
-      "buildMs": 4,
-      "hashOk": true,
-      "quickBuild": "247 new in 47 ms",
-      "quickBuildMs": 47,
-      "palette": {
-        "master": 64,
-        "want": 64,
-        "locals": 14,
-        "tiers": 6,
-        "collapsed": 0,
-        "offset": 0,
-        "effects": 4
-      },
-      "motion": {
-        "anims": 26,
-        "abilities": 9,
-        "overlays": 3,
-        "generic": 0,
-        "steps": 784,
-        "ms": 4
-      },
-      "tiles": {
-        "biomes": 12,
-        "interiors": 2,
-        "backgrounds": 14,
-        "tiles": 1600,
-        "ms": 253,
-        "bytes": 2048000,
-        "roomMs": 321,
+        "roomMs": 193,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -814,40 +737,40 @@
         "sounds": 33,
         "motifs": 5,
         "tracks": 11,
-        "notes": 899,
+        "notes": 893,
         "errors": 0,
-        "seconds": 101,
+        "seconds": 117,
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 352,
-        "ms": 352
+        "renderMs": 258,
+        "ms": 258
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       },
       "roles": 11,
-      "size": 181614,
+      "size": 182855,
       "records": 46,
-      "bakeMs": "420 frames in 131 ms",
+      "bakeMs": "420 frames in 93 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 131,
+        "ms": 93,
         "frames": 420,
         "bytes": 1175040
       }
     },
     {
-      "key": "F5t",
-      "purpose": "Typical, tap controls",
-      "buildMs": 4,
+      "key": "F5s",
+      "purpose": "Typical, stick controls",
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "247 new in 41 ms",
-      "quickBuildMs": 41,
+      "quickBuild": "284 new in 31 ms",
+      "quickBuildMs": 31,
       "palette": {
         "master": 64,
         "want": 64,
@@ -863,16 +786,16 @@
         "overlays": 3,
         "generic": 0,
         "steps": 784,
-        "ms": 3
+        "ms": 2
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 232,
+        "ms": 181,
         "bytes": 2048000,
-        "roomMs": 276,
+        "roomMs": 182,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -882,7 +805,84 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 10,
+        "ms": 7,
+        "ended": "win",
+        "real": null
+      },
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 11,
+        "notes": 899,
+        "errors": 0,
+        "seconds": 101,
+        "roles": 11,
+        "required": 11,
+        "sfxSeconds": 7.3,
+        "renderMs": 256,
+        "ms": 257
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 37,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 182881,
+      "records": 46,
+      "bakeMs": "420 frames in 92 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 92,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5t",
+      "purpose": "Typical, tap controls",
+      "buildMs": 3,
+      "hashOk": true,
+      "quickBuild": "284 new in 29 ms",
+      "quickBuildMs": 29,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 5
+      },
+      "tiles": {
+        "biomes": 12,
+        "interiors": 2,
+        "backgrounds": 14,
+        "tiles": 1600,
+        "ms": 204,
+        "bytes": 2048000,
+        "roomMs": 209,
+        "walkable": 649,
+        "cells": 1200,
+        "town": true,
+        "ruin": true
+      },
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 9,
         "ended": "win",
         "real": null
       },
@@ -897,23 +897,23 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 398,
-        "ms": 399
+        "renderMs": 258,
+        "ms": 259
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       },
       "roles": 11,
-      "size": 181717,
+      "size": 182984,
       "records": 46,
-      "bakeMs": "420 frames in 157 ms",
+      "bakeMs": "420 frames in 173 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 157,
+        "ms": 173,
         "frames": 420,
         "bytes": 1175040
       }
@@ -921,10 +921,10 @@
     {
       "key": "F5h",
       "purpose": "Typical, hybrid controls",
-      "buildMs": 4,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "247 new in 46 ms",
-      "quickBuildMs": 46,
+      "quickBuild": "284 new in 35 ms",
+      "quickBuildMs": 35,
       "palette": {
         "master": 64,
         "want": 64,
@@ -940,16 +940,16 @@
         "overlays": 3,
         "generic": 0,
         "steps": 784,
-        "ms": 3
+        "ms": 2
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 236,
+        "ms": 169,
         "bytes": 2048000,
-        "roomMs": 276,
+        "roomMs": 205,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -959,7 +959,7 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 8,
+        "ms": 6,
         "ended": "win",
         "real": null
       },
@@ -974,23 +974,23 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 358,
-        "ms": 359
+        "renderMs": 285,
+        "ms": 286
       },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       },
       "roles": 11,
-      "size": 181688,
+      "size": 182956,
       "records": 46,
-      "bakeMs": "420 frames in 120 ms",
+      "bakeMs": "420 frames in 90 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 120,
+        "ms": 90,
         "frames": 420,
         "bytes": 1175040
       }

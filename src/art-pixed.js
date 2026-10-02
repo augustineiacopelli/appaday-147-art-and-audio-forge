@@ -18,6 +18,10 @@
       var undo = [], redo = [], tool = 'pen', color = 1, mirror = false, grid = true, done = false;
       var zoom = Math.max(4, Math.min(24, Math.floor(Math.min(560, (typeof window !== 'undefined' ? window.innerWidth : 560) - 64) / w)));
       var cv, ctx, wrap, status, swatches = [], toolBtns = {}, dirty = false;
+      // Tile palettes have 32 slots: a 32 entry label list (TL.SLOT_NAMES) opens every slot, not only the first 16.
+      var maxIdx = o.maxIndex || (names.length > 16 ? Math.min(31, names.length - 1) : 15);
+      var aiTarget = { title: o.title, note: o.note, w: w, h: h, maxIndex: maxIdx, labels: names, slots: o.slots, entries: o.entries,
+        get: function () { return px; }, load: function (idx) { snapshot(); px = new Uint8Array(idx); paint(); setStatus('Loaded a Claude draft. Undo brings back the previous pixels.'); } };
       function colorOf(s) { var m = o.slots && s ? o.slots[s] : null; return typeof m === 'number' && o.entries[m] ? o.entries[m] : null; }
       function paint() {
         if (!ctx) return;
@@ -116,6 +120,8 @@
           zo.addEventListener('click', function () { zoom = Math.max(2, zoom - 2); paint(); }); bar.appendChild(zo);
           var zi = btn('Zoom in'); zi.setAttribute('aria-label', 'Zoom in'); zi.innerHTML = '<span aria-hidden="true">+</span>';
           zi.addEventListener('click', function () { zoom = Math.min(40, zoom + 2); paint(); }); bar.appendChild(zi);
+          // Claude drafting (ART:AI). A draft only loads into this canvas; nothing is stored until Save pixels.
+          if (ART.ai && ART.ai.pixelButton && w * h <= ART.ai.PIXEL_LIMIT) bar.appendChild(ART.ai.pixelButton(aiTarget));
           body.appendChild(bar);
           wrap = el('div', 'a7-pxwrap');
           cv = document.createElement('canvas');
@@ -131,7 +137,7 @@
           ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (ev) { cv.addEventListener(ev, function () { down = false; last = null; }); });
           var pal = el('div', 'a7-pxpal');
           pal.setAttribute('role', 'group'); pal.setAttribute('aria-label', 'Colors');
-          for (var s = 0; s <= (o.maxIndex || 15); s++) {
+          for (var s = 0; s <= maxIdx; s++) {
             (function (s) {
               var c = colorOf(s), b = el('button', 'a7-sw' + (c ? '' : ' a7-clear'));
               b.type = 'button';
@@ -171,7 +177,7 @@
       handle.pixels = function () { return px; };
       handle.paintAt = function (x, y, slot) { snapshot(); set(x, y, slot); paint(); };
       handle.fillAt = function (x, y, slot) { snapshot(); flood(x, y, slot); paint(); };
-      handle.undo = undoStep; handle.redo = redoStep;
+      handle.undo = undoStep; handle.redo = redoStep; handle.ai = aiTarget;
       ART.pixelEditor.last = handle;
     });
   }

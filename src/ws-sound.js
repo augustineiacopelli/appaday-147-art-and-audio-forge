@@ -265,6 +265,7 @@
           row.appendChild(ibtn('Play', 'play', 'btn-primary', function () { A.playSfx(r.id); }));
           row.appendChild(ibtn('Mutate', 'dice', '', function () { var seed = (Math.random() * 4294967295) >>> 0; set(function () { r.params = EA.sfxr.mutate(r.params, mut.amount, seed); r.lastMutate = { amount: mut.amount, seed: seed }; }, true); }));
           row.appendChild(ibtn('New from preset', 'spark', 'btn-ghost', function () { var seed = (Math.random() * 4294967295) >>> 0; set(function () { r.params = EA.sfxr.preset(r.category, seed); r.seed = seed; r.lastMutate = null; }, true); }));
+          if (ART.ai) row.appendChild(ART.ai.button('sound', r.id, paint));
           body.appendChild(row);
           var top = el('div', 'a7-ctl');
           top.appendChild(W.slider('Mutate amount', mut.amount, 0.05, 0.5, 0.05, function (v) { mut.amount = v; }));
@@ -369,6 +370,7 @@
           var row = el('div', 'btn-row');
           row.appendChild(ibtn('New melody', 'dice', '', function () { var seed = (Math.random() * 4294967295) >>> 0, m = EM.generate(seed, { mode: r.mode, key: r.key, tempo: r.tempo, meter: r.meter }); set(function () { r.degrees = m.degrees; r.durs = m.durs; r.seed = seed; }); }));
           if (A.isKept(r) && r.subject) row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () { r.origin = 'procedural'; A.build(cur(), {}); touch('motif-reset'); paint(); }));
+          if (ART.ai) row.appendChild(ART.ai.button('motif', r.id, paint));
           body.appendChild(row);
           // Variations
           body.appendChild(el('h3', 'section-h', 'Variations'));
@@ -505,6 +507,7 @@
           row.appendChild(ibtn('Play', 'play', 'btn-primary', function () { A.playTrack(r.id); }));
           row.appendChild(ibtn('Stop', 'stop', 'btn-ghost', function () { A.stop(200); }));
           if (r.derivedFrom && r.derivedFrom.motif) row.appendChild(W.button('Re-derive from its motif', 'spark', 'btn-ghost', function () { if (A.rederive(cur(), r)) { touch('track-rederive'); paint(); } else Kit.ui.toast('This role has no motif plan.', 'warn'); }));
+          if (ART.ai) row.appendChild(ART.ai.button('track', r.id, paint));
           body.appendChild(row);
           var ctl = el('div', 'a7-ctl');
           ctl.appendChild(textField('Name', r.name, function (v) { set(function () { r.name = String(v).trim().slice(0, 60) || r.name; }); }, { max: 60 }));

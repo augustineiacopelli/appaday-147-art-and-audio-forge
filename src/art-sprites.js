@@ -87,6 +87,7 @@
     ['body', 'head', 'hair', 'torso', 'legs', 'back', 'front'].forEach(function (layer) { parts[layer] = look[layer] ? partId(b, layer + '.' + look[layer]) : null; });
     return { rig: 'humanoid', parts: parts, proportions: { height: 1.5, headScale: 1 }, look: U.clone(look), accent: pal && pal.colorway ? pal.colorway.accent : 'clothB' };
   }
+  S.recipeFromLook = recipeFromLook;
   // Enemy rig from the family's name, then its type, then its seed. The keywords are genre neutral shapes.
   var RIG_WORDS = [
     [/slime|ooze|jelly|blob|pudding|goo|sludge|mimic/, 'ooze'], [/wisp|ghost|spirit|phantom|specter|spectre|eye|orb|will|soul|flame|ember/, 'floater'],

@@ -219,6 +219,7 @@
           }
           var row2 = el('div', 'btn-row');
           if (!tier) row2.appendChild(button('Reroll', 'spark', '', function () { P.reroll(b, r); touch('palette-reroll'); paint(); }));
+          if (!tier && ART.ai) row2.appendChild(ART.ai.button('colorway', r.id, paint));
           row2.appendChild(button('Reset to generated', 'check', 'btn-ghost', function () {
             r.origin = 'procedural';
             if (tier) P.buildTiers(b, {}); else P.refitLocal(b, r);

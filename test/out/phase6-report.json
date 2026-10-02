@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-02T02:21:56.814Z",
+  "date": "2026-10-02T11:43:37.854Z",
   "pass": 114,
   "total": 114,
   "results": [
@@ -25,22 +25,22 @@
         454783,
         507129,
         527023,
-        551791,
-        583925,
-        595361,
-        637046,
-        661899,
-        689658,
-        737698,
-        775199,
-        805891,
-        821157,
-        834060,
-        862257,
-        888107,
-        925982,
-        976765,
-        999905
+        551880,
+        584051,
+        596266,
+        638158,
+        663355,
+        691114,
+        739618,
+        777119,
+        808367,
+        823633,
+        836536,
+        864733,
+        890583,
+        928458,
+        1067134,
+        1091299
       ]
     },
     {
@@ -654,7 +654,7 @@
           "created": 61,
           "refreshed": 0,
           "kept": 0,
-          "ms": 12
+          "ms": 14
         },
         "els": 4,
         "abls": 6,
@@ -670,7 +670,7 @@
         "created": 0,
         "refreshed": 0,
         "kept": 61,
-        "ms": 7
+        "ms": 5
       }
     },
     {
@@ -683,7 +683,7 @@
       "detail": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -815,23 +815,23 @@
       "detail": {
         "sfx": 44,
         "playing": {
-          "id": "mus_victory_music_9446",
+          "id": "mus_victory_music_55h1",
           "name": "Victory music",
           "role": "victory",
           "ended": false
         },
         "log": [
-          "sfx:ko=sfx_ally_falls_sw39",
-          "ui:ready=sfx_turn_ready_wa7c",
-          "sfx:cast=sfx_cast_rlae",
-          "sfx:release=sfx_mend_sound_yy4a",
-          "sfx:revive=sfx_revive_496z",
-          "sfx:status.off=sfx_status_cured_r8s2",
-          "sfx:cast=sfx_swing_l43u",
-          "sfx:miss=sfx_miss_md2r",
-          "sfx:cast=sfx_swing_l43u",
-          "sfx:hit=sfx_hit_61g7",
-          "sfx:death=sfx_enemy_defeated_ae0j",
+          "sfx:ko=sfx_ally_falls_xlt0",
+          "ui:ready=sfx_turn_ready_ufbx",
+          "sfx:cast=sfx_cast_j4rg",
+          "sfx:release=sfx_mend_sound_io45",
+          "sfx:revive=sfx_revive_noym",
+          "sfx:status.off=sfx_status_cured_v2q2",
+          "sfx:cast=sfx_swing_a1xs",
+          "sfx:miss=sfx_miss_phkq",
+          "sfx:cast=sfx_swing_a1xs",
+          "sfx:hit=sfx_hit_snu2",
+          "sfx:death=sfx_enemy_defeated_a5jd",
           "music:victory>victory"
         ]
       }
@@ -840,18 +840,18 @@
       "name": "the window preview plays move and confirm",
       "ok": true,
       "detail": [
-        "sfx:cast=sfx_cast_rlae",
-        "sfx:release=sfx_mend_sound_yy4a",
-        "sfx:revive=sfx_revive_496z",
-        "sfx:status.off=sfx_status_cured_r8s2",
-        "sfx:cast=sfx_swing_l43u",
-        "sfx:miss=sfx_miss_md2r",
-        "sfx:cast=sfx_swing_l43u",
-        "sfx:hit=sfx_hit_61g7",
-        "sfx:death=sfx_enemy_defeated_ae0j",
+        "sfx:cast=sfx_cast_j4rg",
+        "sfx:release=sfx_mend_sound_io45",
+        "sfx:revive=sfx_revive_noym",
+        "sfx:status.off=sfx_status_cured_v2q2",
+        "sfx:cast=sfx_swing_a1xs",
+        "sfx:miss=sfx_miss_phkq",
+        "sfx:cast=sfx_swing_a1xs",
+        "sfx:hit=sfx_hit_snu2",
+        "sfx:death=sfx_enemy_defeated_a5jd",
         "music:victory>victory",
-        "ui:move=sfx_cursor_move_dhsh",
-        "ui:confirm=sfx_confirm_r70m"
+        "ui:move=sfx_cursor_move_1o7f",
+        "ui:confirm=sfx_confirm_gosh"
       ]
     },
     {
@@ -929,7 +929,7 @@
       "detail": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -946,7 +946,7 @@
     {
       "name": "every fixture still validates with no errors",
       "ok": true,
-      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}"
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":17,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":17,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":163,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":163,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":35,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0}"
     },
     {
       "name": "F2 (eight characters, twelve elements, six continents, three endings) builds and renders its sounds in reasonable time",
@@ -962,8 +962,8 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 640,
-        "ms": 642
+        "renderMs": 469,
+        "ms": 470
       }
     },
     {
@@ -979,7 +979,7 @@
         "summary": {
           "errors": 0,
           "broken": 0,
-          "forward": 0,
+          "forward": 37,
           "warnings": 1
         },
         "pageErrors": [],
@@ -1023,8 +1023,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.9,
-        "renderMs": 328,
-        "ms": 329
+        "renderMs": 244,
+        "ms": 244
       },
       "validation": {
         "errors": 0,
@@ -1046,13 +1046,13 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 336,
-        "ms": 337
+        "renderMs": 234,
+        "ms": 235
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 17,
         "warnings": 0
       }
     },
@@ -1069,13 +1069,13 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 361,
-        "ms": 363
+        "renderMs": 229,
+        "ms": 229
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 17,
         "warnings": 0
       }
     },
@@ -1092,13 +1092,13 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 640,
-        "ms": 642
+        "renderMs": 469,
+        "ms": 470
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 163,
         "warnings": 0
       }
     },
@@ -1115,13 +1115,13 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 762,
-        "ms": 765
+        "renderMs": 462,
+        "ms": 467
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 163,
         "warnings": 0
       }
     },
@@ -1138,13 +1138,13 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 7.4,
-        "renderMs": 362,
-        "ms": 363
+        "renderMs": 268,
+        "ms": 269
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 35,
         "warnings": 1
       }
     },
@@ -1161,13 +1161,13 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 414,
-        "ms": 415
+        "renderMs": 275,
+        "ms": 276
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1184,13 +1184,13 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 391,
-        "ms": 392
+        "renderMs": 261,
+        "ms": 266
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1207,13 +1207,13 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 451,
-        "ms": 452
+        "renderMs": 260,
+        "ms": 261
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1230,13 +1230,13 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 370,
-        "ms": 371
+        "renderMs": 259,
+        "ms": 260
       },
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     }

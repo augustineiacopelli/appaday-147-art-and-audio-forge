@@ -416,6 +416,55 @@ SESSION 6 / PHASE 6 (2026-10-01, Opus): AUDIO. COMPLETE.
     (step, swing, jump in walk and emote animations) play only where a view fires them (the test room's footsteps); the
     presenter fires ability markers. Forward fields chr_.leitmotif and abl_.sfx are filled in Phase 7 as planned.
 === END SESSION 6 ===
+SESSION 7 / PHASE 7 (2026-10-02, Opus): CLAUDE DRAFTING AND FORWARD FIELDS. COMPLETE.
+  Fences, in order: ... ART:AUDIO, WS:SOUND, ART:LINKS, ART:AI, WS:ART147, APP:BOOT. CSS adds ART:AI CSS. KIT:CORE still
+    verbatim. Small hooks in WS:PALETTE, WS:SPRITES, WS:INTERFACE, WS:MOTION, WS:WORLD, WS:SOUND, ART:PIXED, and WS:ART147
+    add one AI button per editor; ART:SPRITES exports S.recipeFromLook.
+  ART:LINKS: fills the eight forward fields Day 146 reserved (chr_.portrait, chr_.leitmotif, abl_.animation, abl_.sfx,
+    abl_.icon, itm_.icon, eqp_.icon, fam_.sprite) from the art record whose subject is that rules record. Kept: a field
+    already pointing at an existing art record of the right prefix (even if not its own). Filled: empty fields and
+    fields pointing at a deleted art record (emptied when no subject record exists). Untouched: values that are not art
+    references. plan(b) is pure, fill(b) writes, table(b) lists all eight. Quick Build step 'links' (order 90, last);
+    a second run changes nothing. Export tab: Fill forward fields button with the count still owed. Export itself never
+    fills (phase0 still proves a dangling field blocks Final). Nothing outside art and these eight fields is written.
+  ART:AI: ART.ai.register(def) drafters, each with a runtime only codex type (prefix null, section true) so the KIT:CORE
+    review drawer validates and edits options. Kit.validate.record is wrapped once (like ART:STORE wraps Kit.store) to add
+    each drafter's own checks; a field the drafter reports is not reported twice. Calls go through Kit.claude, so the
+    model is getModel(tier) (Settings override, then ../config.json, then fallback), thinking is disabled, and the
+    anthropic-dangerous-direct-browser-access header is sent. System prompt: strict {"options":[...]}, exactly N, a
+    summary per option, field keys only, no IDs, allowedValues only. Context: Charter summary, specs, the subject (ID
+    free briefs of the rules record), current values in the draft shape, and the field vocabulary. ids in replies are
+    stripped; accepting never mints or renames a record. Previews are added under each review card by a MutationObserver
+    (the drawer repaints its cards) and repaint on edit. Single target drafters close review on the first accept and
+    apply only one option. Accepted records get origin claude, which Quick Build keeps.
+  Drafters (17): colorway (source hexes and accent, refit to the master; doll preview), look (library parts, accent,
+    proportions; composer preview in a scratch art copy; portraits follow), enemy (rig and parameters clamped to the
+    editor ranges; unknown parameters warn), portrait (face recipe and six expressions), icon and icons (one, or one
+    request for up to 30 records matched by name; Accept All Valid), ability (caster, travel, element effect, impact,
+    flash, shake, hits), effect (particle, screen, six colors to master indices), weather (up to three layers, tint,
+    lightning; clears generic), biome (restyle one, or invent one with its own role, palette, priority slot, and
+    background), background (layers checked against their kind's styles; canvas preview), window, title, motif
+    (degrees and durations parsed; counts must match; Play; re-derives generated tracks that follow it), track (MML and
+    order checked with ENGINE_AUDIO.track.compile; Play; accepting makes it the user's own track), sound (sfxr
+    parameters normalized; Play), pixels.
+  Pixels: a Draft with Claude button in the pixel editor (every hand drawing surface: sprite frames, portrait
+    expressions, icons, parts, tile templates, interior tiles). The prompt carries the frame size, every slot's name and
+    color, and the current rows. Replies are rows of one character per pixel; before review they are checked for row
+    count, row length, and the alphabet up to the editor's max slot, repaired once with Claude naming each problem, and
+    dropped (with a toast) if they still do not fit. Accepting loads the draft into the editor with an undo step; nothing
+    is stored until Save pixels. Frames over 6144 pixels get no button. FIXED: the pixel editor showed only 16 swatches
+    for 32 slot tile palettes; a 32 entry label list now opens all 32.
+  Tests: test/phase7.js 91 of 91 (a scripted Messages API checks headers, model, thinking, system prompt, context, and
+    that no art ID reaches the prompt; every drafter through review, preview, accept, and edit survival; pixel repair and
+    drop; empty reply, bad JSON repair, API error, Settings model override; every editor's button; links plan, fill,
+    keep, relink, idempotence; Final export round trip in Day 146 with zero broken and zero forward; self test). Earlier
+    suites 27, 59, 67, 80, 79, 99, 114 still pass, one at a time.
+  Checked in headless Chromium at 390 and 1280: request dialog and review drawer have no horizontal scroll and no tap
+    target under 44 px, previews draw, a colorway and a pixel draft apply end to end.
+  Known limits: Claude drafts a part one frame at a time in the pixel editor; there is no whole part generator draft
+    (style parts carry no free parameters). Instruments and the cursor and touch skin have no drafter. Coverage, the
+    reference report, and the engine file extraction are Phase 8.
+=== END SESSION 7 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

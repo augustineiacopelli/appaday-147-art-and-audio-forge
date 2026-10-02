@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-02T02:18:28.423Z",
+  "date": "2026-10-02T11:43:20.738Z",
   "pass": 99,
   "total": 99,
   "results": [
@@ -24,20 +24,20 @@
         232915,
         507129,
         527023,
-        551791,
-        583925,
-        595361,
-        637046,
-        661899,
-        689658,
-        737698,
-        775199,
-        805891,
-        821157,
-        834060,
-        862257,
-        976766,
-        999906
+        551880,
+        584051,
+        596266,
+        638158,
+        663355,
+        691114,
+        739618,
+        777119,
+        808367,
+        823633,
+        836536,
+        864733,
+        1067134,
+        1091299
       ]
     },
     {
@@ -205,7 +205,7 @@
       "detail": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -216,7 +216,7 @@
         "created": 0,
         "refreshed": 0,
         "kept": 5,
-        "ms": 1
+        "ms": 0
       }
     },
     {
@@ -264,7 +264,7 @@
       "detail": {
         "errors": 5,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 1
       }
     },
@@ -731,7 +731,7 @@
         "summary": {
           "errors": 0,
           "broken": 0,
-          "forward": 0,
+          "forward": 37,
           "warnings": 1
         },
         "pageErrors": [],
@@ -790,7 +790,7 @@
       "detail": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -864,7 +864,7 @@
           "beats": 24,
           "hits": 11,
           "frames": 899,
-          "ms": 5,
+          "ms": 4,
           "ended": "win",
           "real": {
             "outcome": "win",
@@ -876,7 +876,7 @@
           "beats": 24,
           "hits": 11,
           "frames": 899,
-          "ms": 20,
+          "ms": 28,
           "ended": "win",
           "real": {
             "outcome": "win",
@@ -889,7 +889,7 @@
     {
       "name": "every fixture still validates with no errors",
       "ok": true,
-      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}"
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":17,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":17,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":163,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":163,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":35,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":37,\"warnings\":0}"
     },
     {
       "name": "146 imports a 147 draft with interface records: hash ok, no errors, art untouched",
@@ -899,7 +899,7 @@
         "summary": {
           "errors": 0,
           "broken": 0,
-          "forward": 0,
+          "forward": 37,
           "warnings": 1
         },
         "pageErrors": [],
@@ -940,7 +940,7 @@
         "beats": 12,
         "hits": 4,
         "frames": 468,
-        "ms": 3,
+        "ms": 2,
         "ended": "win",
         "real": null
       },
@@ -957,7 +957,7 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
-        "ms": 5,
+        "ms": 4,
         "ended": "win",
         "real": {
           "outcome": "win",
@@ -968,7 +968,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 17,
         "warnings": 0
       }
     },
@@ -978,6 +978,69 @@
         "beats": 24,
         "hits": 11,
         "frames": 899,
+        "ms": 4,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 17,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F2",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 10,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 163,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F3",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 28,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 163,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F4",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
         "ms": 5,
         "ended": "win",
         "real": {
@@ -989,70 +1052,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      }
-    },
-    {
-      "key": "F2",
-      "battle": {
-        "beats": 24,
-        "hits": 11,
-        "frames": 899,
-        "ms": 9,
-        "ended": "win",
-        "real": {
-          "outcome": "win",
-          "beats": 5,
-          "inputs": 1
-        }
-      },
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      }
-    },
-    {
-      "key": "F3",
-      "battle": {
-        "beats": 24,
-        "hits": 11,
-        "frames": 899,
-        "ms": 20,
-        "ended": "win",
-        "real": {
-          "outcome": "win",
-          "beats": 5,
-          "inputs": 1
-        }
-      },
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      }
-    },
-    {
-      "key": "F4",
-      "battle": {
-        "beats": 24,
-        "hits": 11,
-        "frames": 899,
-        "ms": 7,
-        "ended": "win",
-        "real": {
-          "outcome": "win",
-          "beats": 5,
-          "inputs": 1
-        }
-      },
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
+        "forward": 35,
         "warnings": 1
       }
     },
@@ -1062,7 +1062,7 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 12,
+        "ms": 6,
         "ended": "win",
         "real": {
           "outcome": "win",
@@ -1073,7 +1073,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1083,7 +1083,7 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 8,
+        "ms": 6,
         "ended": "win",
         "real": {
           "outcome": "win",
@@ -1094,7 +1094,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1104,7 +1104,7 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 8,
+        "ms": 10,
         "ended": "win",
         "real": {
           "outcome": "win",
@@ -1115,7 +1115,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     },
@@ -1125,7 +1125,7 @@
         "beats": 28,
         "hits": 15,
         "frames": 1071,
-        "ms": 8,
+        "ms": 6,
         "ended": "win",
         "real": {
           "outcome": "win",
@@ -1136,7 +1136,7 @@
       "validation": {
         "errors": 0,
         "broken": 0,
-        "forward": 0,
+        "forward": 37,
         "warnings": 0
       }
     }

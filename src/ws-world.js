@@ -116,6 +116,7 @@
     intro.innerHTML = '<h3 class="section-h">Biome tilesets</h3><p class="muted">Each biome is one 2 by 3 template that composes all 47 blob tiles, so any shape of terrain joins cleanly. Climate keys (temperature, moisture, elevation, each 0 to 4) are how a world generator picks the biome for a cell; invent a biome by duplicating one and changing its keys. Previews show each biome over the one below it in priority.</p>';
     host.appendChild(intro);
     if (!list.length) { needQuick(host, 'tilesets'); return; }
+    if (ART.ai) { var air = el('div', 'btn-row'); air.appendChild(ART.ai.button('biome', null, function (r) { if (r && r.id) ui.focus = r.id; repaint(); }, { label: 'Invent a biome' })); intro.appendChild(air); }
     var p = el('section', 'panel'), k = scaleFor(48);
     list.forEach(function (t) {
       var row = rowFor(t);
@@ -191,6 +192,7 @@
           body.appendChild(materialControls(b, t, done));
           var row = el('div', 'btn-row');
           row.appendChild(W.button(t.templates && t.templates.px ? 'Redraw the template' : 'Draw the template by hand', 'edit', '', function () { drawByHand(cur(), t, null, done); }));
+          if (ART.ai && t.kind === 'biome') row.appendChild(ART.ai.button('biome', t.id, function () { paint(); if (repaintList) repaintList(); }));
           body.appendChild(row);
         }
         paint();
@@ -392,6 +394,7 @@
             }));
             body.appendChild(add);
           }
+          if (ART.ai) { var arow = el('div', 'btn-row'); arow.appendChild(ART.ai.button('background', r.id, function () { paint(); if (repaintList) repaintList(); })); body.appendChild(arow); }
         }
         paint();
       }
