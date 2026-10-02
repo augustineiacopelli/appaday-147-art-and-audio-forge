@@ -1,0 +1,1244 @@
+{
+  "date": "2026-10-02T02:21:56.814Z",
+  "pass": 114,
+  "total": 114,
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "fences present in order: ENGINE:AUDIO after ENGINE:RENDER, ART:AUDIO and WS:SOUND before WS:ART147",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        160477,
+        227953,
+        232915,
+        454783,
+        507129,
+        527023,
+        551791,
+        583925,
+        595361,
+        637046,
+        661899,
+        689658,
+        737698,
+        775199,
+        805891,
+        821157,
+        834060,
+        862257,
+        888107,
+        925982,
+        976765,
+        999905
+      ]
+    },
+    {
+      "name": "every fence opens and closes once",
+      "ok": true
+    },
+    {
+      "name": "ART:SOUND CSS fence present",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:AUDIO reads no host globals",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "the header carries a sound button",
+      "ok": true
+    },
+    {
+      "name": "ENGINE_AUDIO 1.0.0 is frozen to the bottom",
+      "ok": true
+    },
+    {
+      "name": "the default timers run bare, as browsers require (no Illegal invocation)",
+      "ok": true,
+      "detail": [
+        25,
+        "clear"
+      ]
+    },
+    {
+      "name": "notes, octaves, and accidentals map to MIDI (o4 a is 69)",
+      "ok": true,
+      "detail": [
+        69,
+        60,
+        62,
+        null,
+        64,
+        72,
+        48,
+        48,
+        49,
+        49,
+        null
+      ]
+    },
+    {
+      "name": "lengths, dots, and ties come out in ticks (whole 192)",
+      "ok": true,
+      "detail": [
+        48,
+        24,
+        36,
+        12,
+        144,
+        48,
+        48,
+        12,
+        12,
+        12,
+        48
+      ]
+    },
+    {
+      "name": "v and @ carry onto the following notes; back to back rests merge",
+      "ok": true
+    },
+    {
+      "name": "bad tokens and lengths are reported with positions, and parsing continues",
+      "ok": true,
+      "detail": [
+        {
+          "pos": 1,
+          "message": "Length 5 is not one of 1 2 3 4 6 8 12 16 24 32 48 64 96 192."
+        },
+        {
+          "pos": 3,
+          "message": "Unknown token \"x\"."
+        },
+        {
+          "pos": 11,
+          "message": "Octave must be 0 to 9."
+        },
+        {
+          "pos": 15,
+          "message": "Volume must be 0 to 15."
+        },
+        {
+          "pos": 19,
+          "message": "Instrument slot must be 0 to 31."
+        }
+      ]
+    },
+    {
+      "name": "a tie with nothing before it is an error",
+      "ok": true
+    },
+    {
+      "name": "serialize then parse returns the same notes for 300 random voices",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "length decomposition writes 120 ticks as a tie and sums exactly",
+      "ok": true,
+      "detail": [
+        "3..",
+        "24"
+      ]
+    },
+    {
+      "name": "normalize clamps tables and drops an out of range loop point",
+      "ok": true
+    },
+    {
+      "name": "the volume table loops from its loop point while the note holds",
+      "ok": true
+    },
+    {
+      "name": "the release ramps down over its frames and the plan ends silent",
+      "ok": true
+    },
+    {
+      "name": "the arpeggio loops every frame and the pitch table holds its last value",
+      "ok": true,
+      "detail": [
+        59,
+        64,
+        67,
+        60,
+        64,
+        67,
+        60,
+        64,
+        67,
+        60,
+        64,
+        67
+      ]
+    },
+    {
+      "name": "vibrato waits for its delay, then bends the pitch both ways",
+      "ok": true
+    },
+    {
+      "name": "a duty sequence becomes back to back source segments (at most eight)",
+      "ok": true
+    },
+    {
+      "name": "25 and 75 percent pulses share a spectrum (one is the other inverted)",
+      "ok": true
+    },
+    {
+      "name": "the quantized triangle carries odd harmonics with steps (small even ones)",
+      "ok": true
+    },
+    {
+      "name": "short mode noise repeats every 93 steps; long mode every 32767",
+      "ok": true
+    },
+    {
+      "name": "every preset category gives valid, deterministic parameters",
+      "ok": true
+    },
+    {
+      "name": "render is deterministic per seed, noise differs by seed, samples stay in range",
+      "ok": true
+    },
+    {
+      "name": "rendering at 22050 Hz gives half the samples",
+      "ok": true
+    },
+    {
+      "name": "a frequency floor cuts a falling slide short",
+      "ok": true,
+      "detail": [
+        97,
+        162012
+      ]
+    },
+    {
+      "name": "normalize clamps parameters and falls back to square",
+      "ok": true
+    },
+    {
+      "name": "mutate stays in range, changes something, and keeps volume",
+      "ok": true
+    },
+    {
+      "name": "degree tokens read accidentals, octaves, rests, and 8 or 9",
+      "ok": true,
+      "detail": [
+        {
+          "deg": 0,
+          "acc": 0
+        },
+        {
+          "deg": 3,
+          "acc": 1
+        },
+        {
+          "deg": -1,
+          "acc": -1
+        },
+        {
+          "deg": 16,
+          "acc": 0
+        },
+        null,
+        {
+          "deg": 8,
+          "acc": 0
+        }
+      ]
+    },
+    {
+      "name": "bad degree tokens are reported",
+      "ok": true
+    },
+    {
+      "name": "durations accept decimals and fractions in whole ticks, and reject the rest",
+      "ok": true
+    },
+    {
+      "name": "a realized track has four clean patterns of the same whole bar length",
+      "ok": true,
+      "detail": [
+        "384/0",
+        "384/0",
+        "384/0",
+        "384/0"
+      ]
+    },
+    {
+      "name": "the melody follows the scale in its key and octave (C major, o5)",
+      "ok": true,
+      "detail": [
+        72,
+        74,
+        76,
+        77,
+        79,
+        77,
+        76,
+        74,
+        72,
+        null
+      ]
+    },
+    {
+      "name": "a variation mode re-voices the same degrees (minor third)",
+      "ok": true
+    },
+    {
+      "name": "the tempo scale multiplies the motif tempo",
+      "ok": true
+    },
+    {
+      "name": "rhythm transforms: half doubles, dotted pairs go 3 to 1, swing pairs go 2 to 1",
+      "ok": true,
+      "detail": {
+        "half": [
+          96,
+          48,
+          48,
+          96,
+          96,
+          48,
+          48,
+          96,
+          144,
+          48
+        ],
+        "dot": [
+          48,
+          36,
+          12,
+          72,
+          24,
+          36,
+          12,
+          48,
+          72,
+          24
+        ],
+        "sw": [
+          32,
+          16,
+          32,
+          16,
+          96
+        ]
+      }
+    },
+    {
+      "name": "a fragment repeats the chosen notes",
+      "ok": true
+    },
+    {
+      "name": "drums use slots 0 to 2 and the slots list names kick, snare, hat",
+      "ok": true
+    },
+    {
+      "name": "the last bar resolves to the tonic chord",
+      "ok": true,
+      "detail": [
+        4,
+        0
+      ]
+    },
+    {
+      "name": "generated motifs are deterministic, eight bars of eighths, and end on the tonic",
+      "ok": true
+    },
+    {
+      "name": "a three beat waltz realizes with clean patterns",
+      "ok": true
+    },
+    {
+      "name": "compile reports a row that names a missing pattern",
+      "ok": true
+    },
+    {
+      "name": "duration counts every row once and the loop from its row",
+      "ok": true
+    },
+    {
+      "name": "the player builds a master, a music bus, and an effects bus",
+      "ok": true
+    },
+    {
+      "name": "playRole finds the track by its music role and schedules only inside the lookahead",
+      "ok": true,
+      "detail": [
+        0.06,
+        0.06,
+        0.06
+      ]
+    },
+    {
+      "name": "pulse 1 plays its duty wave, the triangle the triangle wave, noise a looping LFSR buffer",
+      "ok": true,
+      "detail": {
+        "p1": {
+          "re": {
+            "0": 0,
+            "1": 0.31830987334251404,
+            "2": 1.9490858427948216e-17,
+            "3": -0.10610329359769821,
+            "4": -1.9490858427948216e-17,
+            "5": 0.06366197764873505,
+            "6": 1.9490858427948216e-17,
+            "7": -0.04547284170985222,
+            "8": -1.9490858427948216e-17,
+            "9": 0.03536776453256607,
+            "10": 1.9490858427948216e-17,
+            "11": -0.028937261551618576,
+            "12": -1.9490858427948216e-17,
+            "13": 0.024485375732183456,
+            "14": 1.9490858427948216e-17,
+            "15": -0.021220659837126732,
+            "16": -1.9490858427948216e-17,
+            "17": 0.0187241118401289,
+            "18": 1.9490858427948216e-17,
+            "19": -0.016753152012825012,
+            "20": -1.9490858427948216e-17,
+            "21": 0.015157613903284073,
+            "22": 7.089376586176345e-17,
+            "23": -0.013839560560882092,
+            "24": -1.9490858427948216e-17,
+            "25": 0.012732395902276039,
+            "26": -2.4003906219200782e-17,
+            "27": -0.01178925484418869,
+            "28": -1.9490858427948216e-17,
+            "29": 0.01097620278596878,
+            "30": 5.718632432057572e-17,
+            "31": -0.010268060490489006,
+            "32": -1.9490858427948216e-17,
+            "33": 0.009645754471421242,
+            "34": -1.3769843219418124e-17,
+            "35": -0.009094567969441414,
+            "36": -1.9490858427948216e-17,
+            "37": 0.008602970279753208,
+            "38": 4.9250436241803224e-17,
+            "39": -0.00816179160028696,
+            "40": -1.9490858427948216e-17,
+            "41": 0.007763655856251717,
+            "42": -7.43447187095816e-18,
+            "43": -0.007402555551379919,
+            "44": -7.089376586176345e-17,
+            "45": 0.007073552813380957,
+            "46": 4.4074856484565086e-17,
+            "47": -0.006772550754249096,
+            "48": -1.9490858427948216e-17
+          },
+          "im": {
+            "0": 0,
+            "1": 0.31830987334251404,
+            "2": 0.31830987334251404,
+            "3": 0.10610329359769821,
+            "4": 0,
+            "5": 0.06366197764873505,
+            "6": 0.10610329359769821,
+            "7": 0.04547284170985222,
+            "8": 0,
+            "9": 0.03536776453256607,
+            "10": 0.06366197764873505,
+            "11": 0.028937261551618576,
+            "12": 0,
+            "13": 0.024485375732183456,
+            "14": 0.04547284170985222,
+            "15": 0.021220659837126732,
+            "16": 0,
+            "17": 0.0187241118401289,
+            "18": 0.03536776453256607,
+            "19": 0.016753152012825012,
+            "20": 0,
+            "21": 0.015157613903284073,
+            "22": 0.028937261551618576,
+            "23": 0.013839560560882092,
+            "24": 0,
+            "25": 0.012732395902276039,
+            "26": 0.024485375732183456,
+            "27": 0.01178925484418869,
+            "28": 0,
+            "29": 0.01097620278596878,
+            "30": 0.021220659837126732,
+            "31": 0.010268060490489006,
+            "32": 0,
+            "33": 0.009645754471421242,
+            "34": 0.0187241118401289,
+            "35": 0.009094567969441414,
+            "36": 0,
+            "37": 0.008602970279753208,
+            "38": 0.016753152012825012,
+            "39": 0.00816179160028696,
+            "40": 0,
+            "41": 0.007763655856251717,
+            "42": 0.015157613903284073,
+            "43": 0.007402555551379919,
+            "44": 0,
+            "45": 0.007073552813380957,
+            "46": 0.013839560560882092,
+            "47": 0.006772550754249096,
+            "48": 0
+          },
+          "n": 2
+        },
+        "tri": {
+          "re": {
+            "0": 0,
+            "1": 0.8590572476387024,
+            "2": -1.3183898417423734e-16,
+            "3": 0.09056080132722855,
+            "4": -2.0816681711721685e-16,
+            "5": 0.02916790544986725,
+            "6": -3.365363543395006e-16,
+            "7": 0.012372924014925957,
+            "8": 1.3116252248673637e-16,
+            "9": 0.005612614098936319,
+            "10": -2.0816681711721685e-17,
+            "11": 0.0023808511905372143,
+            "12": -4.440892098500626e-16,
+            "13": 0.0007668267353437841,
+            "14": -1.8041124150158794e-16,
+            "15": 0.00008083797001745552,
+            "16": -6.938893903907228e-18,
+            "17": 0.00008083797001745552,
+            "18": 2.3592239273284576e-16,
+            "19": 0.0007668267353437841,
+            "20": -6.245004513516506e-17,
+            "21": 0.0023808511905372143,
+            "22": 4.3368086899420177e-16,
+            "23": 0.005612614098936319,
+            "24": 7.236743510688546e-16,
+            "25": 0.012372924014925957,
+            "26": 6.83481049534862e-16,
+            "27": 0.02916790544986725,
+            "28": 4.787836793695988e-16,
+            "29": 0.09056080132722855,
+            "30": 3.4763858458575214e-15,
+            "31": 0.8590572476387024,
+            "32": -5.551115123125783e-17
+          },
+          "im": {
+            "0": 0,
+            "1": -0.084609754383564,
+            "2": -9.020562075079397e-17,
+            "3": -0.02747131884098053,
+            "4": -5.551115123125783e-17,
+            "5": -0.01559056993573904,
+            "6": -1.0408340855860843e-16,
+            "7": -0.010154196061193943,
+            "8": 1.249000902703301e-16,
+            "9": -0.006838989909738302,
+            "10": 7.632783294297951e-17,
+            "11": -0.004454259295016527,
+            "12": -2.0816681711721685e-17,
+            "13": -0.002527889097109437,
+            "14": 5.377642775528102e-16,
+            "15": -0.0008207617211155593,
+            "16": 5.661412047748093e-17,
+            "17": 0.0008207617211155593,
+            "18": 2.636779683484747e-16,
+            "19": 0.002527889097109437,
+            "20": 5.551115123125783e-17,
+            "21": 0.004454259295016527,
+            "22": 6.522560269672795e-16,
+            "23": 0.006838989909738302,
+            "24": 5.48172618408671e-16,
+            "25": 0.010154196061193943,
+            "26": -1.4224732503009818e-15,
+            "27": 0.01559056993573904,
+            "28": 8.326672684688674e-17,
+            "29": 0.02747131884098053,
+            "30": 1.1587952819525071e-15,
+            "31": 0.084609754383564,
+            "32": -4.440892098500626e-16
+          },
+          "n": 5
+        },
+        "nz": [
+          [
+            "set",
+            0.125,
+            0.06
+          ]
+        ]
+      }
+    },
+    {
+      "name": "the scheduler keeps ahead as time moves, and the order list loops",
+      "ok": true,
+      "detail": {
+        "row": 0,
+        "passes": 2,
+        "seconds": 4.464999999999997
+      }
+    },
+    {
+      "name": "state() reports the notes sounding now on each channel",
+      "ok": true
+    },
+    {
+      "name": "starting a track fades the previous one out",
+      "ok": true
+    },
+    {
+      "name": "a track with no loop ends and calls onEnd once",
+      "ok": true
+    },
+    {
+      "name": "a note that starts in the previous note's release cuts it",
+      "ok": true,
+      "detail": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "an effect renders once and replays from its cached buffer",
+      "ok": true
+    },
+    {
+      "name": "effects are capped at eight voices (the oldest stops)",
+      "ok": true
+    },
+    {
+      "name": "setVolume mutes through the master and sets the buses",
+      "ok": true
+    },
+    {
+      "name": "unlock resumes a suspended context, plays a silent buffer, and sets the iOS audio session to playback",
+      "ok": true
+    },
+    {
+      "name": "without audioSession, unlock starts one looping silent element from a generated WAV",
+      "ok": true
+    },
+    {
+      "name": "the silent WAV header is well formed",
+      "ok": true
+    },
+    {
+      "name": "visibilitychange suspends and resumes the context",
+      "ok": true
+    },
+    {
+      "name": "touch screens get the mobile lookahead; unlock starts the 25 ms timer and dispose clears it",
+      "ok": true
+    },
+    {
+      "name": "dispose pauses the silent element",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Quick Build makes 12 instruments, 23 cue sounds, one per element and ability, three kinds of motif, and a track per required role",
+      "ok": true,
+      "detail": {
+        "au6": {
+          "created": 61,
+          "refreshed": 0,
+          "kept": 0,
+          "ms": 12
+        },
+        "els": 4,
+        "abls": 6,
+        "chars": 3,
+        "tracks": 11,
+        "need": 11
+      }
+    },
+    {
+      "name": "a second Quick Build changes nothing in audio",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 0,
+        "kept": 61,
+        "ms": 7
+      }
+    },
+    {
+      "name": "every audio record has a valid minted ID and an envelope",
+      "ok": true
+    },
+    {
+      "name": "the demo validates clean with audio",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "victory opens with a fanfare row and loops into its body; defeat plays once",
+      "ok": true
+    },
+    {
+      "name": "each continent gets its own field track",
+      "ok": true
+    },
+    {
+      "name": "battle is the lead character's motif in its battle variation; tracks name the default kit",
+      "ok": true
+    },
+    {
+      "name": "art.audio catches instrument, sound, motif, and track errors",
+      "ok": true,
+      "detail": [
+        "error:wave:Wave must be pulse, tri, or noise.",
+        "error:vol:The volume table is a list of up to 256 whole numbers from 0 to 15.",
+        "error:volLoop:The loop point must be a step of the volume table, or empty.",
+        "error:category:Category must be hit, magic, ui, ambient, item, special.",
+        "error:params.freq:Base frequency runs from 0 to 1.",
+        "error:degrees:Token x is not a scale degree (1 to 9, optional # or b, then ' or ,) or r.",
+        "error:patterns.ZZ:Row 1 names pattern ZZ, which does not exist.",
+        "error:loop:The loop point must be a row of the order list, or empty for no loop.",
+        "warning:durs:There are 3 degrees and 1 durations; the extra ones are ignored.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:subject.ref:No music role is named nowhere; add it in Score by role or pick another.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:subject.ref:Role battle already has a track; the one with the lower ID plays.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.tri:This pulse instrument plays as tri on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel."
+      ]
+    },
+    {
+      "name": "and warns about unknown roles, doubled roles, and wrong wave instruments",
+      "ok": true,
+      "detail": [
+        "error:wave:Wave must be pulse, tri, or noise.",
+        "error:vol:The volume table is a list of up to 256 whole numbers from 0 to 15.",
+        "error:volLoop:The loop point must be a step of the volume table, or empty.",
+        "error:category:Category must be hit, magic, ui, ambient, item, special.",
+        "error:params.freq:Base frequency runs from 0 to 1.",
+        "error:degrees:Token x is not a scale degree (1 to 9, optional # or b, then ' or ,) or r.",
+        "error:patterns.ZZ:Row 1 names pattern ZZ, which does not exist.",
+        "error:loop:The loop point must be a row of the order list, or empty for no loop.",
+        "warning:durs:There are 3 degrees and 1 durations; the extra ones are ignored.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:subject.ref:No music role is named nowhere; add it in Score by role or pick another.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:subject.ref:Role battle already has a track; the one with the lower ID plays.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.tri:This pulse instrument plays as tri on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel.",
+        "warning:instruments.p1:This square instrument plays as pulse on this channel."
+      ]
+    },
+    {
+      "name": "edited sounds, tracks, and motifs survive Quick Build",
+      "ok": true
+    },
+    {
+      "name": "generated tracks re-derive from an edited motif",
+      "ok": true
+    },
+    {
+      "name": "a deleted default stays deleted through Quick Build and comes back on restore",
+      "ok": true
+    },
+    {
+      "name": "a spell's cast marker plays the cast cue and its release the ability's own sound",
+      "ok": true
+    },
+    {
+      "name": "a physical attack swings on cast and is silent on release",
+      "ok": true
+    },
+    {
+      "name": "an item plays the item cue and skips the cast markers",
+      "ok": true
+    },
+    {
+      "name": "hit, crit, miss, death, ko map to their cues; music cues pass through; stop fades",
+      "ok": true
+    },
+    {
+      "name": "the touch skin's linked confirm sound wins over the default cue",
+      "ok": true
+    },
+    {
+      "name": "nothing plays before the first gesture",
+      "ok": true
+    },
+    {
+      "name": "the first pointerup creates the context and the player",
+      "ok": true
+    },
+    {
+      "name": "a presenter cue plays its sound",
+      "ok": true
+    },
+    {
+      "name": "a music cue starts the role's track",
+      "ok": true
+    },
+    {
+      "name": "the battle view starts the battle role",
+      "ok": true
+    },
+    {
+      "name": "the scripted demo plays sounds through the presenter and ends on the victory music",
+      "ok": true,
+      "detail": {
+        "sfx": 44,
+        "playing": {
+          "id": "mus_victory_music_9446",
+          "name": "Victory music",
+          "role": "victory",
+          "ended": false
+        },
+        "log": [
+          "sfx:ko=sfx_ally_falls_sw39",
+          "ui:ready=sfx_turn_ready_wa7c",
+          "sfx:cast=sfx_cast_rlae",
+          "sfx:release=sfx_mend_sound_yy4a",
+          "sfx:revive=sfx_revive_496z",
+          "sfx:status.off=sfx_status_cured_r8s2",
+          "sfx:cast=sfx_swing_l43u",
+          "sfx:miss=sfx_miss_md2r",
+          "sfx:cast=sfx_swing_l43u",
+          "sfx:hit=sfx_hit_61g7",
+          "sfx:death=sfx_enemy_defeated_ae0j",
+          "music:victory>victory"
+        ]
+      }
+    },
+    {
+      "name": "the window preview plays move and confirm",
+      "ok": true,
+      "detail": [
+        "sfx:cast=sfx_cast_rlae",
+        "sfx:release=sfx_mend_sound_yy4a",
+        "sfx:revive=sfx_revive_496z",
+        "sfx:status.off=sfx_status_cured_r8s2",
+        "sfx:cast=sfx_swing_l43u",
+        "sfx:miss=sfx_miss_md2r",
+        "sfx:cast=sfx_swing_l43u",
+        "sfx:hit=sfx_hit_61g7",
+        "sfx:death=sfx_enemy_defeated_ae0j",
+        "music:victory>victory",
+        "ui:move=sfx_cursor_move_dhsh",
+        "ui:confirm=sfx_confirm_r70m"
+      ]
+    },
+    {
+      "name": "every Sound view renders",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Score by role lists every role with a play button for each track",
+      "ok": true
+    },
+    {
+      "name": "a role's play button plays its track",
+      "ok": true
+    },
+    {
+      "name": "the track drawer edits tempo and marks the track edited",
+      "ok": true
+    },
+    {
+      "name": "pattern text shows its parse problems as you type",
+      "ok": true
+    },
+    {
+      "name": "Mutate changes the sound, stores how, marks it edited, and plays it",
+      "ok": true
+    },
+    {
+      "name": "Reset to default restores the cue",
+      "ok": true
+    },
+    {
+      "name": "the instrument drawer edits the volume table",
+      "ok": true
+    },
+    {
+      "name": "its keyboard plays notes on the instrument",
+      "ok": true
+    },
+    {
+      "name": "a bad table is refused and the record is unchanged",
+      "ok": true
+    },
+    {
+      "name": "the motif drawer edits a variation recipe",
+      "ok": true
+    },
+    {
+      "name": "and plays the variation",
+      "ok": true
+    },
+    {
+      "name": "jump goes to the Sound tab for ins_, sfx_, and mus_",
+      "ok": true
+    },
+    {
+      "name": "a role of your own can be added, is optional, and gets a track on request",
+      "ok": true
+    },
+    {
+      "name": "the header button mutes, persists the choice, and shows it",
+      "ok": true
+    },
+    {
+      "name": "and turns sound back on",
+      "ok": true
+    },
+    {
+      "name": "the touch skin view links menu sounds",
+      "ok": true
+    },
+    {
+      "name": "the bundle still validates clean after the edits",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "no page errors through the views",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "every fixture with a Charter scores every required role with clean MML",
+      "ok": true,
+      "detail": "F0:9/9 e0 F1a:9/9 e0 F1b:9/9 e0 F2:16/16 e0 F3:16/16 e0 F4:9/9 e0 F5d:11/11 e0 F5s:11/11 e0 F5t:11/11 e0 F5h:11/11 e0"
+    },
+    {
+      "name": "every fixture still validates with no errors",
+      "ok": true,
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}"
+    },
+    {
+      "name": "F2 (eight characters, twelve elements, six continents, three endings) builds and renders its sounds in reasonable time",
+      "ok": true,
+      "detail": {
+        "instruments": 12,
+        "sounds": 49,
+        "motifs": 10,
+        "tracks": 16,
+        "notes": 1284,
+        "errors": 0,
+        "seconds": 165,
+        "roles": 16,
+        "required": 16,
+        "sfxSeconds": 12.8,
+        "renderMs": 640,
+        "ms": 642
+      }
+    },
+    {
+      "name": "the audio records stay small (under 90 KB for the demo)",
+      "ok": true,
+      "detail": 34875
+    },
+    {
+      "name": "146 imports a 147 draft with audio records: hash ok, no errors, art untouched",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "mus": 17,
+        "kept": true
+      }
+    },
+    {
+      "name": "the manifest counts ins_, sfx_, and mus_",
+      "ok": true,
+      "detail": {
+        "anm_": 35,
+        "bgd_": 14,
+        "efx_": 4,
+        "ico_": 18,
+        "ins_": 12,
+        "mus_": 17,
+        "pal_": 36,
+        "por_": 4,
+        "prt_": 42,
+        "sfx_": 33,
+        "spr_": 24,
+        "til_": 14,
+        "uik_": 5,
+        "wov_": 3
+      }
+    }
+  ],
+  "audioBytes": 34875,
+  "selfTest": [
+    {
+      "key": "F0",
+      "audio": {
+        "instruments": 12,
+        "sounds": 27,
+        "motifs": 2,
+        "tracks": 9,
+        "notes": 744,
+        "errors": 0,
+        "seconds": 81,
+        "roles": 9,
+        "required": 9,
+        "sfxSeconds": 5.9,
+        "renderMs": 328,
+        "ms": 329
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F1a",
+      "audio": {
+        "instruments": 12,
+        "sounds": 27,
+        "motifs": 3,
+        "tracks": 9,
+        "notes": 761,
+        "errors": 0,
+        "seconds": 91,
+        "roles": 9,
+        "required": 9,
+        "sfxSeconds": 5.8,
+        "renderMs": 336,
+        "ms": 337
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F1b",
+      "audio": {
+        "instruments": 12,
+        "sounds": 27,
+        "motifs": 3,
+        "tracks": 9,
+        "notes": 762,
+        "errors": 0,
+        "seconds": 89,
+        "roles": 9,
+        "required": 9,
+        "sfxSeconds": 5.8,
+        "renderMs": 361,
+        "ms": 363
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F2",
+      "audio": {
+        "instruments": 12,
+        "sounds": 49,
+        "motifs": 10,
+        "tracks": 16,
+        "notes": 1284,
+        "errors": 0,
+        "seconds": 165,
+        "roles": 16,
+        "required": 16,
+        "sfxSeconds": 12.8,
+        "renderMs": 640,
+        "ms": 642
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F3",
+      "audio": {
+        "instruments": 12,
+        "sounds": 49,
+        "motifs": 10,
+        "tracks": 16,
+        "notes": 1278,
+        "errors": 0,
+        "seconds": 149,
+        "roles": 16,
+        "required": 16,
+        "sfxSeconds": 12.8,
+        "renderMs": 762,
+        "ms": 765
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F4",
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 9,
+        "notes": 768,
+        "errors": 0,
+        "seconds": 97,
+        "roles": 9,
+        "required": 9,
+        "sfxSeconds": 7.4,
+        "renderMs": 362,
+        "ms": 363
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "key": "F5d",
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 11,
+        "notes": 893,
+        "errors": 0,
+        "seconds": 117,
+        "roles": 11,
+        "required": 11,
+        "sfxSeconds": 7.3,
+        "renderMs": 414,
+        "ms": 415
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5s",
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 11,
+        "notes": 899,
+        "errors": 0,
+        "seconds": 101,
+        "roles": 11,
+        "required": 11,
+        "sfxSeconds": 7.3,
+        "renderMs": 391,
+        "ms": 392
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5t",
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 11,
+        "notes": 915,
+        "errors": 0,
+        "seconds": 108,
+        "roles": 11,
+        "required": 11,
+        "sfxSeconds": 7.3,
+        "renderMs": 451,
+        "ms": 452
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5h",
+      "audio": {
+        "instruments": 12,
+        "sounds": 33,
+        "motifs": 5,
+        "tracks": 11,
+        "notes": 909,
+        "errors": 0,
+        "seconds": 109,
+        "roles": 11,
+        "required": 11,
+        "sfxSeconds": 7.3,
+        "renderMs": 370,
+        "ms": 371
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    }
+  ]
+}

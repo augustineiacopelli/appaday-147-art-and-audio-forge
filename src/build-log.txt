@@ -327,6 +327,95 @@ SESSION 5 / PHASE 5 (2026-10-01, Opus): PRESENTER AND UI KIT. COMPLETE.
   Known limits: engine 1.0.0 has no item event, so the item beat is exercised only by the script. Battle HUD shows up to
     the rows that fit (four party at 256 by 224). Sound cues are names only until Phase 6 wires ENGINE_AUDIO.
 === END SESSION 5 ===
+SESSION 6 / PHASE 6 (2026-10-01, Opus): AUDIO. COMPLETE.
+  Fences, in order: ... ENGINE:RENDER, ENGINE:AUDIO, ART:PALETTE, ... WS:BATTLE, ART:AUDIO, WS:SOUND, WS:ART147, APP:BOOT. CSS
+    adds ART:SOUND CSS. ENGINE:AUDIO is its own fence (src/engine-audio.js), not spliced into ENGINE:RENDER; Phase 8 lifts it
+    to engine-audio.js as is. It reads no host global: the AudioContext, art, timers, navigator, and document are arguments.
+    KIT:CORE still verbatim. The header gains a sound button (btnSound) that mutes and remembers it (art147:audio).
+  ENGINE_AUDIO 1.0.0 {create, mml {parse, serialize, lengths}, instrument {DEFAULTS, normalize, plan, envAt}, waves {pulse,
+    tri, lfsr, noiseRate, midiHz}, sfxr {WAVES, CATEGORIES, PARAMS, normalize, render, mutate, preset}, motif {MODES, KEYS,
+    RHYTHMS, ACCOMP, BASS, DRUMS, VARIATIONS, parseDegrees, parseDurs, realize, generate, keyOf}, track {compile, duration,
+    secPerTick}, util, silentSrc}. create(ctx, opts) -> {unlock, load, playTrack, trackForRole, playRole, stop, playSfx,
+    setVolume, suspend, resume, attachLifecycle, dispose, tick, state}.
+  Voices: every note is a fresh source. Pulse PeriodicWaves at 12.5, 25, 50, 75 percent (48 harmonics); a duty sequence
+    becomes up to eight back to back source segments. Triangle is the 32 step 4 bit ramp as Fourier terms. Noise is a
+    15 bit LFSR buffer (long 32767, short 93 steps) looped and pitched by playbackRate (MIDI 108 = full 44.1 kHz step rate).
+    instrument.plan is pure: gain, frequency, and segment events at 60 frames a second from the vol table (volLoop or
+    hold), release ramp, arp (loops), pitch cents (holds), vibrato after its delay. A note starting inside the previous
+    note's release cancels it; the cut state lives per playback so a crossfade never clips the other track.
+  Levels (measured offline in Chromium): channel mix p1 0.27, p2 0.21, tri 0.4, noise 0.2; music peaks about 0.55 to 0.7 at
+    volume 0.8, no clipping; effects run through a 0.55 trim and peak about 0.5.
+  Player: tracks {tempo, instruments {p1, p2, tri, noise}, slots [ins ids for @n], patterns {key: mml}, order [[4 keys or
+    null]], loop row or null}. Ticks: whole 192, quarter 48. A 25 ms timer schedules ahead by the lookahead (art.settings:
+    100 ms desktop, 175 ms on coarse pointers; an explicit opts.lookaheadMs wins, which offline rendering needs). Each track
+    plays into its own gain, so a new track crossfades (default 250 ms). No loop: the track ends and onEnd fires once.
+    Effects render once per parameter set and seed into a cached buffer on a separate bus, capped at eight voices.
+  Unlock: inside a gesture, resume, a one sample buffer, navigator.audioSession.type = playback when it exists, else one
+    looping silent audio element from a WAV data URI built in code. visibilitychange suspends and resumes. FIXED during the
+    browser check: default timers are wrapped (setInterval called as a method of another object throws Illegal invocation
+    in Chrome); a test now proves they run bare.
+  MML: a to g with + # or -, lengths 1 2 3 4 6 8 12 16 24 32 48 64 96 192 with dots, r, ^ tie, o, > up, < down, l, v 0 to 15,
+    @n; | and commas ignored; errors carry positions and parsing continues. serialize writes ties for odd lengths and
+    round trips (300 random voices in the test).
+  Motifs: degrees 1 to 9 with # or b and ' or , octave marks, r rest; durations in eighths, decimals or fractions (2/3) that
+    land on whole ticks. realize(motif, recipe, kit) maps degrees through the mode and key, applies the rhythm (dotted 3:1,
+    swing 2:1, half, double) and fragment, picks a chord per bar from the downbeat degree (last bar I, V before a tonic
+    ending), then writes pulse 2 accompaniment (pad, arp, march, waltz, ostinato, none), triangle bass (root, walking,
+    pedal, none), and noise drums (march, battle, ballad, none on slots 0 kick, 1 snare, 2 hat). The result is an ordinary
+    track. generate(seed) makes two four bar phrases ending on 5 or 2, then 1.
+  Records: ins_ {wave, duty, vol, volLoop, release, vibrato, arp, pitch, noiseMode}, twelve defaults with role ins:<key>
+    (lead, lead2, soft, pluck, bell, strings, brass, harmony, bass, kick, snare, hat). sfx_ {params, category, lastMutate}:
+    23 cue sounds with role sfx:<cue> (hit crit miss swing hurt thud death ko cast release heal status status.off revive
+    limit item step jump ui.move ui.confirm ui.cancel ui.error ui.ready), one per Charter element (subject element, shaped
+    by the element's particle shape so two color palettes still sound apart), one per non passive ability (subject abl,
+    derived from its element, heal, release, or swing). mus_ motif {kind motif, degrees, durs, meter, mode, key, tempo,
+    variations {field, sorrow, battle, finale}} for role motif:theme, motif:villain, and each chr_. mus_ track {kind track,
+    ..., derivedFrom {motif, variation, recipe}} with role music:<role key>, one per required role.
+  Role table (ART.audio.rolePlan): title theme finale; town theme field (march, no drums); dungeon villain sorrow
+    (phrygian); battle the lead character's battle variation; boss villain battle (harmonic minor); victory a brass fanfare
+    row then the theme's field variation, looping from row 2; defeat theme sorrow once; ending theme finale; field:<slug>
+    rotates through the party, key moved a fourth per continent; ending:<n> cycles finale, field, sorrow. User roles
+    (kind user, key user:<slug>) are optional and get a track on request.
+  Quick Build 'audio' (order 60): instruments, sounds, motifs, tracks. Second run changes nothing. Kept (user, claude)
+    records never change; a generated track re-derives when its motif is edited. Deleting a default retires its role
+    (ins:, sfx:, music:) on art.settings.retired.
+  Cues: ART.audio.resolve(kind, id, opts, memo). action remembers the ability; a spell's cast marker plays cast and its
+    release the ability's own sound (else the element's, else release); a physical attack swings on cast and is silent
+    on release; items play the item cue and skip the markers; ui cues use the touch skin's linked sfx_ first. Music cues
+    play the role's track; stop fades over 400 ms.
+  Wiring: the battle view hands every presenter cue to ART.audio.cue and starts battle (or boss, when a troop member
+    isBoss) music; victory and defeat music come from the presenter's end cue. Window preview: move, Enter confirm (error
+    on the last item), Escape cancel. Interface, Touch skin: four sfx link selects; presses play them. Test room: a Sound
+    toggle plays the first field role, footsteps every other step, hurt on damage floors, the ready cue on encounters.
+    One AudioContext is created on the first pointerup or keydown anywhere (A.unlock).
+  Validator art.audio: instrument wave and tables, loop point, release, vibrato, noise mode, doubled library roles; sound
+    category, wave, parameter ranges, orphaned ability or element (warning), unknown cue (warning); motif degrees, durations
+    (count mismatch warning), meter, mode, tempo, variation fields, missing lead; track tempo, MML errors with positions,
+    order rows of four, loop row, missing instruments, wrong wave for the channel (warning), unknown role and doubled role
+    (warnings), missing source motif (warning). Jump handler sends ins_, sfx_, and mus_ to the Sound tab.
+  UI: Sound tab (Instruments, Effects, Motifs, Score by role, Jukebox). Instrument drawer: envelope graph, an eight key
+    keyboard with an octave select, wave, noise mode, the four tables as text, loop point, release, vibrato. Effect
+    drawer: waveform, Play, Mutate with an amount, New from preset, wave, category, all 18 sliders, reset. Motif drawer:
+    piano roll, degrees and durations, mode, key, meter, tempo, New melody, and each variation's recipe with Play. Track
+    drawer: first row piano roll, tempo, role, loop, instruments per channel, slots, MML patterns with live problem counts,
+    order rows, re-derive. Score by role becomes two column cards on phones. Jukebox: volumes, mute, four channel meters,
+    every track, and a cue board.
+  Self test: new Audio column compiles every track and renders every sound per fixture. Every fixture scores every
+    required role with no MML errors (demo 11 of 11, F2 16 of 16); F2 renders 49 sounds in about 0.7 s. Audio records in
+    the demo are about 35 KB; the demo bundle is about 182 KB in all.
+  Tests: test/phase6.js 114 of 114 (a recording fake AudioContext; MML, plans, waves, sfxr, motifs, scheduler, loop, end,
+    crossfade, cut, effect cache and cap, volume, unlock both ways, lifecycle, dispose, bare timers, records, idempotence,
+    validator, edit survival, re-derivation, retire and restore, cue resolution, the player in the page, battle music,
+    every view and drawer, user roles, the header button, self test, Day 146 round trip, manifest). Earlier suites 27, 59,
+    67, 80, 79, 99 pass; Phase 1's whole bundle cap moved from 160 KB to the plan's 300 KB since Quick Build now runs
+    every phase (its palette cap is unchanged).
+  Checked in Chromium: offline renders of title, battle, boss, victory, dungeon, town (no NaN, no clipping, steady level,
+    melody and loop visible in spectrograms); a live context unlocks on a pointerup and plays battle; Sound views and
+    drawers at 390 and 1280 have no horizontal scroll and no tap target under 44 px.
+  Known limits: weather overlays do not yet link ambient sounds (wov_.ambient stays null). Sprite animation sfx markers
+    (step, swing, jump in walk and emote animations) play only where a view fires them (the test room's footsteps); the
+    presenter fires ability markers. Forward fields chr_.leitmotif and abl_.sfx are filled in Phase 7 as planned.
+=== END SESSION 6 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

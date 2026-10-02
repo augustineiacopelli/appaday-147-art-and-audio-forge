@@ -328,6 +328,95 @@ SESSION 5 / PHASE 5 (2026-10-01, Opus): PRESENTER AND UI KIT. COMPLETE.
   Known limits: engine 1.0.0 has no item event, so the item beat is exercised only by the script. Battle HUD shows up to
     the rows that fit (four party at 256 by 224). Sound cues are names only until Phase 6 wires ENGINE_AUDIO.
 === END SESSION 5 ===
+SESSION 6 / PHASE 6 (2026-10-01, Opus): AUDIO. COMPLETE.
+  Fences, in order: ... ENGINE:RENDER, ENGINE:AUDIO, ART:PALETTE, ... WS:BATTLE, ART:AUDIO, WS:SOUND, WS:ART147, APP:BOOT. CSS
+    adds ART:SOUND CSS. ENGINE:AUDIO is its own fence (src/engine-audio.js), not spliced into ENGINE:RENDER; Phase 8 lifts it
+    to engine-audio.js as is. It reads no host global: the AudioContext, art, timers, navigator, and document are arguments.
+    KIT:CORE still verbatim. The header gains a sound button (btnSound) that mutes and remembers it (art147:audio).
+  ENGINE_AUDIO 1.0.0 {create, mml {parse, serialize, lengths}, instrument {DEFAULTS, normalize, plan, envAt}, waves {pulse,
+    tri, lfsr, noiseRate, midiHz}, sfxr {WAVES, CATEGORIES, PARAMS, normalize, render, mutate, preset}, motif {MODES, KEYS,
+    RHYTHMS, ACCOMP, BASS, DRUMS, VARIATIONS, parseDegrees, parseDurs, realize, generate, keyOf}, track {compile, duration,
+    secPerTick}, util, silentSrc}. create(ctx, opts) -> {unlock, load, playTrack, trackForRole, playRole, stop, playSfx,
+    setVolume, suspend, resume, attachLifecycle, dispose, tick, state}.
+  Voices: every note is a fresh source. Pulse PeriodicWaves at 12.5, 25, 50, 75 percent (48 harmonics); a duty sequence
+    becomes up to eight back to back source segments. Triangle is the 32 step 4 bit ramp as Fourier terms. Noise is a
+    15 bit LFSR buffer (long 32767, short 93 steps) looped and pitched by playbackRate (MIDI 108 = full 44.1 kHz step rate).
+    instrument.plan is pure: gain, frequency, and segment events at 60 frames a second from the vol table (volLoop or
+    hold), release ramp, arp (loops), pitch cents (holds), vibrato after its delay. A note starting inside the previous
+    note's release cancels it; the cut state lives per playback so a crossfade never clips the other track.
+  Levels (measured offline in Chromium): channel mix p1 0.27, p2 0.21, tri 0.4, noise 0.2; music peaks about 0.55 to 0.7 at
+    volume 0.8, no clipping; effects run through a 0.55 trim and peak about 0.5.
+  Player: tracks {tempo, instruments {p1, p2, tri, noise}, slots [ins ids for @n], patterns {key: mml}, order [[4 keys or
+    null]], loop row or null}. Ticks: whole 192, quarter 48. A 25 ms timer schedules ahead by the lookahead (art.settings:
+    100 ms desktop, 175 ms on coarse pointers; an explicit opts.lookaheadMs wins, which offline rendering needs). Each track
+    plays into its own gain, so a new track crossfades (default 250 ms). No loop: the track ends and onEnd fires once.
+    Effects render once per parameter set and seed into a cached buffer on a separate bus, capped at eight voices.
+  Unlock: inside a gesture, resume, a one sample buffer, navigator.audioSession.type = playback when it exists, else one
+    looping silent audio element from a WAV data URI built in code. visibilitychange suspends and resumes. FIXED during the
+    browser check: default timers are wrapped (setInterval called as a method of another object throws Illegal invocation
+    in Chrome); a test now proves they run bare.
+  MML: a to g with + # or -, lengths 1 2 3 4 6 8 12 16 24 32 48 64 96 192 with dots, r, ^ tie, o, > up, < down, l, v 0 to 15,
+    @n; | and commas ignored; errors carry positions and parsing continues. serialize writes ties for odd lengths and
+    round trips (300 random voices in the test).
+  Motifs: degrees 1 to 9 with # or b and ' or , octave marks, r rest; durations in eighths, decimals or fractions (2/3) that
+    land on whole ticks. realize(motif, recipe, kit) maps degrees through the mode and key, applies the rhythm (dotted 3:1,
+    swing 2:1, half, double) and fragment, picks a chord per bar from the downbeat degree (last bar I, V before a tonic
+    ending), then writes pulse 2 accompaniment (pad, arp, march, waltz, ostinato, none), triangle bass (root, walking,
+    pedal, none), and noise drums (march, battle, ballad, none on slots 0 kick, 1 snare, 2 hat). The result is an ordinary
+    track. generate(seed) makes two four bar phrases ending on 5 or 2, then 1.
+  Records: ins_ {wave, duty, vol, volLoop, release, vibrato, arp, pitch, noiseMode}, twelve defaults with role ins:<key>
+    (lead, lead2, soft, pluck, bell, strings, brass, harmony, bass, kick, snare, hat). sfx_ {params, category, lastMutate}:
+    23 cue sounds with role sfx:<cue> (hit crit miss swing hurt thud death ko cast release heal status status.off revive
+    limit item step jump ui.move ui.confirm ui.cancel ui.error ui.ready), one per Charter element (subject element, shaped
+    by the element's particle shape so two color palettes still sound apart), one per non passive ability (subject abl,
+    derived from its element, heal, release, or swing). mus_ motif {kind motif, degrees, durs, meter, mode, key, tempo,
+    variations {field, sorrow, battle, finale}} for role motif:theme, motif:villain, and each chr_. mus_ track {kind track,
+    ..., derivedFrom {motif, variation, recipe}} with role music:<role key>, one per required role.
+  Role table (ART.audio.rolePlan): title theme finale; town theme field (march, no drums); dungeon villain sorrow
+    (phrygian); battle the lead character's battle variation; boss villain battle (harmonic minor); victory a brass fanfare
+    row then the theme's field variation, looping from row 2; defeat theme sorrow once; ending theme finale; field:<slug>
+    rotates through the party, key moved a fourth per continent; ending:<n> cycles finale, field, sorrow. User roles
+    (kind user, key user:<slug>) are optional and get a track on request.
+  Quick Build 'audio' (order 60): instruments, sounds, motifs, tracks. Second run changes nothing. Kept (user, claude)
+    records never change; a generated track re-derives when its motif is edited. Deleting a default retires its role
+    (ins:, sfx:, music:) on art.settings.retired.
+  Cues: ART.audio.resolve(kind, id, opts, memo). action remembers the ability; a spell's cast marker plays cast and its
+    release the ability's own sound (else the element's, else release); a physical attack swings on cast and is silent
+    on release; items play the item cue and skip the markers; ui cues use the touch skin's linked sfx_ first. Music cues
+    play the role's track; stop fades over 400 ms.
+  Wiring: the battle view hands every presenter cue to ART.audio.cue and starts battle (or boss, when a troop member
+    isBoss) music; victory and defeat music come from the presenter's end cue. Window preview: move, Enter confirm (error
+    on the last item), Escape cancel. Interface, Touch skin: four sfx link selects; presses play them. Test room: a Sound
+    toggle plays the first field role, footsteps every other step, hurt on damage floors, the ready cue on encounters.
+    One AudioContext is created on the first pointerup or keydown anywhere (A.unlock).
+  Validator art.audio: instrument wave and tables, loop point, release, vibrato, noise mode, doubled library roles; sound
+    category, wave, parameter ranges, orphaned ability or element (warning), unknown cue (warning); motif degrees, durations
+    (count mismatch warning), meter, mode, tempo, variation fields, missing lead; track tempo, MML errors with positions,
+    order rows of four, loop row, missing instruments, wrong wave for the channel (warning), unknown role and doubled role
+    (warnings), missing source motif (warning). Jump handler sends ins_, sfx_, and mus_ to the Sound tab.
+  UI: Sound tab (Instruments, Effects, Motifs, Score by role, Jukebox). Instrument drawer: envelope graph, an eight key
+    keyboard with an octave select, wave, noise mode, the four tables as text, loop point, release, vibrato. Effect
+    drawer: waveform, Play, Mutate with an amount, New from preset, wave, category, all 18 sliders, reset. Motif drawer:
+    piano roll, degrees and durations, mode, key, meter, tempo, New melody, and each variation's recipe with Play. Track
+    drawer: first row piano roll, tempo, role, loop, instruments per channel, slots, MML patterns with live problem counts,
+    order rows, re-derive. Score by role becomes two column cards on phones. Jukebox: volumes, mute, four channel meters,
+    every track, and a cue board.
+  Self test: new Audio column compiles every track and renders every sound per fixture. Every fixture scores every
+    required role with no MML errors (demo 11 of 11, F2 16 of 16); F2 renders 49 sounds in about 0.7 s. Audio records in
+    the demo are about 35 KB; the demo bundle is about 182 KB in all.
+  Tests: test/phase6.js 114 of 114 (a recording fake AudioContext; MML, plans, waves, sfxr, motifs, scheduler, loop, end,
+    crossfade, cut, effect cache and cap, volume, unlock both ways, lifecycle, dispose, bare timers, records, idempotence,
+    validator, edit survival, re-derivation, retire and restore, cue resolution, the player in the page, battle music,
+    every view and drawer, user roles, the header button, self test, Day 146 round trip, manifest). Earlier suites 27, 59,
+    67, 80, 79, 99 pass; Phase 1's whole bundle cap moved from 160 KB to the plan's 300 KB since Quick Build now runs
+    every phase (its palette cap is unchanged).
+  Checked in Chromium: offline renders of title, battle, boss, victory, dungeon, town (no NaN, no clipping, steady level,
+    melody and loop visible in spectrograms); a live context unlocks on a pointerup and plays battle; Sound views and
+    drawers at 390 and 1280 have no horizontal scroll and no tap target under 44 px.
+  Known limits: weather overlays do not yet link ambient sounds (wov_.ambient stays null). Sprite animation sfx markers
+    (step, swing, jump in walk and emote animations) play only where a view fires them (the test room's footsteps); the
+    presenter fires ability markers. Forward fields chr_.leitmotif and abl_.sfx are filled in Phase 7 as planned.
+=== END SESSION 6 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
@@ -819,6 +908,51 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .a7-ctl .a7-sel { max-width: 100%; min-width: 0; }
 .a7-ctl .a7-sel select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
 /* === ART:UI CSS END === */
+/* === ART:SOUND CSS BEGIN === */
+.a7-snd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.a7-snd-card { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-snd-card.a7-hit { border-color: var(--accent); }
+.a7-snd-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.a7-snd-name strong { overflow-wrap: anywhere; }
+.a7-snd-cv { display: block; width: 100%; max-width: 100%; height: auto; image-rendering: pixelated; background: var(--bg); border: 1px solid var(--line2); border-radius: 6px; }
+.a7-snd-card .a7-snd-cv { aspect-ratio: auto; }
+.a7-edhead .a7-snd-cv { max-width: 320px; }
+.a7-keys { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.a7-keys .btn { min-width: 44px; min-height: 44px; padding: 0 6px; justify-content: center; font-weight: 800; }
+.a7-mono { font-family: var(--font-mono); font-size: .82rem; }
+.a7-text.a7-wide { flex: 1 1 100%; align-items: stretch; flex-direction: column; gap: 4px; }
+.a7-text.a7-wide input, .a7-text.a7-wide textarea { width: 100%; min-height: 44px; }
+.a7-text textarea { resize: vertical; }
+.a7-params .a7-range { flex: 1 1 200px; }
+.a7-sfx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.a7-sfx { display: flex; align-items: center; gap: 6px; padding: 4px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-sfx.a7-hit { border-color: var(--accent); }
+.a7-sfx .btn-icon { flex: 0 0 auto; min-width: 44px; min-height: 44px; }
+.a7-sfx-name { flex: 1 1 auto; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px; padding: 2px 6px; border: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; border-radius: 6px; font: inherit; }
+.a7-sfx-name:hover, .a7-sfx-name:focus-visible { background: var(--accent-soft); }
+.a7-sfx-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.a7-sfx-name small { color: var(--ink3); font-size: .76rem; }
+.a7-score td, .a7-score th { vertical-align: middle; }
+.a7-tight { gap: 4px; flex-wrap: nowrap; }
+.a7-tight .btn-icon { min-width: 44px; min-height: 44px; }
+.a7-now { min-height: 28px; margin: 8px 0 4px; }
+.a7-meters { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.a7-meter-ch { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); font-weight: 700; font-size: .84rem; }
+.a7-meter-ch i { display: block; height: 10px; width: 0; border-radius: 99px; background: var(--accent); transition: width 80ms linear; }
+.a7-meter-ch b { font-family: var(--font-mono); font-size: .8rem; min-width: 3ch; text-align: right; }
+#btnSound[aria-pressed="true"] { color: var(--warn); }
+@media (max-width: 520px) {
+  .a7-snd-list, .a7-sfx-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Phone: each role becomes a two column card (role and track on the left, play controls on the right). */
+  .a7-score thead, .a7-score td.num { display: none; }
+  .a7-score tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-bottom: 1px solid var(--line2); padding: 6px 0; }
+  .a7-score tr > th, .a7-score tr > td { border: 0; padding: 2px 6px; }
+  .a7-score tr > th { grid-column: 1; grid-row: 1; }
+  .a7-score tr > td:nth-of-type(1) { grid-column: 1; grid-row: 2; }
+  .a7-score tr > td:last-child { grid-column: 2; grid-row: 1 / span 2; }
+  .a7-score .a7-tight { flex-direction: column; align-items: stretch; }
+}
+/* === ART:SOUND CSS END === */
 </style>
 </head>
 <body>
@@ -829,6 +963,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       <span class="brand-num">App 147</span>
     </div>
     <a class="backlink" href="https://augustineiacopelli.github.io/appaday/" title="Back to the AppADay portfolio">&larr; AppADay</a>
+    <button class="btn btn-ghost btn-icon" id="btnSound" type="button" aria-label="Sound" aria-pressed="false" title="Sound"></button>
     <button class="btn btn-ghost btn-icon" id="btnTheme" type="button" aria-label="Toggle night and parchment theme" title="Toggle theme"></button>
     <button class="btn btn-ghost btn-icon" id="btnSettings" type="button" aria-label="Settings" title="Settings"></button>
   </header>
@@ -4083,10 +4218,23 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           } catch (e5) { battle.real = { outcome: 'error: ' + e5.message }; }
         }
       }
+      // Phase 6: every track compiled (notes, MML errors, length) and every sound effect rendered once, the work the
+      // player does on first play; roles counts required music roles that have a track.
+      var audio = null;
+      if (ART.audio) {
+        var ta = performance.now(), EA6 = ENGINE_AUDIO, notes = 0, errs = 0, secs = 0, smp = 0;
+        ART.audio.tracks(copy).forEach(function (t6) { var c6 = EA6.track.compile(t6); errs += c6.errors.length; c6.rows.forEach(function (r6) { EA6.CHANNELS.forEach(function (ch) { notes += r6.ch[ch].filter(function (e) { return e.n != null; }).length; }); }); secs += EA6.track.duration(t6).once; });
+        var tr6 = performance.now();
+        ART.audio.sounds(copy).forEach(function (s6) { smp += EA6.sfxr.render(s6.params, 22050, s6.seed >>> 0 || 1).length; });
+        var need = ART.musicRoles(copy).filter(function (r) { return r.required; });
+        audio = { instruments: ART.audio.instruments(copy).length, sounds: ART.audio.sounds(copy).length, motifs: ART.audio.motifs(copy).length, tracks: ART.audio.tracks(copy).length,
+          notes: notes, errors: errs, seconds: Math.round(secs), roles: need.filter(function (r) { return ART.audio.trackFor(copy, r.key); }).length, required: need.length,
+          sfxSeconds: Math.round(smp / 22050 * 10) / 10, renderMs: Math.round(performance.now() - tr6), ms: Math.round(performance.now() - ta) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
@@ -7356,6 +7504,770 @@ var ENGINE_RENDER = (function () {
   return Object.freeze(R);
 })();
 // === ENGINE:RENDER END ===
+// === ENGINE:AUDIO BEGIN ===
+// ENGINE_AUDIO 1.0.0: four voice chiptune music, sfxr style sound effects, and leitmotif realization for the Saga forges.
+// It reads no host global. The AudioContext, the art namespace, timers, the navigator, and the document all arrive as
+// arguments, so Day 150 can lift this fence as it is (Phase 8 extracts it to engine-audio.js).
+//   music  four voices: pulse 1 and pulse 2 (PeriodicWaves at 12.5, 25, 50, 75 percent duty), a quantized 4 bit triangle,
+//          and LFSR noise (long and short modes) pitched with playbackRate. Every note is a fresh source node, so duty
+//          changes are new segments, never a scheduled setPeriodicWave. Envelopes step at 60 per second from tables.
+//   tracks {tempo, instruments {p1, p2, tri, noise}, slots [ins ids for @n], patterns {key: mml}, order [[p1, p2, tri,
+//          noise] pattern keys or null], loop (row index or null)}. A 25 ms timer schedules ahead by the lookahead.
+//   mml    a-g with + # or - accidentals, a length (1 2 3 4 6 8 12 16 24 32 48 64 96 192) with dots, r rest, ^ tie,
+//          o octave, < down, > up, l default length, v volume 0 to 15, @n instrument slot. | and spaces are ignored.
+//          Ticks: a whole note is 192, a quarter 48. o4 a is 440 Hz (MIDI 69).
+//   sfxr   DrPetter's sfxr synthesis rendered once per effect into a buffer and cached, played on its own bus.
+//   motif  scale degree tokens and durations realized through a recipe (mode, key, tempo scale, rhythm, octave, lead,
+//          accompaniment, bass, drums, fragment) into an ordinary track.
+var ENGINE_AUDIO = (function () {
+  'use strict';
+  var VERSION = '1.0.0';
+  var WHOLE = 192, QUARTER = 48, FPS = 60, SFX_RATE = 44100;
+  var CHANNELS = ['p1', 'p2', 'tri', 'noise'];
+  var WAVES = ['pulse', 'tri', 'noise'];
+  var DUTIES = [0.125, 0.25, 0.5, 0.75];
+  // Channel levels before the music bus, and the trim that brings full scale sfxr renders down to sit with the music.
+  // Measured offline: battle and title peak near 0.6 at music volume 0.8, the cue library near 0.5 at effects 0.9.
+  var MIX = { p1: 0.27, p2: 0.21, tri: 0.4, noise: 0.2 }, SFX_TRIM = 0.55;
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function num(v, d) { v = Number(v); return isFinite(v) ? v : d; }
+  function isObj(o) { return !!o && typeof o === 'object' && !Array.isArray(o); }
+  function rng(seed) { var a = (seed >>> 0) || 1; return function () { a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function hash32(s) { s = String(s); var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function canon(o) {
+    if (o === null || typeof o !== 'object') return JSON.stringify(o);
+    if (Array.isArray(o)) return '[' + o.map(canon).join(',') + ']';
+    return '{' + Object.keys(o).sort().map(function (k) { return JSON.stringify(k) + ':' + canon(o[k]); }).join(',') + '}';
+  }
+  function midiHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+  // Noise pitch: MIDI 108 (c8) steps the LFSR at the full 44.1 kHz; every octave down halves the step rate.
+  function noiseRate(m) { return clamp(Math.pow(2, (m - 108) / 12), 1 / 512, 1); }
+
+  // ---------------------------------------------------------------- MML
+  var NOTE_PC = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+  var NAMES = ['c', 'c+', 'd', 'd+', 'e', 'f', 'f+', 'g', 'g+', 'a', 'a+', 'b'];
+  // parse(str) -> {events [{t, d, n (MIDI or null for a rest), v, i (slot or null)}], ticks, errors [{pos, message}]}
+  function mmlParse(str) {
+    str = String(str == null ? '' : str);
+    var out = [], errors = [], t = 0, oct = 4, len = 48, vol = 12, ins = null, p = 0, L = str.length;
+    function err(pos, m) { if (errors.length < 20) errors.push({ pos: pos, message: m }); }
+    function readInt() { var s = p; while (p < L && str.charCodeAt(p) >= 48 && str.charCodeAt(p) <= 57) p++; return p > s ? parseInt(str.slice(s, p), 10) : null; }
+    // A length token: a number (or the default), then dots. Returns ticks or null on error.
+    function readLen(def) {
+      var at = p, n = readInt(), base;
+      if (n == null) base = def;
+      else if (n < 1 || n > WHOLE || WHOLE % n) { err(at, 'Length ' + n + ' is not one of 1 2 3 4 6 8 12 16 24 32 48 64 96 192.'); base = def; }
+      else base = WHOLE / n;
+      var add = base, total = base;
+      while (p < L && str.charAt(p) === '.') { p++; add = add / 2; if (add !== Math.floor(add)) { err(p - 1, 'Too many dots for this length.'); break; } total += add; }
+      return total;
+    }
+    while (p < L) {
+      var c = str.charAt(p).toLowerCase(), at = p;
+      if (c === ' ' || c === '\n' || c === '\r' || c === '\t' || c === '|' || c === ',') { p++; continue; }
+      if (NOTE_PC[c] != null) {
+        p++;
+        var pc = NOTE_PC[c];
+        while (p < L && /[+#-]/.test(str.charAt(p))) { pc += str.charAt(p) === '-' ? -1 : 1; p++; }
+        var d = readLen(len), m = (oct + 1) * 12 + pc;
+        if (m < 0 || m > 127) { err(at, 'Note out of range.'); m = clamp(m, 0, 127); }
+        out.push({ t: t, d: d, n: m, v: vol, i: ins }); t += d;
+      } else if (c === 'r') {
+        p++; var dr = readLen(len);
+        out.push({ t: t, d: dr, n: null, v: vol, i: ins }); t += dr;
+      } else if (c === '^') {
+        p++; var dt = readLen(len);
+        if (!out.length) err(at, 'A tie needs a note or rest before it.');
+        else { out[out.length - 1].d += dt; t += dt; }
+      } else if (c === 'o') {
+        p++; var o = readInt();
+        if (o == null || o < 0 || o > 9) err(at, 'Octave must be 0 to 9.'); else oct = o;
+      } else if (c === '<') { p++; oct = Math.max(0, oct - 1); }
+      else if (c === '>') { p++; oct = Math.min(9, oct + 1); }
+      else if (c === 'l') { p++; len = readLen(len); }
+      else if (c === 'v') {
+        p++; var v = readInt();
+        if (v == null || v > 15) err(at, 'Volume must be 0 to 15.'); else vol = v;
+      } else if (c === '@') {
+        p++; var s = readInt();
+        if (s == null || s > 31) err(at, 'Instrument slot must be 0 to 31.'); else ins = s;
+      } else { err(at, 'Unknown token ' + JSON.stringify(str.charAt(p)) + '.'); p++; }
+    }
+    // Merge a rest that follows a rest so the event list stays canonical.
+    var ev = [];
+    out.forEach(function (e) { var last = ev[ev.length - 1]; if (last && e.n == null && last.n == null) last.d += e.d; else ev.push(e); });
+    return { events: ev, ticks: t, errors: errors };
+  }
+  // Lengths a tick count can be written with, longest first: plain, dotted, double dotted.
+  var LENS = (function () {
+    var out = [];
+    [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 192].forEach(function (n) {
+      var b = WHOLE / n;
+      out.push({ t: b, s: String(n) });
+      if (b % 2 === 0) out.push({ t: b * 1.5, s: n + '.' });
+      if (b % 4 === 0) out.push({ t: b * 1.75, s: n + '..' });
+    });
+    return out.sort(function (a, b) { return b.t - a.t; });
+  })();
+  function lenParts(ticks) {
+    var out = [], left = Math.round(ticks);
+    while (left > 0) { var f = null; for (var i = 0; i < LENS.length; i++) if (LENS[i].t <= left) { f = LENS[i]; break; } if (!f) break; out.push(f.s); left -= f.t; }
+    return out;
+  }
+  // serialize(events) -> mml. Gaps become rests; overlapping events are trimmed (one voice per pattern).
+  function mmlSerialize(events, opts) {
+    opts = opts || {};
+    var ev = (events || []).filter(function (e) { return e && e.d > 0; }).slice().sort(function (a, b) { return a.t - b.t; });
+    var parts = ['l8'], oct = null, vol = null, ins = null, t = 0, defLen = '8';
+    if (opts.v != null) { parts.push('v' + opts.v); vol = opts.v; }
+    function lenStr(d) { var ls = lenParts(d); return ls.map(function (s, k) { return (k ? '^' : '') + (s === defLen && !k ? '' : s); }).join(''); }
+    function emit(e, d) {
+      if (e.n != null) {
+        if (e.v != null && e.v !== vol) { parts.push('v' + e.v); vol = e.v; }
+        if (e.i != null && e.i !== ins) { parts.push('@' + e.i); ins = e.i; }
+        var o = Math.floor(e.n / 12) - 1, nm = NAMES[e.n % 12];
+        if (oct == null || Math.abs(o - oct) > 1) parts.push('o' + o); else if (o === oct + 1) parts.push('>'); else if (o === oct - 1) parts.push('<');
+        oct = o;
+        var ls = lenParts(d);
+        parts.push(nm + (ls[0] === defLen ? '' : ls[0]) + ls.slice(1).map(function (s) { return '^' + s; }).join(''));
+      } else parts.push('r' + lenStr(d));
+    }
+    ev.forEach(function (e, k) {
+      if (e.t > t) { emit({ n: null }, e.t - t); t = e.t; }
+      var next = ev[k + 1], d = next && next.t < e.t + e.d ? next.t - e.t : e.d;
+      if (e.t < t) { d -= t - e.t; if (d <= 0) return; }
+      emit(e, d); t += d;
+    });
+    if (opts.ticks && opts.ticks > t) emit({ n: null }, opts.ticks - t);
+    return parts.join(' ');
+  }
+
+  // ---------------------------------------------------------------- instruments
+  // ins: {wave pulse|tri|noise, duty [0-3 indices into 12.5 25 50 75], vol [0-15 per frame], volLoop (index or null),
+  //       release (frames), vibrato {delay frames, depth semitones, rate Hz}, arp [semitones, loops], pitch [cents, holds],
+  //       noiseMode long|short}
+  var DEFAULT_INS = {
+    p1: { wave: 'pulse', duty: [2], vol: [15, 14, 13, 12, 11], volLoop: null, release: 6, vibrato: { delay: 18, depth: 0.15, rate: 5.5 }, arp: [], pitch: [], noiseMode: 'long' },
+    p2: { wave: 'pulse', duty: [1], vol: [12, 11, 10, 9, 8], volLoop: null, release: 4, vibrato: null, arp: [], pitch: [], noiseMode: 'long' },
+    tri: { wave: 'tri', duty: [], vol: [15], volLoop: null, release: 0, vibrato: null, arp: [], pitch: [], noiseMode: 'long' },
+    noise: { wave: 'noise', duty: [], vol: [15, 12, 8, 5, 3, 1, 0], volLoop: null, release: 0, vibrato: null, arp: [], pitch: [], noiseMode: 'long' }
+  };
+  function insNorm(ins, chan) {
+    var d = DEFAULT_INS[chan] || DEFAULT_INS.p1, o = isObj(ins) ? ins : {};
+    function arr(a, lo, hi) { return Array.isArray(a) ? a.map(function (x) { return clamp(Math.round(num(x, 0)), lo, hi); }).slice(0, 256) : []; }
+    var wave = WAVES.indexOf(o.wave) >= 0 ? o.wave : d.wave;
+    var vol = arr(o.vol, 0, 15);
+    var vib = isObj(o.vibrato) ? { delay: clamp(Math.round(num(o.vibrato.delay, 0)), 0, 600), depth: clamp(num(o.vibrato.depth, 0), 0, 2), rate: clamp(num(o.vibrato.rate, 5), 0.1, 20) } : null;
+    var loop = o.volLoop == null || o.volLoop === '' ? null : Math.round(num(o.volLoop, -1));
+    return {
+      wave: wave, duty: arr(o.duty, 0, 3), vol: vol.length ? vol : [15], volLoop: loop != null && loop >= 0 && loop < vol.length ? loop : null,
+      release: clamp(Math.round(num(o.release, d.release)), 0, 240), vibrato: vib && vib.depth > 0 ? vib : null,
+      arp: arr(o.arp, -48, 48), pitch: arr(o.pitch, -4800, 4800), noiseMode: o.noiseMode === 'short' ? 'short' : 'long'
+    };
+  }
+  function envAt(ins, f) {
+    var v = ins.vol, n = v.length;
+    if (f < n) return v[f];
+    if (ins.volLoop != null) { var span = n - ins.volLoop; return v[ins.volLoop + (f - n) % span]; }
+    return v[n - 1];
+  }
+  // plan(ins, midi, vol, t0, durSec) -> {gain [[t, v]], freq [[t, hz or rate]], segments [{t0, t1, duty}], end}. Pure:
+  // the voice applies it to nodes, the tests read it directly. Gain is 0 to 1 before the channel mix.
+  function insPlan(ins, midi, vol, t0, dur, maxFrames) {
+    var nf = Math.max(1, Math.round(dur * FPS)), rel = ins.release, total = Math.min(nf + rel, maxFrames || 2400);
+    var gain = [], freq = [], segs = [], lastG = null, lastF = null, lastD = null, k = vol / 15;
+    var relFrom = envAt(ins, nf - 1) / 15 * k;
+    for (var f = 0; f < total; f++) {
+      var t = t0 + f / FPS, g;
+      if (f < nf) g = envAt(ins, f) / 15 * k; else g = rel ? relFrom * (1 - (f - nf + 1) / (rel + 1)) : 0;
+      g = Math.round(g * 10000) / 10000;
+      if (g !== lastG) { gain.push([t, g]); lastG = g; }
+      var semi = ins.arp.length ? ins.arp[f % ins.arp.length] : 0, cents = ins.pitch.length ? ins.pitch[Math.min(f, ins.pitch.length - 1)] : 0, vib = 0;
+      if (ins.vibrato && f >= ins.vibrato.delay) vib = Math.sin(2 * Math.PI * ins.vibrato.rate * (f - ins.vibrato.delay) / FPS) * ins.vibrato.depth;
+      var m = midi + semi + cents / 100 + vib, fv = ins.wave === 'noise' ? noiseRate(m) : midiHz(m);
+      fv = Math.round(fv * 1000) / 1000;
+      if (fv !== lastF) { freq.push([t, fv]); lastF = fv; }
+      if (ins.wave === 'pulse') {
+        var dI = ins.duty.length ? ins.duty[Math.min(f, ins.duty.length - 1)] : 2;
+        if (dI !== lastD && segs.length < 8) { if (segs.length) segs[segs.length - 1].t1 = t; segs.push({ t0: t, t1: null, duty: dI }); lastD = dI; }
+      }
+    }
+    var end = t0 + total / FPS;
+    gain.push([end, 0]);
+    if (!segs.length) segs.push({ t0: t0, t1: end, duty: null });
+    segs[segs.length - 1].t1 = end;
+    return { gain: gain, freq: freq, segments: segs, end: end, noteEnd: t0 + nf / FPS };
+  }
+
+  // ---------------------------------------------------------------- waves
+  function pulseCoefs(duty, n) {
+    var re = new Float32Array(n + 1), im = new Float32Array(n + 1);
+    for (var k = 1; k <= n; k++) { re[k] = Math.sin(2 * Math.PI * k * duty) / (k * Math.PI); im[k] = (1 - Math.cos(2 * Math.PI * k * duty)) / (k * Math.PI); }
+    return { real: re, imag: im };
+  }
+  // The NES triangle: 32 steps of a 4 bit ramp (15 down to 0, then 0 up to 15), as Fourier coefficients.
+  function triCoefs(n) {
+    var N = 32, x = [], re = new Float32Array(n + 1), im = new Float32Array(n + 1), k, j;
+    for (j = 0; j < N; j++) x.push(((j < 16 ? 15 - j : j - 16) / 7.5) - 1);
+    for (k = 1; k <= n; k++) { var a = 0, b = 0; for (j = 0; j < N; j++) { a += x[j] * Math.cos(2 * Math.PI * k * j / N); b += x[j] * Math.sin(2 * Math.PI * k * j / N); } re[k] = 2 * a / N; im[k] = 2 * b / N; }
+    return { real: re, imag: im };
+  }
+  // 15 bit LFSR. Long mode taps bit 1, short mode taps bit 6 (period 93).
+  function lfsr(mode, count) {
+    var out = new Float32Array(count), r = 1;
+    for (var i = 0; i < count; i++) { var fb = (r & 1) ^ ((r >> (mode === 'short' ? 6 : 1)) & 1); r = (r >> 1) | (fb << 14); out[i] = (r & 1) ? -0.8 : 0.8; }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- sfxr
+  var SFX_WAVES = ['square', 'saw', 'sine', 'noise'];
+  var SFX_CATEGORIES = ['hit', 'magic', 'ui', 'ambient', 'item', 'special'];
+  var SFX_PARAMS = [
+    { key: 'attack', label: 'Attack', min: 0, max: 1, def: 0 }, { key: 'sustain', label: 'Sustain', min: 0, max: 1, def: 0.3 },
+    { key: 'punch', label: 'Punch', min: 0, max: 1, def: 0 }, { key: 'decay', label: 'Decay', min: 0, max: 1, def: 0.4 },
+    { key: 'freq', label: 'Base frequency', min: 0, max: 1, def: 0.3 }, { key: 'minFreq', label: 'Frequency floor', min: 0, max: 1, def: 0 },
+    { key: 'slide', label: 'Slide', min: -1, max: 1, def: 0 }, { key: 'dslide', label: 'Delta slide', min: -1, max: 1, def: 0 },
+    { key: 'vibDepth', label: 'Vibrato depth', min: 0, max: 1, def: 0 }, { key: 'vibSpeed', label: 'Vibrato speed', min: 0, max: 1, def: 0 },
+    { key: 'arpMod', label: 'Arpeggio jump', min: -1, max: 1, def: 0 }, { key: 'arpSpeed', label: 'Arpeggio speed', min: 0, max: 1, def: 0 },
+    { key: 'duty', label: 'Duty', min: 0, max: 1, def: 0 }, { key: 'dutySweep', label: 'Duty sweep', min: -1, max: 1, def: 0 },
+    { key: 'lpf', label: 'Low pass', min: 0, max: 1, def: 1 }, { key: 'lpfRes', label: 'Low pass resonance', min: 0, max: 1, def: 0 },
+    { key: 'hpf', label: 'High pass', min: 0, max: 1, def: 0 }, { key: 'volume', label: 'Volume', min: 0, max: 1, def: 0.5 }
+  ];
+  function sfxNorm(p) {
+    p = isObj(p) ? p : {};
+    var o = { wave: SFX_WAVES.indexOf(p.wave) >= 0 ? p.wave : 'square' };
+    SFX_PARAMS.forEach(function (d) { o[d.key] = Math.round(clamp(num(p[d.key], d.def), d.min, d.max) * 10000) / 10000; });
+    return o;
+  }
+  // render(params, sampleRate, seed) -> Float32Array at sampleRate (synthesized at 44.1 kHz, resampled when different).
+  function sfxRender(params, sampleRate, seed) {
+    var p = sfxNorm(params), R = rng(seed || 1), out = [];
+    var fperiod = 100 / (p.freq * p.freq + 0.001), fmaxperiod = 100 / (p.minFreq * p.minFreq + 0.001);
+    var fslide = 1 - Math.pow(p.slide, 3) * 0.01, fdslide = -Math.pow(p.dslide, 3) * 0.000001;
+    var sqDuty = 0.5 - p.duty * 0.5, sqSlide = -p.dutySweep * 0.00005;
+    var arpMod = p.arpMod >= 0 ? 1 - p.arpMod * p.arpMod * 0.9 : 1 + p.arpMod * p.arpMod * 10;
+    var arpTime = 0, arpLimit = p.arpSpeed === 1 ? 0 : Math.floor(Math.pow(1 - p.arpSpeed, 2) * 20000 + 32);
+    if (p.arpMod === 0) arpLimit = 0;
+    var envLen = [Math.floor(p.attack * p.attack * 100000), Math.floor(p.sustain * p.sustain * 100000), Math.floor(p.decay * p.decay * 100000) + 10];
+    var envStage = 0, envTime = 0, envVol = 0, phase = 0, vibPhase = 0, vibSpeed = p.vibSpeed * p.vibSpeed * 0.01, vibAmp = p.vibDepth * 0.5;
+    var fltp = 0, fltdp = 0, fltw = Math.pow(p.lpf, 3) * 0.1, fltdmp = Math.min(0.8, 5 / (1 + p.lpfRes * p.lpfRes * 20) * (0.01 + fltw));
+    var fltphp = 0, flthp = p.hpf * p.hpf * 0.1, noise = [], i;
+    for (i = 0; i < 32; i++) noise.push(R() * 2 - 1);
+    var maxN = SFX_RATE * 8;
+    for (var s = 0; s < maxN; s++) {
+      if (arpLimit && ++arpTime >= arpLimit) { arpLimit = 0; fperiod *= arpMod; }
+      fslide += fdslide; fperiod *= fslide;
+      if (fperiod > fmaxperiod) { fperiod = fmaxperiod; if (p.minFreq > 0) break; }
+      var rf = fperiod;
+      if (vibAmp > 0) { vibPhase += vibSpeed; rf = fperiod * (1 + Math.sin(vibPhase) * vibAmp); }
+      var period = Math.max(8, Math.floor(rf));
+      sqDuty = clamp(sqDuty + sqSlide, 0, 0.5);
+      if (++envTime > envLen[envStage]) { envTime = 0; envStage++; if (envStage > 2) break; }
+      if (envStage === 0) envVol = envLen[0] ? envTime / envLen[0] : 1;
+      else if (envStage === 1) envVol = 1 + Math.pow(1 - envTime / Math.max(1, envLen[1]), 1) * 2 * p.punch;
+      else envVol = 1 - envTime / envLen[2];
+      var sample = 0;
+      for (var k = 0; k < 8; k++) {
+        phase++;
+        if (phase >= period) { phase %= period; if (p.wave === 'noise') for (i = 0; i < 32; i++) noise[i] = R() * 2 - 1; }
+        var fp = phase / period, sub;
+        if (p.wave === 'square') sub = fp < sqDuty ? 0.5 : -0.5;
+        else if (p.wave === 'saw') sub = 1 - fp * 2;
+        else if (p.wave === 'sine') sub = Math.sin(fp * 2 * Math.PI);
+        else sub = noise[Math.floor(phase * 32 / period) % 32];
+        var pp = fltp;
+        if (p.lpf < 1) { fltdp += (sub - fltp) * fltw; fltdp -= fltdp * fltdmp; } else { fltp = sub; fltdp = 0; }
+        fltp += fltdp;
+        fltphp += fltp - pp; fltphp -= fltphp * flthp;
+        sample += fltphp * envVol;
+      }
+      out.push(clamp(sample / 8 * p.volume * 2, -1, 1));
+    }
+    var sr = sampleRate || SFX_RATE;
+    if (sr === SFX_RATE) return Float32Array.from(out);
+    var n = Math.max(1, Math.floor(out.length * sr / SFX_RATE)), res = new Float32Array(n), r = SFX_RATE / sr;
+    for (i = 0; i < n; i++) { var x = i * r, a = Math.floor(x), fr = x - a; res[i] = (out[a] || 0) * (1 - fr) + (out[a + 1] || 0) * fr; }
+    return res;
+  }
+  // mutate(params, amount 0 to 1, seed): nudges about half the parameters by up to amount of their range.
+  function sfxMutate(params, amount, seed) {
+    var p = sfxNorm(params), R = rng(seed || 7), a = clamp(num(amount, 0.1), 0, 1);
+    SFX_PARAMS.forEach(function (d) { if (d.key === 'volume') return; if (R() < 0.5) p[d.key] = clamp(p[d.key] + (R() * 2 - 1) * a * (d.max - d.min) * 0.5, d.min, d.max); });
+    return sfxNorm(p);
+  }
+  // preset(category, seed) after sfxr's generators: hit (hurt and explosion), magic (laser and power up), ui (blip),
+  // ambient (long filtered noise), item (pickup), special (big power up with vibrato).
+  function sfxPreset(category, seed) {
+    var R = rng(seed || 1), p = { wave: 'square' };
+    function pick(a) { return a[Math.floor(R() * a.length)]; }
+    var cat = SFX_CATEGORIES.indexOf(category) >= 0 ? category : 'ui';
+    if (cat === 'hit') {
+      if (R() < 0.6) { p.wave = pick(['square', 'saw', 'noise']); p.freq = 0.2 + R() * 0.6; p.slide = -0.3 - R() * 0.4; p.sustain = R() * 0.1; p.decay = 0.1 + R() * 0.2; if (R() < 0.5) p.hpf = R() * 0.3; }
+      else { p.wave = 'noise'; p.freq = 0.15 + R() * 0.35; p.slide = -0.1 + R() * 0.3; p.sustain = 0.1 + R() * 0.25; p.decay = R() * 0.4; p.punch = 0.2 + R() * 0.6; }
+    } else if (cat === 'magic') {
+      if (R() < 0.5) { p.wave = pick(['square', 'saw', 'sine']); p.freq = 0.5 + R() * 0.5; p.minFreq = Math.max(0.2, p.freq - 0.2 - R() * 0.6); p.slide = -0.15 - R() * 0.2; p.duty = R() * 0.5; p.dutySweep = R() * 0.2; p.sustain = 0.1 + R() * 0.2; p.decay = R() * 0.4; }
+      else { p.wave = pick(['square', 'saw']); p.freq = 0.2 + R() * 0.3; p.slide = 0.1 + R() * 0.4; p.vibDepth = R() < 0.5 ? R() * 0.7 : 0; p.vibSpeed = R() * 0.6; p.sustain = R() * 0.4; p.decay = 0.1 + R() * 0.4; }
+    } else if (cat === 'ui') { p.wave = pick(['square', 'saw']); p.duty = R() * 0.6; p.freq = 0.2 + R() * 0.4; p.sustain = 0.1 + R() * 0.1; p.decay = R() * 0.2; p.hpf = 0.1; }
+    else if (cat === 'ambient') { p.wave = 'noise'; p.freq = 0.2 + R() * 0.3; p.attack = 0.3 + R() * 0.2; p.sustain = 0.7 + R() * 0.2; p.decay = 0.5 + R() * 0.3; p.lpf = 0.3 + R() * 0.3; p.volume = 0.3; }
+    else if (cat === 'item') { p.freq = 0.4 + R() * 0.5; p.sustain = R() * 0.1; p.decay = 0.1 + R() * 0.4; p.punch = 0.3 + R() * 0.3; if (R() < 0.5) { p.arpSpeed = 0.5 + R() * 0.2; p.arpMod = 0.2 + R() * 0.4; } }
+    else { p.wave = pick(['square', 'saw']); p.freq = 0.25 + R() * 0.2; p.slide = 0.15 + R() * 0.2; p.vibDepth = 0.2 + R() * 0.4; p.vibSpeed = 0.4 + R() * 0.3; p.sustain = 0.3 + R() * 0.3; p.decay = 0.3 + R() * 0.3; p.punch = 0.2; }
+    return sfxNorm(p);
+  }
+
+  // ---------------------------------------------------------------- leitmotifs
+  var MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], phrygian: [0, 1, 3, 5, 7, 8, 10], lydian: [0, 2, 4, 6, 7, 9, 11], mixolydian: [0, 2, 4, 5, 7, 9, 10], harmonic: [0, 2, 3, 5, 7, 8, 11] };
+  var KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+  var RHYTHMS = ['straight', 'dotted', 'swing', 'half', 'double'];
+  var ACCOMP = ['pad', 'arp', 'march', 'waltz', 'ostinato', 'none'];
+  var BASS = ['root', 'walking', 'pedal', 'none'];
+  var DRUMS = ['none', 'march', 'battle', 'ballad'];
+  var VARIATIONS = {
+    field: { mode: null, key: null, tempoScale: 1, rhythm: 'straight', octave: 5, lead: null, accomp: 'arp', bass: 'root', drums: 'ballad', fragment: null },
+    sorrow: { mode: 'minor', key: null, tempoScale: 0.65, rhythm: 'straight', octave: 5, lead: null, accomp: 'pad', bass: 'pedal', drums: 'none', fragment: null },
+    battle: { mode: null, key: null, tempoScale: 1.45, rhythm: 'dotted', octave: 5, lead: null, accomp: 'ostinato', bass: 'pedal', drums: 'battle', fragment: null },
+    finale: { mode: 'major', key: null, tempoScale: 0.9, rhythm: 'straight', octave: 5, lead: null, accomp: 'march', bass: 'walking', drums: 'march', fragment: null }
+  };
+  function keyOf(k) { if (typeof k === 'number' && isFinite(k)) return ((Math.round(k) % 12) + 12) % 12; var i = KEYS.indexOf(String(k)); if (i >= 0) return i; var alt = { 'Db': 1, 'D#': 3, 'Gb': 6, 'G#': 8, 'A#': 10 }[String(k)]; return alt != null ? alt : 0; }
+  // Degree tokens: an optional # or b, a digit 1 to 9 (8 and 9 are the next octave's 1 and 2), then ' for an octave up
+  // or , for an octave down, each repeatable; r is a rest. -> {tokens [{deg, acc} or null], errors}
+  function parseDegrees(s) {
+    var toks = String(s == null ? '' : s).trim().split(/\s+/).filter(Boolean), out = [], errors = [];
+    toks.forEach(function (t, i) {
+      if (t === 'r' || t === 'R') { out.push(null); return; }
+      var m = /^([#b]?)([1-9])([',]*)$/.exec(t);
+      if (!m) { errors.push({ index: i, message: 'Token ' + t + ' is not a scale degree (1 to 9, optional # or b, then \' or ,) or r.' }); out.push(null); return; }
+      var up = (m[3].match(/'/g) || []).length, dn = (m[3].match(/,/g) || []).length;
+      out.push({ deg: Number(m[2]) - 1 + 7 * (up - dn), acc: m[1] === '#' ? 1 : m[1] === 'b' ? -1 : 0 });
+    });
+    return { tokens: out, errors: errors };
+  }
+  // Durations in eighth note units (1 is an eighth, 2 a quarter, 0.5 a sixteenth, 2/3 a triplet eighth); each must come
+  // to a whole number of ticks (an eighth is 24).
+  function parseDurs(s) {
+    var toks = String(s == null ? '' : s).trim().split(/\s+/).filter(Boolean), out = [], errors = [];
+    toks.forEach(function (t, i) { var fr = /^(\d+)\/(\d+)$/.exec(t), v = fr ? Number(fr[1]) / Number(fr[2]) : Number(t), tk = v * 24; if (!(v > 0) || Math.abs(tk - Math.round(tk)) > 1e-6 || tk > WHOLE * 4) { errors.push({ index: i, message: 'Duration ' + t + ' is not a positive number of eighths in whole ticks.' }); out.push(1); } else out.push(v); });
+    return { durs: out, errors: errors };
+  }
+  function scaleMidi(scale, tonic, deg, acc) { var o = Math.floor(deg / 7), d = ((deg % 7) + 7) % 7; return tonic + 12 * o + scale[d] + (acc || 0); }
+  // Which chord (scale degree root) carries a melody degree: 1 and 3 sit on I, 4 and 6 on IV, 2, 5, and 7 on V.
+  var CHORD_FOR = [0, 4, 0, 3, 4, 3, 4];
+  function motifNotes(motif, recipe) {
+    var pd = parseDegrees(motif.degrees), pr = parseDurs(motif.durs), n = Math.min(pd.tokens.length, pr.durs.length), notes = [];
+    for (var i = 0; i < n; i++) notes.push({ tok: pd.tokens[i], u: pr.durs[i] });
+    var fr = recipe.fragment;
+    if (isObj(fr) && notes.length) {
+      var st = clamp(Math.round(num(fr.start, 0)), 0, notes.length - 1), ln = clamp(Math.round(num(fr.len, notes.length)), 1, notes.length - st), rp = clamp(Math.round(num(fr.repeat, 1)), 1, 16);
+      var part = notes.slice(st, st + ln); notes = [];
+      for (var r = 0; r < rp; r++) notes = notes.concat(part);
+    }
+    // Rhythm in ticks.
+    var ticks = notes.map(function (x) { return x.u * 24; }), rh = recipe.rhythm;
+    if (rh === 'half') ticks = ticks.map(function (t) { return t * 2; });
+    else if (rh === 'double') ticks = ticks.map(function (t) { return Math.max(6, t / 2); });
+    else if (rh === 'dotted' || rh === 'swing') {
+      for (var j = 0; j + 1 < ticks.length; j++) {
+        if (ticks[j] === ticks[j + 1] && notes[j].tok && notes[j + 1].tok && (rh === 'dotted' ? ticks[j] % 4 === 0 : ticks[j] === 24)) {
+          var pair = ticks[j] * 2;
+          ticks[j] = rh === 'dotted' ? pair * 3 / 4 : pair * 2 / 3; ticks[j + 1] = pair - ticks[j]; j++;
+        }
+      }
+    }
+    return notes.map(function (x, k) { return { tok: x.tok, d: Math.round(ticks[k]) }; });
+  }
+  // realize(motif, recipe, ins {lead, harmony, bass, kick, snare, hat}) -> track (an ordinary one).
+  function realize(motif, recipe, ins) {
+    motif = isObj(motif) ? motif : {}; ins = isObj(ins) ? ins : {};
+    var rc = {}, base = VARIATIONS.field;
+    Object.keys(base).forEach(function (k) { rc[k] = base[k]; });
+    if (isObj(recipe)) Object.keys(recipe).forEach(function (k) { if (recipe[k] !== undefined && recipe[k] !== null) rc[k] = recipe[k]; });
+    var mode = MODES[rc.mode] ? rc.mode : MODES[motif.mode] ? motif.mode : 'major', scale = MODES[mode];
+    var key = keyOf(rc.key != null ? rc.key : motif.key), oct = clamp(Math.round(num(rc.octave, 5)), 3, 7);
+    var meter = clamp(Math.round(num(motif.meter, 4)), 2, 7), bar = meter * QUARTER;
+    var tonic = (oct + 1) * 12 + key;
+    var notes = motifNotes(motif, rc), mel = [], t = 0;
+    notes.forEach(function (x) { if (x.d <= 0) return; mel.push({ t: t, d: x.d, n: x.tok ? clamp(scaleMidi(scale, tonic, x.tok.deg, x.tok.acc), 24, 108) : null, v: 12, i: null, deg: x.tok ? x.tok.deg : null }); t += x.d; });
+    var L = Math.max(bar, Math.ceil(t / bar) * bar), bars = L / bar;
+    // Chords: one per bar from the melody degree sounding at its downbeat; the last bar resolves to I, the one before
+    // it to V when the tune ends on the tonic.
+    var chords = [];
+    for (var b = 0; b < bars; b++) {
+      var at = b * bar, nt = null, q;
+      for (q = 0; q < mel.length && !nt; q++) if (mel[q].deg != null && mel[q].t <= at && mel[q].t + mel[q].d > at) nt = mel[q];
+      for (q = 0; q < mel.length && !nt; q++) if (mel[q].deg != null && mel[q].t >= at && mel[q].t < at + bar) nt = mel[q];
+      var root = nt ? CHORD_FOR[((nt.deg % 7) + 7) % 7] : 0;
+      if (b > 0 && root === chords[b - 1] && root === 0 && b % 2 === 1 && nt && ((nt.deg % 7) + 7) % 7 === 2) root = 5;
+      chords.push(root);
+    }
+    var lastDeg = null;
+    for (var z = mel.length - 1; z >= 0; z--) if (mel[z].deg != null) { lastDeg = ((mel[z].deg % 7) + 7) % 7; break; }
+    if (bars > 1) { chords[bars - 1] = 0; if (lastDeg === 0) chords[bars - 2] = 4; }
+    function tone(chord, k, o) { return clamp(scaleMidi(scale, (o + 1) * 12 + key, chord + 2 * k, 0), 24, 108); }
+    // Accompaniment on pulse 2.
+    var acc = [], ao = Math.max(3, oct - 1), style = ACCOMP.indexOf(rc.accomp) >= 0 ? rc.accomp : 'arp';
+    chords.forEach(function (ch, bi) {
+      var s0 = bi * bar, k;
+      if (style === 'pad') acc.push({ t: s0, d: bar, n: tone(ch, 1, ao), v: 7, i: null });
+      else if (style === 'arp') { var seq = [0, 1, 2, 1]; for (k = 0; k < bar / 24; k++) acc.push({ t: s0 + k * 24, d: 24, n: tone(ch, seq[k % 4], ao), v: 8, i: null }); }
+      else if (style === 'ostinato') { var os = [0, 2, 3.5, 2]; for (k = 0; k < bar / 12; k++) acc.push({ t: s0 + k * 12, d: 12, n: os[k % 4] === 3.5 ? tone(ch, 0, ao + 1) : tone(ch, os[k % 4], ao), v: 7, i: null }); }
+      else if (style === 'march' || style === 'waltz') {
+        for (k = 0; k < meter; k++) {
+          var on = style === 'waltz' ? k % 3 !== 0 : k % 2 === 1;
+          if (on) { acc.push({ t: s0 + k * QUARTER, d: 24, n: tone(ch, k % 2 ? 1 : 2, ao), v: 8, i: null }); acc.push({ t: s0 + k * QUARTER + 24, d: 24, n: null, v: 8, i: null }); }
+          else acc.push({ t: s0 + k * QUARTER, d: QUARTER, n: null, v: 8, i: null });
+        }
+      } else acc.push({ t: s0, d: bar, n: null, v: 8, i: null });
+    });
+    // Bass on the triangle.
+    var bs = [], bo = clamp(oct - 2, 2, 4), bst = BASS.indexOf(rc.bass) >= 0 ? rc.bass : 'root';
+    chords.forEach(function (ch, bi) {
+      var s0 = bi * bar, k;
+      if (bst === 'root') { var half = Math.max(QUARTER, Math.floor(meter / 2) * QUARTER); bs.push({ t: s0, d: half, n: tone(ch, 0, bo), v: 15, i: null }); if (bar - half > 0) bs.push({ t: s0 + half, d: bar - half, n: tone(ch, 2, bo), v: 15, i: null }); }
+      else if (bst === 'walking') {
+        var nx = chords[(bi + 1) % chords.length];
+        for (k = 0; k < meter; k++) { var w = k === 0 ? tone(ch, 0, bo) : k === meter - 1 ? clamp(scaleMidi(scale, (bo + 1) * 12 + key, nx - 1, 0), 24, 108) : tone(ch, k, bo); bs.push({ t: s0 + k * QUARTER, d: QUARTER, n: w, v: 15, i: null }); }
+      } else if (bst === 'pedal') { for (k = 0; k < bar / 24; k++) bs.push({ t: s0 + k * 24, d: 24, n: clamp((bo + 1) * 12 + key, 24, 108), v: 15, i: null }); }
+      else bs.push({ t: s0, d: bar, n: null, v: 15, i: null });
+    });
+    // Drums on the noise channel: slot 0 kick, 1 snare, 2 hat.
+    var dr = [], dst = DRUMS.indexOf(rc.drums) >= 0 ? rc.drums : 'none';
+    function hitAt(t0, d, s) { dr.push({ t: t0, d: d, n: s === 0 ? 62 : s === 1 ? 96 : 106, v: s === 0 ? 13 : s === 1 ? 11 : 6, i: s }); }
+    for (var bi2 = 0; bi2 < bars; bi2++) {
+      var s1 = bi2 * bar, e;
+      if (dst === 'battle') { var pat = meter === 4 ? [0, 2, 1, 2, 0, 0, 1, 2] : null; for (e = 0; e < meter * 2; e++) hitAt(s1 + e * 24, 24, pat ? pat[e] : e === 0 ? 0 : e % 2 === 0 && e % 4 === 2 ? 1 : 2); }
+      else if (dst === 'march') { for (e = 0; e < meter; e++) { if (bi2 % 4 === 3 && e === meter - 1) { for (var f2 = 0; f2 < 4; f2++) hitAt(s1 + e * QUARTER + f2 * 12, 12, 1); } else hitAt(s1 + e * QUARTER, QUARTER, e === 0 ? 0 : e % 2 === 0 ? 1 : 2); } }
+      else if (dst === 'ballad') { for (e = 0; e < meter; e++) hitAt(s1 + e * QUARTER, QUARTER, e === 0 ? 0 : 2); }
+      else dr.push({ t: s1, d: bar, n: null, v: 0, i: null });
+    }
+    var tempo = clamp(Math.round(num(motif.tempo, 120) * clamp(num(rc.tempoScale, 1), 0.25, 4)), 40, 300);
+    return {
+      kind: 'track', tempo: tempo,
+      instruments: { p1: rc.lead || ins.lead || null, p2: ins.harmony || null, tri: ins.bass || null, noise: ins.kick || null },
+      slots: [ins.kick || null, ins.snare || null, ins.hat || null],
+      patterns: { A: mmlSerialize(mel, { ticks: L }), B: mmlSerialize(acc, { ticks: L }), C: mmlSerialize(bs, { ticks: L }), D: mmlSerialize(dr, { ticks: L }) },
+      order: [['A', 'B', 'C', 'D']], loop: 0,
+      info: { mode: mode, key: KEYS[key], bars: bars, ticks: L, chords: chords }
+    };
+  }
+  // A seeded motif: two four bar phrases of eighth units, the first ending on 5 or 2, the second on 1.
+  var CELLS = [[2, 2], [1, 1, 2], [3, 1], [1, 1, 1, 1], [4], [2, 1, 1], [1, 3]];
+  function generateMotif(seed, opts) {
+    opts = opts || {};
+    var R = rng(seed), degs = [], durs = [], deg = [0, 2, 4][Math.floor(R() * 3)], meter = opts.meter || 4, barU = meter * 2;
+    function phrase(endOn) {
+      for (var b = 0; b < 2; b++) {
+        var left = barU;
+        while (left > 0) {
+          var cell = CELLS[Math.floor(R() * CELLS.length)].slice(), sum = cell.reduce(function (s, x) { return s + x; }, 0);
+          if (sum > left) cell = [left];
+          cell.forEach(function (u, k) {
+            var last = b === 1 && left - u <= 0 && k === cell.length - 1;
+            if (last) deg = endOn; else { var step = [-2, -1, -1, 1, 1, 2, 0, 3, -3][Math.floor(R() * 9)]; deg = clamp(deg + step, -2, 9); }
+            degs.push(deg); durs.push(u); left -= u;
+          });
+        }
+      }
+    }
+    phrase(R() < 0.5 ? 4 : 1); phrase(0);
+    function tok(d) { var o = d < 0 ? ',' : d >= 7 ? "'" : ''; var b = ((d % 7) + 7) % 7 + 1; return b + o; }
+    return { degrees: degs.map(tok).join(' '), durs: durs.join(' '), meter: meter, mode: opts.mode || 'major', key: opts.key != null ? opts.key : KEYS[Math.floor(R() * 12)], tempo: opts.tempo || 100 + Math.floor(R() * 36) };
+  }
+
+  // ---------------------------------------------------------------- tracks
+  // compile(track) -> {rows [{len, ch {p1: events, ...}}], errors [{pattern, pos, message}], ticks}
+  function compile(track) {
+    var pats = isObj(track && track.patterns) ? track.patterns : {}, parsed = {}, errors = [];
+    Object.keys(pats).forEach(function (k) { var r = mmlParse(pats[k]); parsed[k] = r; r.errors.forEach(function (e) { errors.push({ pattern: k, pos: e.pos, message: e.message }); }); });
+    var order = Array.isArray(track && track.order) ? track.order : [], rows = [], ticks = 0;
+    order.forEach(function (row, ri) {
+      var ch = {}, len = 0;
+      CHANNELS.forEach(function (c, ci) {
+        var key = Array.isArray(row) ? row[ci] : null;
+        if (key == null || key === '') { ch[c] = []; return; }
+        if (!parsed[key]) { errors.push({ pattern: String(key), pos: 0, message: 'Row ' + ri + ' names pattern ' + key + ', which does not exist.' }); ch[c] = []; return; }
+        ch[c] = parsed[key].events; len = Math.max(len, parsed[key].ticks);
+      });
+      if (!len) len = QUARTER;
+      rows.push({ len: len, ch: ch }); ticks += len;
+    });
+    return { rows: rows, errors: errors, ticks: ticks };
+  }
+  function secPerTick(tempo) { return 60 / (clamp(num(tempo, 120), 20, 400) * QUARTER); }
+  // duration(track) -> {once seconds for every row, loop seconds from the loop row to the end, loops}
+  function duration(track) {
+    var c = compile(track), spt = secPerTick(track && track.tempo), lp = track && track.loop, once = c.ticks * spt;
+    var loops = typeof lp === 'number' && lp >= 0 && lp < c.rows.length;
+    var loopT = loops ? c.rows.slice(lp).reduce(function (s, r) { return s + r.len; }, 0) * spt : 0;
+    return { once: once, loop: loopT, loops: loops };
+  }
+
+  // ---------------------------------------------------------------- silent element source
+  // A short 8 bit WAV of silence as a data URI, for the looping audio element that lifts iOS out of the ringer
+  // channel when navigator.audioSession does not exist. Built here so no file ships.
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  function b64(bytes) {
+    var s = '', i;
+    for (i = 0; i + 2 < bytes.length; i += 3) { var n = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]; s += B64[n >> 18 & 63] + B64[n >> 12 & 63] + B64[n >> 6 & 63] + B64[n & 63]; }
+    var r = bytes.length - i;
+    if (r === 1) { var m = bytes[i] << 16; s += B64[m >> 18 & 63] + B64[m >> 12 & 63] + '=='; }
+    else if (r === 2) { var q = (bytes[i] << 16) | (bytes[i + 1] << 8); s += B64[q >> 18 & 63] + B64[q >> 12 & 63] + B64[q >> 6 & 63] + '='; }
+    return s;
+  }
+  function silentSrc() {
+    var rate = 8000, n = 4000, bytes = [], i;
+    function str(s) { for (var k = 0; k < s.length; k++) bytes.push(s.charCodeAt(k)); }
+    function u32(v) { bytes.push(v & 255, v >> 8 & 255, v >> 16 & 255, v >>> 24 & 255); }
+    function u16(v) { bytes.push(v & 255, v >> 8 & 255); }
+    str('RIFF'); u32(36 + n); str('WAVE'); str('fmt '); u32(16); u16(1); u16(1); u32(rate); u32(rate); u16(1); u16(8); str('data'); u32(n);
+    for (i = 0; i < n; i++) bytes.push(128);
+    return 'data:audio/wav;base64,' + b64(bytes);
+  }
+
+  // ---------------------------------------------------------------- the player
+  // create(ctx, opts) -> audio. opts: {manual (no timer; call tick()), timers {setInterval, clearInterval, setTimeout},
+  // coarse (true on touch screens), lookaheadMs {desktop, mobile}, navigator, createAudioElement(), maxSfx}
+  function create(ctx, opts) {
+    opts = opts || {};
+    // Host timers are called through wrappers: a browser throws Illegal invocation when setInterval runs as a method of
+    // another object.
+    var T = opts.timers || { setInterval: function (f, ms) { return setInterval(f, ms); }, clearInterval: function (h) { clearInterval(h); }, setTimeout: function (f, ms) { return setTimeout(f, ms); } };
+    var art = { records: {} }, lookMs = opts.lookaheadMs || { desktop: 100, mobile: 175 }, coarse = !!opts.coarse;
+    var master = ctx.createGain(), musicBus = ctx.createGain(), sfxBus = ctx.createGain();
+    musicBus.connect(master); sfxBus.connect(master); master.connect(ctx.destination);
+    var vols = { music: 0.8, sfx: 0.9, muted: false };
+    function applyVol() { var t = ctx.currentTime; master.gain.setValueAtTime(vols.muted ? 0 : 1, t); musicBus.gain.setValueAtTime(vols.music, t); sfxBus.gain.setValueAtTime(vols.sfx * SFX_TRIM, t); }
+    applyVol();
+    var waves = null, noiseBuf = {}, sfxCache = {}, sfxVoices = [], unlocked = false, silentEl = null, timer = null, disposed = false;
+    var play = null, errors = [], recent = { p1: [], p2: [], tri: [], noise: [] }, stats = { notes: 0, sfx: 0, ticks: 0, rows: 0 };
+    function rec(id) { var p = typeof id === 'string' ? id.slice(0, 4) : null, m = p && art.records && art.records[p]; return m && isObj(m[id]) ? m[id] : null; }
+    function lookahead() { return Math.max(0.03, num(coarse ? lookMs.mobile : lookMs.desktop, 100) / 1000); }
+    function ensureWaves() {
+      if (waves) return waves;
+      waves = { pulse: DUTIES.map(function (d) { var c = pulseCoefs(d, 48); return ctx.createPeriodicWave(c.real, c.imag); }), tri: (function () { var c = triCoefs(32); return ctx.createPeriodicWave(c.real, c.imag); })() };
+      return waves;
+    }
+    function noiseBuffer(mode) {
+      if (noiseBuf[mode]) return noiseBuf[mode];
+      var data = lfsr(mode, mode === 'short' ? 93 : 32767), buf = ctx.createBuffer(1, data.length, SFX_RATE);
+      buf.getChannelData(0).set(data);
+      return (noiseBuf[mode] = buf);
+    }
+
+    // ---- one note on one channel
+    // st holds the last note per channel for one playback, so a crossfade never cuts the other track's notes.
+    function voice(chan, insRec, ev, t0, dur, dest, st) {
+      var ins = insNorm(insRec, chan);
+      if (chan === 'tri') ins.wave = 'tri'; else if (chan === 'noise') ins.wave = 'noise'; else ins.wave = 'pulse';
+      var pl = insPlan(ins, ev.n, ev.v == null ? 12 : ev.v, t0, dur);
+      var prev = st[chan];
+      if (prev && prev.end > t0) { try { prev.g.gain.cancelScheduledValues(t0); prev.g.gain.setValueAtTime(0, t0); } catch (e) { /* ok */ } }
+      var g = ctx.createGain(), mix = MIX[chan];
+      g.gain.setValueAtTime(0, Math.max(0, t0 - 0.001));
+      pl.gain.forEach(function (x) { g.gain.setValueAtTime(x[1] * mix, x[0]); });
+      g.connect(dest);
+      var W = ensureWaves();
+      pl.segments.forEach(function (sg, si) {
+        var src;
+        if (ins.wave === 'noise') { src = ctx.createBufferSource(); src.buffer = noiseBuffer(ins.noiseMode); src.loop = true; }
+        else { src = ctx.createOscillator(); src.setPeriodicWave(ins.wave === 'tri' ? W.tri : W.pulse[sg.duty == null ? 2 : sg.duty]); }
+        var param = ins.wave === 'noise' ? src.playbackRate : src.frequency, first = pl.freq[0][1];
+        pl.freq.forEach(function (x) { if (x[0] <= sg.t0) first = x[1]; });
+        param.setValueAtTime(first, sg.t0);
+        pl.freq.forEach(function (x) { if (x[0] > sg.t0 && x[0] < sg.t1) param.setValueAtTime(x[1], x[0]); });
+        src.connect(g);
+        src.start(sg.t0); src.stop(si === pl.segments.length - 1 ? sg.t1 + 0.01 : sg.t1);
+      });
+      st[chan] = { g: g, end: pl.end };
+      stats.notes++;
+      var rl = recent[chan]; rl.push({ n: ev.n, t0: t0, t1: pl.noteEnd, v: ev.v }); if (rl.length > 24) rl.shift();
+      return pl;
+    }
+
+    // ---- the order list player
+    function insFor(trk, chan, slot) {
+      var id = slot != null && Array.isArray(trk.slots) ? trk.slots[slot] : null;
+      if (!id && isObj(trk.instruments)) id = trk.instruments[chan];
+      return (id && rec(id)) || null;
+    }
+    function startTrack(trk, meta, o) {
+      var c = compile(trk);
+      if (!c.rows.length) return null;
+      var g = ctx.createGain(), t0 = ctx.currentTime + 0.06, fade = Math.max(0, num(o.fadeInMs, 0)) / 1000;
+      g.gain.setValueAtTime(fade ? 0 : 1, t0);
+      if (fade) g.gain.linearRampToValueAtTime(1, t0 + fade);
+      g.connect(musicBus);
+      var lp = typeof trk.loop === 'number' && trk.loop >= 0 && trk.loop < c.rows.length ? trk.loop : null;
+      if (o.loop === false) lp = null;
+      var p = { id: meta.id || null, name: meta.name || '', role: meta.role || null, track: trk, c: c, g: g, spt: secPerTick(trk.tempo), row: 0, rowStart: t0, cur: { p1: 0, p2: 0, tri: 0, noise: 0 }, chan: {}, loop: lp, ended: false, startedAt: t0, passes: 0, onEnd: o.onEnd || null };
+      c.errors.forEach(function (e) { errors.push((meta.name || 'track') + ' ' + e.pattern + ': ' + e.message); if (errors.length > 20) errors.shift(); });
+      return p;
+    }
+    function schedule(p, horizon) {
+      var guard = 0;
+      while (!p.ended && guard++ < 512) {
+        var row = p.c.rows[p.row], done = true;
+        CHANNELS.forEach(function (ch) {
+          var evs = row.ch[ch];
+          while (p.cur[ch] < evs.length) {
+            var e = evs[p.cur[ch]], at = p.rowStart + e.t * p.spt;
+            if (at >= horizon) { done = false; break; }
+            if (e.n != null) voice(ch, insFor(p.track, ch, e.i), e, at, e.d * p.spt, p.g, p.chan);
+            p.cur[ch]++;
+          }
+        });
+        var rowEnd = p.rowStart + row.len * p.spt;
+        if (!done || rowEnd >= horizon) break;
+        p.rowStart = rowEnd; p.row++; stats.rows++;
+        p.cur = { p1: 0, p2: 0, tri: 0, noise: 0 };
+        if (p.row >= p.c.rows.length) {
+          p.passes++;
+          if (p.loop != null) p.row = p.loop;
+          else { p.ended = true; p.endAt = rowEnd; }
+        }
+      }
+    }
+    function tick() {
+      if (disposed) return;
+      stats.ticks++;
+      var horizon = ctx.currentTime + lookahead();
+      if (play && !play.ended) schedule(play, horizon);
+      if (play && play.ended && play.endAt != null && ctx.currentTime >= play.endAt + 0.25) {
+        var fn = play.onEnd; play.finished = true;
+        var old = play; play = null; old.g.disconnect && old.g.disconnect();
+        if (fn) try { fn(); } catch (e) { /* ok */ }
+      }
+    }
+    function startTimer() { if (timer == null && !opts.manual) timer = T.setInterval(tick, 25); }
+    function fadeOut(p, ms) {
+      if (!p) return;
+      var t = ctx.currentTime, f = Math.max(0.005, num(ms, 0) / 1000);
+      p.ended = true; p.stopped = true;
+      try { p.g.gain.cancelScheduledValues(t); p.g.gain.setValueAtTime(p.g.gain.value == null ? 1 : p.g.gain.value, t); p.g.gain.linearRampToValueAtTime(0, t + f); } catch (e) { /* ok */ }
+      var g = p.g;
+      if (T.setTimeout) T.setTimeout(function () { try { g.disconnect(); } catch (e) { /* ok */ } }, f * 1000 + 300);
+    }
+    var api = {
+      version: VERSION,
+      ctx: ctx,
+      // Call inside a pointerup or click handler.
+      unlock: function () {
+        try { if (ctx.state === 'suspended' && ctx.resume) ctx.resume(); } catch (e) { /* ok */ }
+        try { var b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); } catch (e) { /* ok */ }
+        var nav = opts.navigator;
+        if (nav && nav.audioSession) { try { nav.audioSession.type = 'playback'; } catch (e) { /* ok */ } }
+        else if (!silentEl && typeof opts.createAudioElement === 'function') {
+          try { silentEl = opts.createAudioElement(); silentEl.src = silentSrc(); silentEl.loop = true; silentEl.volume = 0.0001; var pr = silentEl.play && silentEl.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) { silentEl = null; }
+        }
+        unlocked = true;
+        startTimer();
+        return true;
+      },
+      load: function (a) {
+        art = isObj(a) ? a : { records: {} };
+        // The art namespace's lookahead applies unless the host passed its own to create().
+        if (!opts.lookaheadMs && isObj(art.settings) && isObj(art.settings.lookaheadMs)) lookMs = art.settings.lookaheadMs;
+        sfxCache = {};
+        return api;
+      },
+      playTrack: function (idOrTrack, o) {
+        o = o || {};
+        var r = typeof idOrTrack === 'string' ? rec(idOrTrack) : idOrTrack;
+        if (!isObj(r) || r.kind !== 'track') return false;
+        if (play && !o.keep) fadeOut(play, o.crossfadeMs == null ? 250 : o.crossfadeMs);
+        var p = startTrack(r, { id: r.id, name: r.name, role: o.role || null }, o);
+        if (!p) return false;
+        play = p;
+        startTimer();
+        schedule(play, ctx.currentTime + lookahead());
+        return true;
+      },
+      // The first track whose subject is role music:<key>.
+      trackForRole: function (key) {
+        var m = art.records && art.records['mus_'] || {}, ks = Object.keys(m).sort();
+        for (var i = 0; i < ks.length; i++) { var r = m[ks[i]]; if (isObj(r) && r.kind === 'track' && r.subject && r.subject.ref === 'music:' + key) return r; }
+        return null;
+      },
+      playRole: function (key, o) {
+        o = o || {};
+        var r = api.trackForRole(key);
+        if (!r) return false;
+        if (play && !play.ended && play.id === r.id && !o.restart) return true;
+        return api.playTrack(r, Object.assign({}, o, { role: key }));
+      },
+      stop: function (fadeMs) { if (play) { fadeOut(play, fadeMs || 0); play = null; } return true; },
+      // playSfx(id or params, {volume, rate, seed}) renders once per parameter set and plays the cached buffer.
+      playSfx: function (idOrParams, o) {
+        o = o || {};
+        var r = typeof idOrParams === 'string' ? rec(idOrParams) : null, params = r ? r.params : idOrParams;
+        if (!isObj(params)) return false;
+        var seed = num(o.seed, r ? (r.seed >>> 0) || 1 : 1), key = canon(sfxNorm(params)) + '|' + seed, buf = sfxCache[key];
+        if (!buf) {
+          var data = sfxRender(params, SFX_RATE, seed);
+          buf = ctx.createBuffer(1, Math.max(1, data.length), SFX_RATE);
+          buf.getChannelData(0).set(data);
+          var ks = Object.keys(sfxCache); if (ks.length > 96) delete sfxCache[ks[0]];
+          sfxCache[key] = buf;
+        }
+        var s = ctx.createBufferSource(), g = ctx.createGain(), t = ctx.currentTime;
+        s.buffer = buf;
+        if (o.rate) s.playbackRate.setValueAtTime(clamp(num(o.rate, 1), 0.25, 4), t);
+        g.gain.setValueAtTime(clamp(num(o.volume, 1), 0, 2), t);
+        s.connect(g); g.connect(sfxBus);
+        s.start(t);
+        sfxVoices.push({ s: s, end: t + buf.length / SFX_RATE });
+        sfxVoices = sfxVoices.filter(function (v) { return v.end > t; });
+        var max = opts.maxSfx || 8;
+        while (sfxVoices.length > max) { var old = sfxVoices.shift(); try { old.s.stop(t); } catch (e) { /* ok */ } }
+        stats.sfx++;
+        return true;
+      },
+      setVolume: function (v) {
+        if (isObj(v)) { if (v.music != null) vols.music = clamp(num(v.music, 0.8), 0, 1); if (v.sfx != null) vols.sfx = clamp(num(v.sfx, 0.9), 0, 1); if (v.muted != null) vols.muted = !!v.muted; }
+        applyVol();
+        return { music: vols.music, sfx: vols.sfx, muted: vols.muted };
+      },
+      suspend: function () { try { if (ctx.suspend) ctx.suspend(); } catch (e) { /* ok */ } },
+      resume: function () { try { if (ctx.resume) ctx.resume(); } catch (e) { /* ok */ } },
+      attachLifecycle: function (doc) {
+        if (!doc || !doc.addEventListener) return false;
+        doc.addEventListener('visibilitychange', function () { if (doc.hidden) api.suspend(); else api.resume(); });
+        return true;
+      },
+      dispose: function () {
+        disposed = true;
+        if (timer != null) { T.clearInterval(timer); timer = null; }
+        if (play) { fadeOut(play, 0); play = null; }
+        sfxVoices.forEach(function (v) { try { v.s.stop(); } catch (e) { /* ok */ } });
+        sfxVoices = [];
+        if (silentEl) { try { silentEl.pause(); } catch (e) { /* ok */ } silentEl = null; }
+        try { master.disconnect(); } catch (e) { /* ok */ }
+      },
+      tick: tick,
+      // What is playing now: the track, the row, and the note each channel sounds at this moment.
+      state: function () {
+        var t = ctx.currentTime, chans = {};
+        CHANNELS.forEach(function (c) { var hit = null; recent[c].forEach(function (x) { if (x.t0 <= t && t < x.t1) hit = x; }); chans[c] = hit ? { n: hit.n, v: hit.v } : null; });
+        var pos = null;
+        if (play) { var el = Math.max(0, t - play.startedAt); pos = { row: play.row, passes: play.passes, seconds: el }; }
+        return { version: VERSION, unlocked: unlocked, ctxState: ctx.state || 'running', playing: play ? { id: play.id, name: play.name, role: play.role, ended: !!play.ended } : null, position: pos, channels: chans, volume: { music: vols.music, sfx: vols.sfx, muted: vols.muted }, lookaheadMs: Math.round(lookahead() * 1000), errors: errors.slice(), stats: { notes: stats.notes, sfx: stats.sfx, ticks: stats.ticks, rows: stats.rows }, timer: timer != null };
+      }
+    };
+    return api;
+  }
+
+  return Object.freeze({
+    version: VERSION, WHOLE: WHOLE, QUARTER: QUARTER, FPS: FPS, SFX_RATE: SFX_RATE, CHANNELS: CHANNELS, WAVES: WAVES, DUTIES: DUTIES, MIX: MIX,
+    create: create,
+    mml: Object.freeze({ parse: mmlParse, serialize: mmlSerialize, lengths: lenParts }),
+    instrument: Object.freeze({ DEFAULTS: DEFAULT_INS, normalize: insNorm, plan: insPlan, envAt: envAt }),
+    waves: Object.freeze({ pulse: pulseCoefs, tri: triCoefs, lfsr: lfsr, noiseRate: noiseRate, midiHz: midiHz }),
+    sfxr: Object.freeze({ WAVES: SFX_WAVES, CATEGORIES: SFX_CATEGORIES, PARAMS: SFX_PARAMS, normalize: sfxNorm, render: sfxRender, mutate: sfxMutate, preset: sfxPreset }),
+    motif: Object.freeze({ MODES: MODES, KEYS: KEYS, RHYTHMS: RHYTHMS, ACCOMP: ACCOMP, BASS: BASS, DRUMS: DRUMS, VARIATIONS: VARIATIONS, parseDegrees: parseDegrees, parseDurs: parseDurs, realize: realize, generate: generateMotif, keyOf: keyOf }),
+    track: Object.freeze({ compile: compile, duration: duration, secPerTick: secPerTick }),
+    util: Object.freeze({ rng: rng, hash32: hash32, canon: canon, clamp: clamp }),
+    silentSrc: silentSrc
+  });
+})();
+// === ENGINE:AUDIO END ===
 // === ART:PALETTE BEGIN ===
 (function () {
   'use strict';
@@ -9563,10 +10475,11 @@ var ENGINE_RENDER = (function () {
       else if (h.key === 'dpad') { touchUi.pressed.dpad = h.dir || true; touchUi.last = 'pad ' + (h.dir || 'center'); }
       else { touchUi.pressed[h.key] = true; touchUi.last = 'button ' + h.key.toUpperCase(); }
       out.textContent = 'Last input: ' + touchUi.last;
+      if (ART.audio && touchUi.last !== touchUi.sounded) { touchUi.sounded = touchUi.last; ART.audio.cue('ui', h.key === 'a' ? 'confirm' : h.key === 'b' ? 'cancel' : h.key === 'menu' ? 'confirm' : 'move'); }
     }
     st.cv.addEventListener('pointerdown', function (e) { if (st.cv.setPointerCapture) try { st.cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } press(e); e.preventDefault(); });
     st.cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') press(e); });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { st.cv.addEventListener(n, function () { touchUi.pressed = {}; }); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { st.cv.addEventListener(n, function () { touchUi.pressed = {}; touchUi.sounded = null; }); });
     p.appendChild(st.wrap); p.appendChild(out);
     p.appendChild(colorRow(tk, 'touch'));
     var ctl = el('div', 'a7-ctl');
@@ -9582,7 +10495,14 @@ var ENGINE_RENDER = (function () {
       labs.appendChild(textField(x[1] + ' label', tk.labels[x[0]], x[0] === 'menu' ? '=' : x[0].toUpperCase(), function (v) { tk.labels[x[0]] = String(v).slice(0, 2) || null; tk.origin = 'user'; touch('ui-touch'); }));
     });
     p.appendChild(labs);
-    p.appendChild(el('p', 'muted a7-small', 'Menu sounds (move, confirm, cancel, error) link here in Phase 6. Turn the skin on in Playtest, Test room, to walk with it.'));
+    // Menu sounds: each links an sfx_ record; empty plays the cue library's sound of the same name.
+    var snd = el('div', 'a7-ctl'), sounds = ART.audio ? ART.audio.sounds(b) : [];
+    tk.sfx = tk.sfx || {};
+    [['move', 'Move sound'], ['confirm', 'Confirm sound'], ['cancel', 'Cancel sound'], ['error', 'Error sound']].forEach(function (x) {
+      snd.appendChild(W.select(x[1], tk.sfx[x[0]] || '', [['', 'Default (' + x[0] + ' cue)']].concat(sounds.map(function (r) { return [r.id, r.name]; })), function (v) { tk.sfx[x[0]] = v || null; tk.origin = 'user'; touch('ui-touch'); if (ART.audio) ART.audio.cue('ui', x[0]); }));
+    });
+    p.appendChild(snd);
+    p.appendChild(el('p', 'muted a7-small', 'Pressing the controls in the preview plays these sounds. Turn the skin on in Playtest, Test room, to walk with it.'));
   }
   function viewTitle(host) {
     late();
@@ -11488,7 +12408,11 @@ var ENGINE_RENDER = (function () {
   var S = ART.sprites, P = ART.palette, M = ART.motion, TL = ART.tiles, W = ART.ui;
   ART.WS = ART.WS || {};
   var SUBS = [['room', 'Test room'], ['battle', 'Battle'], ['window', 'Window preview']];
-  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false };
+  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false, sound: false };
+  // Sound in the test room (ART:AUDIO loads later, so it is looked up when used): field music, footsteps, and the
+  // damage and encounter cues.
+  function sfx(kind, id) { if (ui.sound && ART.audio) ART.audio.cue(kind, id); }
+  function fieldMusic(b) { var f = ART.musicRoles(b).filter(function (r) { return r.key.indexOf('field:') === 0; })[0]; return f ? f.key : 'town'; }
   var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
   var STEP_MS = 190;
@@ -11545,8 +12469,9 @@ var ENGINE_RENDER = (function () {
     var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null, pressed: {} };
     var EU = ER.ui, tkRec = ART.iface ? ART.iface.get(b, 'touch') : null, tkLayout = EU.touch.layout(ART.iface ? ART.iface.scheme(b, tkRec) : 'dpad', R.w, R.h, tkRec || {});
     var walker = createWalker(b.art, map, map.start, { arrive: function (w, flags) {
-      if (flags & ET.FLAGS.damage) { st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
-      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
+      if (w.steps % 2 === 0) sfx('sfx', 'step');
+      if (flags & ET.FLAGS.damage) { sfx('sfx', 'hurt'); st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
+      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { sfx('ui', 'ready'); st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
       hud();
     } });
     room = { map: map, walker: walker, state: st };
@@ -11560,6 +12485,7 @@ var ENGINE_RENDER = (function () {
     if (wovs.length) ctl.appendChild(W.select('Weather', ui.weather, [['', 'None']].concat(wovs.map(function (o) { return [o.id, o.name.replace(/ overlay$/, '')]; })), function (v) { ui.weather = v; repaint(); }));
     ctl.appendChild(W.toggle('Show flags', ui.flags, function (on) { ui.flags = on; }));
     ctl.appendChild(W.toggle('Touch skin', ui.touch, function (on) { ui.touch = on; st.pressed = {}; }));
+    ctl.appendChild(W.toggle('Sound', ui.sound, function (on) { ui.sound = on; if (!ART.audio) return; if (on) ART.audio.playRole(fieldMusic(cur())); else ART.audio.stop(300); }));
     ctl.appendChild(W.button('New world', 'spark', 'btn-ghost', function () { ui.seed = (ui.seed * 7 + 13) % 100000 + 1; repaint(); }));
     panel.appendChild(ctl);
 
@@ -11612,7 +12538,7 @@ var ENGINE_RENDER = (function () {
       if (h.key === 'tap') { aim(e); return; }
       if (h.key === 'dpad' || h.key === 'stick') { st.held = h.dir || null; st.pressed[h.key] = h.key === 'stick' ? { vx: h.vx, vy: h.vy } : (h.dir || true); return; }
       st.held = null; st.pressed[h.key] = true;
-      if (st.lastBtn !== h.key) { st.lastBtn = h.key; say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
+      if (st.lastBtn !== h.key) { st.lastBtn = h.key; sfx('ui', h.key === 'b' ? 'cancel' : 'confirm'); say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
     }
     cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); if (ui.touch) skin(e); else aim(e); e.preventDefault(); });
     cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (ui.touch) { if (st.held !== null || e.buttons || Object.keys(st.pressed).length) skin(e); } else if (st.held !== null || e.buttons) aim(e); } });
@@ -11643,7 +12569,8 @@ var ENGINE_RENDER = (function () {
     }
     hud();
     var lastCell = '';
-    var poll = setInterval(function () { if (!cv.isConnected) { clearInterval(poll); return; } var k = walker.x + ',' + walker.y + (walker.blocked ? '!' : ''); if (k !== lastCell) { lastCell = k; hud(); } }, 120);
+    if (ui.sound && ART.audio) ART.audio.playRole(fieldMusic(b));
+    var poll = setInterval(function () { if (!cv.isConnected) { clearInterval(poll); if (ui.sound && ART.audio && !document.querySelector('.a7-room-cv')) ART.audio.stop(300); return; } var k = walker.x + ',' + walker.y + (walker.blocked ? '!' : ''); if (k !== lastCell) { lastCell = k; hud(); } }, 120);
 
     var legend = el('p', 'muted a7-small', esc('Map ' + map.w + ' by ' + map.h + ' cells from seed ' + ui.seed + '. Flag colors: red blocked, blue swimmable (blocked on foot), green encounters, amber damage floor. The beam over the house door and the arch over the ruin door are above layer tiles: the walker passes under them.'));
     host.appendChild(legend);
@@ -12236,7 +13163,14 @@ var ENGINE_RENDER = (function () {
   function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(function (r) { return U.isObj(r) && r.id; }); }
   function chapters(b) { return (b.charter && b.charter.sections && Array.isArray(b.charter.sections.chapters)) ? b.charter.sections.chapters : []; }
   var cueLog = [];
-  function cue(kind, id) { cueLog.push(kind + ':' + id); if (cueLog.length > 10) cueLog.shift(); }
+  // Every presenter cue is logged for the chips under the stage and handed to ART:AUDIO, which plays it.
+  function cue(kind, id, opts) { cueLog.push(kind + ':' + id); if (cueLog.length > 10) cueLog.shift(); if (ART.audio) ART.audio.cue(kind, id, opts); }
+  // Battle music: the boss role when any foe in the troop is a boss, else battle.
+  function battleRole(b, troopId) {
+    var tr = troopId && b.rules && b.rules.trp_ ? b.rules.trp_[troopId] : null, enm = b.rules && b.rules.enm_ || {};
+    var boss = tr && Array.isArray(tr.members) && tr.members.some(function (m) { return m && enm[m.enm] && enm[m.enm].isBoss; });
+    return boss ? 'boss' : 'battle';
+  }
 
   // ---------------------------------------------------------------- the engine panel
   function enginePanel(host, repaint) {
@@ -12430,12 +13364,12 @@ var ENGINE_RENDER = (function () {
     stagePanel.appendChild(bar);
     var info = el('div', 'a7-room-hud'); info.setAttribute('aria-live', 'polite');
     stagePanel.appendChild(info);
-    var cues = el('div', 'a7-cues'); cues.setAttribute('aria-label', 'Sound cues (Phase 6 plays them)');
+    var cues = el('div', 'a7-cues'); cues.setAttribute('aria-label', 'Sound cues');
     stagePanel.appendChild(cues);
     host.appendChild(stagePanel);
     var lastInfo = '', lastCues = '';
     var poll = setInterval(function () {
-      if (!cv.isConnected || !live || live.cv !== cv) { clearInterval(poll); return; }
+      if (!cv.isConnected || !live || live.cv !== cv) { clearInterval(poll); if (!cv.isConnected && ART.audio && !(live && live.cv && live.cv.isConnected)) ART.audio.stop(400); return; }
       if (menu) menu.poll();
       var txt = live.describe();
       if (txt !== lastInfo) { lastInfo = txt; info.innerHTML = txt; }
@@ -12446,12 +13380,13 @@ var ENGINE_RENDER = (function () {
   // start(b) -> {P, step(dt), describe(), sess?}
   function start(b) {
     cueLog = [];
+    if (ART.audio && ART.audio.player()) ART.audio.cue('music', ui.mode === 'battle' ? battleRole(b, ui.troopId) : 'battle');
     if (ui.mode === 'demo') {
       var sc = B.script(b), pc = B.presenterConfig(b, sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 }), P0 = ER.createPresenter(pc);
       var player = B.playScript(P0, sc), rest = 0, o = { P: P0, script: sc };
       o.step = function (dt) {
         player.step(dt);
-        if (player.done()) { rest += dt; if (rest > 1800) { cueLog = []; var P1 = ER.createPresenter(B.presenterConfig(cur(), sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 })); o.P = P1; player = B.playScript(P1, sc); rest = 0; } }
+        if (player.done()) { rest += dt; if (rest > 1800) { cueLog = []; if (ART.audio && ART.audio.player()) ART.audio.cue('music', 'battle'); var P1 = ER.createPresenter(B.presenterConfig(cur(), sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 })); o.P = P1; player = B.playScript(P1, sc); rest = 0; } }
       };
       o.describe = function () { var s = o.P.stats(); return '<span class="muted a7-small">Scripted demo, ' + player.fed + ' of ' + sc.feeds.length + ' advances shown, ' + s.beats + ' beats. It loops. No engine is involved: the events are written in ENGINE_BATTLE\'s shapes from your own records.</span>'; };
       return o;
@@ -12495,7 +13430,7 @@ var ENGINE_RENDER = (function () {
     var items = ['Items', 'Magic', 'Equip', 'Status', 'Save'], prem = (b.charter.sections && b.charter.sections.premise) || {};
     var lineText = prem.premise || 'A small company of travelers sets out at dawn.';
     var panel = el('section', 'panel');
-    panel.appendChild(el('p', 'muted', esc('The window frame, font, and cursor at ' + R.w + ' by ' + R.h + '. Arrow keys or a tap on the menu move the cursor. Edit them on the Interface tab.')));
+    panel.appendChild(el('p', 'muted', esc('The window frame, font, and cursor at ' + R.w + ' by ' + R.h + '. Arrow keys or a tap on the menu move the cursor; Enter confirms and Escape cancels, with the menu sounds. Edit them on the Interface and Sound tabs.')));
     var wrap = el('div', 'a7-bt-stage');
     var cv = M.stage(R.w, R.h, scale(), function (ctx, t, dt) {
       wp.openT += dt;
@@ -12533,13 +13468,19 @@ var ENGINE_RENDER = (function () {
       }
     }, 'Window preview: a menu with a cursor, a party window, and a dialogue window.');
     cv.classList.add('a7-bt-cv'); cv.tabIndex = 0;
-    function move(d) { wp.cursor = (wp.cursor + d + items.length) % items.length; }
-    cv.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 's') { move(1); e.preventDefault(); } else if (e.key === 'ArrowUp' || e.key === 'w') { move(-1); e.preventDefault(); } });
+    function move(d) { wp.cursor = (wp.cursor + d + items.length) % items.length; if (ART.audio) ART.audio.cue('ui', 'move'); }
+    cv.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 's') { move(1); e.preventDefault(); } else if (e.key === 'ArrowUp' || e.key === 'w') { move(-1); e.preventDefault(); }
+      else if ((e.key === 'Enter' || e.key === ' ') && ART.audio) { ART.audio.cue('ui', wp.cursor === items.length - 1 ? 'error' : 'confirm'); e.preventDefault(); }
+      else if ((e.key === 'Escape' || e.key === 'Backspace') && ART.audio) { ART.audio.cue('ui', 'cancel'); e.preventDefault(); }
+    });
     cv.addEventListener('pointerdown', function (e) { var r = cv.getBoundingClientRect(), ly = (e.clientY - r.top) / (r.height || 1) * R.h; move(ly < R.h / 2 ? -1 : 1); cv.focus(); });
     wrap.appendChild(cv); panel.appendChild(wrap);
     var row = el('div', 'btn-row');
     row.appendChild(W.button('Up', 'up', '', function () { move(-1); }));
     row.appendChild(W.button('Down', 'down', '', function () { move(1); }));
+    row.appendChild(W.button('Confirm', 'check', '', function () { if (ART.audio) ART.audio.cue('ui', wp.cursor === items.length - 1 ? 'error' : 'confirm'); }));
+    row.appendChild(W.button('Cancel', 'x', 'btn-ghost', function () { if (ART.audio) ART.audio.cue('ui', 'cancel'); }));
     row.appendChild(W.button('Replay opening', 'spark', 'btn-ghost', function () { wp.openT = 0; cv.restart(); }));
     panel.appendChild(row);
     host.appendChild(panel);
@@ -12551,6 +13492,1125 @@ var ENGINE_RENDER = (function () {
   ART.WS.battle = { ui: ui, live: function () { return live; }, reset: function () { live = null; }, start: start, cues: function () { return cueLog.slice(); } };
 })();
 // === WS:BATTLE END ===
+// === ART:AUDIO BEGIN ===
+(function () {
+  'use strict';
+  // Sound as records, and the one audio player this forge owns.
+  //   ins_  instruments for the four voices {wave, duty, vol, volLoop, release, vibrato, arp, pitch, noiseMode}, role
+  //         ins:<key> for the default library.
+  //   sfx_  sound effects {params (sfxr), category, lastMutate}. Role sfx:<cue> for the cue library the presenter and
+  //         the menus fire, subject element <key> for each Charter element's spell sound, subject abl <id> for each ability.
+  //   mus_  motifs {kind motif, degrees, durs, meter, mode, key, tempo, variations} with subject chr <id> or role
+  //         motif:theme and motif:villain; tracks {kind track, tempo, instruments, slots, patterns, order, loop,
+  //         derivedFrom {motif, variation, recipe}} with role music:<role key>, one per music role.
+  // ENGINE_AUDIO plays them; this fence makes them (Quick Build), checks them (art.audio), resolves presenter cues to
+  // sounds, and keeps one AudioContext that is created inside the first tap or key press.
+  var U = Kit.util, EA = ENGINE_AUDIO, EM = EA.motif, H = ENGINE_RENDER.util.hash32;
+  var A = ART.audio = {};
+  function cur() { return Kit.bundle.current(); }
+  function bump(report, k) { report[k] = (report[k] || 0) + 1; }
+  var KEEP = { user: 1, claude: 1 };
+  function kept(r) { return !!(r && KEEP[r.origin]); }
+  A.isKept = kept;
+  function retired(b) { ART.ensure(b); var st = b.art.settings; if (!Array.isArray(st.retired)) st.retired = []; return st.retired; }
+  function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).sort().map(function (k) { return m[k]; }).filter(function (r) { return U.isObj(r) && r.id; }); }
+  function elements(b) { var r = b.charter && b.charter.ruleset; return r && Array.isArray(r.elements) ? r.elements.filter(function (e) { return U.isObj(e) && e.key; }) : []; }
+  function bundleSeed(b) { return H((b.kit && b.kit.bundleId) || 'bundle'); }
+  function same(a, b) { return U.canonical(a) === U.canonical(b); }
+
+  // ---------------------------------------------------------------- lookups
+  A.instruments = function (b) { return ART.records.list('ins_', b || cur()); };
+  A.sounds = function (b) { return ART.records.list('sfx_', b || cur()); };
+  A.music = function (b) { return ART.records.list('mus_', b || cur()); };
+  A.motifs = function (b) { return A.music(b).filter(function (r) { return r.kind === 'motif'; }); };
+  A.tracks = function (b) { return A.music(b).filter(function (r) { return r.kind === 'track'; }); };
+  A.insFor = function (b, key) { return ART.bySubject('ins_', 'role', 'ins:' + key, b || cur()); };
+  A.cueSfx = function (b, cue) { return ART.bySubject('sfx_', 'role', 'sfx:' + cue, b || cur()); };
+  A.elementSfx = function (b, key) { return ART.bySubject('sfx_', 'element', key, b || cur()); };
+  A.abilitySfx = function (b, id) { return ART.bySubject('sfx_', 'abl', id, b || cur()); };
+  A.motifFor = function (b, kind, ref) { return A.motifs(b || cur()).filter(function (r) { return r.subject && r.subject.kind === kind && r.subject.ref === ref; })[0] || null; };
+  // The first track for a role, in ID order (the same rule ENGINE_AUDIO's playRole follows).
+  A.trackFor = function (b, roleKey) {
+    var list = A.tracks(b || cur()).filter(function (r) { return r.subject && r.subject.ref === 'music:' + roleKey; });
+    list.sort(function (x, y) { return x.id < y.id ? -1 : x.id > y.id ? 1 : 0; });
+    return list[0] || null;
+  };
+
+  // ---------------------------------------------------------------- the default instrument library
+  function ins(wave, duty, vol, release, extra) { var o = { wave: wave, duty: duty, vol: vol, volLoop: null, release: release, vibrato: null, arp: [], pitch: [], noiseMode: 'long' }; return Object.assign(o, extra || {}); }
+  A.INSTRUMENTS = [
+    { key: 'lead', label: 'Lead', body: function () { return ins('pulse', [2], [15, 14, 13, 12, 12, 11], 8, { vibrato: { delay: 20, depth: 0.18, rate: 5.5 } }); } },
+    { key: 'lead2', label: 'Thin lead', body: function () { return ins('pulse', [1], [14, 13, 12, 11, 10], 6, { vibrato: { delay: 24, depth: 0.12, rate: 6 } }); } },
+    { key: 'soft', label: 'Soft pulse', body: function () { return ins('pulse', [0], [10, 9, 8, 8, 7], 10); } },
+    { key: 'pluck', label: 'Pluck', body: function () { return ins('pulse', [1], [15, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0], 0); } },
+    { key: 'bell', label: 'Bell', body: function () { return ins('pulse', [2, 2, 1, 1, 0], [15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0], 0); } },
+    { key: 'strings', label: 'Strings', body: function () { return ins('pulse', [1], [3, 5, 7, 9, 10, 11], 14, { vibrato: { delay: 30, depth: 0.1, rate: 4 } }); } },
+    { key: 'brass', label: 'Brass', body: function () { return ins('pulse', [0, 1, 2], [12, 15, 14, 13, 12], 6, { pitch: [-80, -40, -15, 0] }); } },
+    { key: 'harmony', label: 'Harmony', body: function () { return ins('pulse', [1], [11, 10, 9, 8, 8, 7], 4); } },
+    { key: 'bass', label: 'Bass', body: function () { return ins('tri', [], [15], 2); } },
+    { key: 'kick', label: 'Kick', body: function () { return ins('noise', [], [15, 13, 10, 7, 4, 2, 0], 0, { pitch: [0, -500, -900, -1200, -1400] }); } },
+    { key: 'snare', label: 'Snare', body: function () { return ins('noise', [], [13, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0], 0); } },
+    { key: 'hat', label: 'Hat', body: function () { return ins('noise', [], [8, 5, 2, 0], 0, { noiseMode: 'short' }); } }
+  ];
+  function insKey(r) { var ref = r && r.subject && r.subject.ref; return typeof ref === 'string' && ref.indexOf('ins:') === 0 ? ref.slice(4) : null; }
+  A.insKey = insKey;
+  function buildInstruments(b, report) {
+    var ret = retired(b);
+    A.INSTRUMENTS.forEach(function (d) {
+      if (ret.indexOf('ins:' + d.key) >= 0) return;
+      if (A.insFor(b, d.key)) { bump(report, 'kept'); return; }
+      ART.records.put(ART.envelope('ins_', d.label, { kind: 'role', ref: 'ins:' + d.key }, 'default', H('ins|' + d.key), d.body()), b);
+      bump(report, 'created');
+    });
+  }
+  // The ids a realized track uses, falling back past retired instruments to nothing (the engine then uses its own).
+  function kit(b) { var o = {}; ['lead', 'harmony', 'bass', 'kick', 'snare', 'hat'].forEach(function (k) { var r = A.insFor(b, k); o[k] = r ? r.id : null; }); return o; }
+  A.kit = kit;
+
+  // ---------------------------------------------------------------- the sound effect library
+  // Cue sounds are tuned by hand; elements and abilities derive from them.
+  A.CUES = [
+    { key: 'hit', label: 'Hit', cat: 'hit', p: { wave: 'noise', freq: 0.38, slide: -0.25, sustain: 0.05, decay: 0.18, punch: 0.4 } },
+    { key: 'crit', label: 'Critical hit', cat: 'hit', p: { wave: 'noise', freq: 0.3, slide: -0.1, sustain: 0.12, decay: 0.35, punch: 0.7 } },
+    { key: 'miss', label: 'Miss', cat: 'hit', p: { wave: 'noise', freq: 0.6, slide: -0.35, sustain: 0.02, decay: 0.12, hpf: 0.35, volume: 0.35 } },
+    { key: 'swing', label: 'Swing', cat: 'hit', p: { wave: 'noise', freq: 0.7, slide: -0.3, attack: 0.05, sustain: 0.03, decay: 0.12, hpf: 0.45, volume: 0.35 } },
+    { key: 'hurt', label: 'Hurt', cat: 'hit', p: { wave: 'square', freq: 0.32, slide: -0.35, sustain: 0.04, decay: 0.15, duty: 0.4 } },
+    { key: 'thud', label: 'Thud', cat: 'hit', p: { wave: 'noise', freq: 0.12, sustain: 0.05, decay: 0.25, lpf: 0.5 } },
+    { key: 'death', label: 'Enemy defeated', cat: 'hit', p: { wave: 'noise', freq: 0.2, slide: -0.05, sustain: 0.25, decay: 0.5, punch: 0.5, lpf: 0.7 } },
+    { key: 'ko', label: 'Ally falls', cat: 'hit', p: { wave: 'square', freq: 0.4, slide: -0.3, sustain: 0.1, decay: 0.45, duty: 0.4 } },
+    { key: 'cast', label: 'Cast', cat: 'magic', p: { wave: 'sine', freq: 0.25, slide: 0.12, vibDepth: 0.4, vibSpeed: 0.7, attack: 0.15, sustain: 0.2, decay: 0.25, volume: 0.4 } },
+    { key: 'release', label: 'Spell release', cat: 'magic', p: { wave: 'saw', freq: 0.7, minFreq: 0.25, slide: -0.25, sustain: 0.12, decay: 0.25, duty: 0.3 } },
+    { key: 'heal', label: 'Heal', cat: 'magic', p: { wave: 'square', freq: 0.35, slide: 0.18, sustain: 0.15, decay: 0.35, arpMod: 0.45, arpSpeed: 0.6, duty: 0.3 } },
+    { key: 'status', label: 'Status', cat: 'magic', p: { wave: 'saw', freq: 0.3, vibDepth: 0.5, vibSpeed: 0.55, sustain: 0.25, decay: 0.3, lpf: 0.6 } },
+    { key: 'status.off', label: 'Status cured', cat: 'magic', p: { wave: 'square', freq: 0.45, slide: 0.2, sustain: 0.06, decay: 0.2, duty: 0.3 } },
+    { key: 'revive', label: 'Revive', cat: 'special', p: { wave: 'sine', freq: 0.3, slide: 0.2, vibDepth: 0.2, vibSpeed: 0.5, attack: 0.1, sustain: 0.3, decay: 0.4, arpMod: 0.3, arpSpeed: 0.55 } },
+    { key: 'limit', label: 'Limit ready', cat: 'special', p: { wave: 'square', freq: 0.3, slide: 0.22, vibDepth: 0.3, vibSpeed: 0.6, sustain: 0.3, decay: 0.4, punch: 0.3, arpMod: 0.5, arpSpeed: 0.7 } },
+    { key: 'item', label: 'Item', cat: 'item', p: { wave: 'square', freq: 0.55, sustain: 0.06, decay: 0.3, punch: 0.45, arpMod: 0.35, arpSpeed: 0.6 } },
+    { key: 'step', label: 'Step', cat: 'ambient', p: { wave: 'noise', freq: 0.25, sustain: 0, decay: 0.05, lpf: 0.4, volume: 0.25 } },
+    { key: 'jump', label: 'Jump', cat: 'ui', p: { wave: 'square', freq: 0.35, slide: 0.25, sustain: 0.1, decay: 0.15, duty: 0.4 } },
+    { key: 'ui.move', label: 'Cursor move', cat: 'ui', p: { wave: 'square', freq: 0.55, sustain: 0.02, decay: 0.06, duty: 0.5, volume: 0.3 } },
+    { key: 'ui.confirm', label: 'Confirm', cat: 'ui', p: { wave: 'square', freq: 0.5, sustain: 0.05, decay: 0.12, arpMod: 0.4, arpSpeed: 0.75, duty: 0.5, volume: 0.35 } },
+    { key: 'ui.cancel', label: 'Cancel', cat: 'ui', p: { wave: 'square', freq: 0.4, slide: -0.2, sustain: 0.04, decay: 0.12, duty: 0.5, volume: 0.3 } },
+    { key: 'ui.error', label: 'Error', cat: 'ui', p: { wave: 'square', freq: 0.16, sustain: 0.12, decay: 0.1, duty: 0.2, volume: 0.35 } },
+    { key: 'ui.ready', label: 'Turn ready', cat: 'ui', p: { wave: 'square', freq: 0.62, sustain: 0.03, decay: 0.1, duty: 0.5, volume: 0.25 } }
+  ];
+  // Element spell sounds follow the element's particle shape, so two elements that share a palette still sound apart.
+  var SHAPE_SOUND = {
+    spark: { wave: 'noise', freq: 0.45, slide: -0.05, sustain: 0.2, decay: 0.35, punch: 0.4 },
+    flake: { wave: 'sine', freq: 0.75, vibDepth: 0.3, vibSpeed: 0.8, sustain: 0.18, decay: 0.4, arpMod: 0.2, arpSpeed: 0.5 },
+    bubble: { wave: 'sine', freq: 0.3, slide: 0.3, sustain: 0.1, decay: 0.2, arpMod: -0.3, arpSpeed: 0.7 },
+    shard: { wave: 'square', freq: 0.5, slide: -0.4, sustain: 0.08, decay: 0.3, duty: 0.2, punch: 0.5 },
+    ring: { wave: 'square', freq: 0.5, sustain: 0.12, decay: 0.45, arpMod: 0.5, arpSpeed: 0.65, duty: 0.5 },
+    wisp: { wave: 'saw', freq: 0.28, vibDepth: 0.45, vibSpeed: 0.35, attack: 0.12, sustain: 0.2, decay: 0.4, lpf: 0.45 },
+    bolt: { wave: 'noise', freq: 0.8, slide: -0.2, sustain: 0.06, decay: 0.3, punch: 0.8, hpf: 0.2 }
+  };
+  A.cueKey = function (r) { var ref = r && r.subject && r.subject.ref; return r && r.subject && r.subject.kind === 'role' && typeof ref === 'string' && ref.indexOf('sfx:') === 0 ? ref.slice(4) : null; };
+  // Writes a generated sound: created when missing, refreshed when its recipe moved, kept when edited or unchanged.
+  function putSound(b, report, subject, name, category, params, seed) {
+    var have = ART.bySubject('sfx_', subject.kind, subject.ref, b), body = { params: EA.sfxr.normalize(params), category: category, lastMutate: null };
+    if (have) {
+      if (kept(have)) { bump(report, 'kept'); return have; }
+      if (same(have.params, body.params) && have.category === category) { bump(report, 'kept'); return have; }
+      have.params = body.params; have.category = category; bump(report, 'refreshed'); return have;
+    }
+    var r = ART.envelope('sfx_', name, subject, subject.kind === 'role' ? 'default' : 'procedural', seed, body);
+    ART.records.put(r, b); bump(report, 'created');
+    return r;
+  }
+  function magicKind(a) { return a && (a.kind === 'magic' || a.kind === 'heal' || a.kind === 'status' || a.kind === 'summon'); }
+  A.magicKind = magicKind;
+  function buildSounds(b, report) {
+    var ret = retired(b);
+    A.CUES.forEach(function (c) {
+      if (ret.indexOf('sfx:' + c.key) >= 0) return;
+      var have = A.cueSfx(b, c.key);
+      if (have) { bump(report, 'kept'); return; }
+      putSound(b, report, { kind: 'role', ref: 'sfx:' + c.key }, c.label, c.cat, c.p, H('sfx|' + c.key));
+    });
+    elements(b).forEach(function (e, i) {
+      var st = ART.palette.elementStyle(e, i), base = SHAPE_SOUND[st.shape] || SHAPE_SOUND.spark;
+      putSound(b, report, { kind: 'element', ref: e.key }, (e.label || e.key) + ' spell', 'magic', EA.sfxr.mutate(base, 0.12, H('el|' + e.key)), H('el|' + e.key));
+    });
+    rulesList(b, 'abl_').forEach(function (a) {
+      if (a.kind === 'passive') return;
+      var src, cat;
+      if (a.element && A.elementSfx(b, a.element)) { src = A.elementSfx(b, a.element).params; cat = 'magic'; }
+      else if (a.kind === 'heal') { src = A.CUES.filter(function (c) { return c.key === 'heal'; })[0].p; cat = 'magic'; }
+      else if (magicKind(a)) { src = A.CUES.filter(function (c) { return c.key === 'release'; })[0].p; cat = 'magic'; }
+      else { src = A.CUES.filter(function (c) { return c.key === 'swing'; })[0].p; cat = 'hit'; }
+      putSound(b, report, { kind: 'abl', ref: a.id }, (a.name || a.id) + ' sound', cat, EA.sfxr.mutate(src, 0.08, H('abl|' + a.id)), H('abl|' + a.id));
+    });
+  }
+
+  // ---------------------------------------------------------------- motifs
+  var CHAR_MODES = ['major', 'mixolydian', 'dorian', 'lydian', 'minor'];
+  var VILLAIN_MODES = ['minor', 'phrygian', 'harmonic'];
+  function variations() { var o = {}; Object.keys(EM.VARIATIONS).forEach(function (k) { o[k] = U.clone(EM.VARIATIONS[k]); }); return o; }
+  A.motifBody = function (seed, opts) { var m = EM.generate(seed, opts); m.kind = 'motif'; m.variations = variations(); return m; };
+  function putMotif(b, report, subject, name, seed, opts) {
+    var have = A.motifFor(b, subject.kind, subject.ref), body = A.motifBody(seed, opts);
+    if (have) {
+      if (kept(have)) { bump(report, 'kept'); return have; }
+      var keys = ['degrees', 'durs', 'meter', 'mode', 'key', 'tempo'], changed = keys.some(function (k) { return have[k] !== body[k]; });
+      if (!U.isObj(have.variations)) { have.variations = body.variations; changed = true; }
+      keys.forEach(function (k) { have[k] = body[k]; });
+      bump(report, changed ? 'refreshed' : 'kept');
+      return have;
+    }
+    var r = ART.envelope('mus_', name, subject, 'procedural', seed, body);
+    ART.records.put(r, b); bump(report, 'created');
+    return r;
+  }
+  function buildMotifs(b, report) {
+    var s = bundleSeed(b);
+    putMotif(b, report, { kind: 'role', ref: 'motif:theme' }, 'Main theme', H('theme|' + s), { mode: 'major' });
+    putMotif(b, report, { kind: 'role', ref: 'motif:villain' }, 'Villain theme', H('villain|' + s), { mode: VILLAIN_MODES[s % VILLAIN_MODES.length], tempo: 92 + s % 16 });
+    rulesList(b, 'chr_').forEach(function (c, i) {
+      var sd = H('chr|' + c.id);
+      putMotif(b, report, { kind: 'chr', ref: c.id }, (c.name || c.id) + ' theme', sd, { mode: i === 0 ? 'major' : CHAR_MODES[sd % CHAR_MODES.length] });
+    });
+  }
+
+  // ---------------------------------------------------------------- the role table
+  // Which motif and variation scores each role. Field roles rotate through the party and move the key around the circle
+  // of fourths per continent; endings cycle finale, field, sorrow.
+  A.rolePlan = function (b, key) {
+    var chars = rulesList(b, 'chr_'), theme = A.motifFor(b, 'role', 'motif:theme'), villain = A.motifFor(b, 'role', 'motif:villain') || theme;
+    var hero = (chars[0] && A.motifFor(b, 'chr', chars[0].id)) || theme;
+    if (key === 'title') return { motif: theme, variation: 'finale', recipe: { drums: 'none', tempoScale: 0.8 } };
+    if (key === 'town') return { motif: theme, variation: 'field', recipe: { drums: 'none', tempoScale: 0.85, accomp: 'march', bass: 'root' } };
+    if (key === 'dungeon') return { motif: villain, variation: 'sorrow', recipe: { mode: 'phrygian', accomp: 'arp', drums: 'none' } };
+    if (key === 'battle') return { motif: hero, variation: 'battle', recipe: {} };
+    if (key === 'boss') return { motif: villain, variation: 'battle', recipe: { mode: 'harmonic', tempoScale: 1.55, accomp: 'ostinato' } };
+    if (key === 'victory') return { motif: theme, variation: 'field', recipe: { tempoScale: 1.1, drums: 'march', bass: 'walking' }, fanfare: true };
+    if (key === 'defeat') return { motif: theme, variation: 'sorrow', recipe: { tempoScale: 0.55 }, loop: false };
+    if (key === 'ending') return { motif: theme, variation: 'finale', recipe: {} };
+    var m = /^field:(.+)$/.exec(key);
+    if (m) {
+      var roles = ART.musicRoles(b).filter(function (r) { return r.key.indexOf('field:') === 0; }), idx = Math.max(0, roles.map(function (r) { return r.key; }).indexOf(key));
+      var who = chars.length ? A.motifFor(b, 'chr', chars[idx % chars.length].id) : null;
+      var mo = who || theme;
+      return { motif: mo, variation: 'field', recipe: { key: mo ? (EM.keyOf(mo.key) + idx * 5) % 12 : null } };
+    }
+    var e = /^ending:(\d+)$/.exec(key);
+    if (e) { var n = Number(e[1]); return { motif: theme, variation: ['finale', 'field', 'sorrow'][(n - 1) % 3], recipe: { tempoScale: [0.9, 0.75, 0.6][(n - 1) % 3] } }; }
+    return null;
+  };
+  // A four row victory: a fanfare built on the theme's key, then the theme's field variation that loops.
+  var FANFARE = { degrees: "1' 1' 1' 1' 6 7 1' 7 1'", durs: '2/3 2/3 2/3 2 2 2 4/3 2/3 6', meter: 4 };
+  function combine(first, then) {
+    var out = U.clone(then), ren = {};
+    Object.keys(first.patterns).forEach(function (k) { ren[k] = 'F' + k; out.patterns['F' + k] = first.patterns[k]; });
+    out.order = first.order.map(function (row) { return row.map(function (k) { return k == null ? null : ren[k]; }); }).concat(then.order);
+    out.loop = first.order.length;
+    return out;
+  }
+  // realizeRole(b, key) -> track body or null. The same bundle always realizes the same notes.
+  A.realizeRole = function (b, key) {
+    var plan = A.rolePlan(b, key);
+    if (!plan || !plan.motif) return null;
+    var mo = plan.motif, vars = U.isObj(mo.variations) ? mo.variations : {}, recipe = Object.assign({}, EM.VARIATIONS[plan.variation] || {}, vars[plan.variation] || {}, plan.recipe || {});
+    var ki = kit(b), t = EM.realize(mo, recipe, ki);
+    if (plan.fanfare) {
+      var fan = EM.realize(Object.assign({}, FANFARE, { key: mo.key, tempo: mo.tempo, mode: 'major' }), { rhythm: 'straight', accomp: 'pad', bass: 'root', drums: 'march', octave: 5, lead: A.insFor(b, 'brass') ? A.insFor(b, 'brass').id : null }, ki);
+      t = combine(fan, t);
+    }
+    if (plan.loop === false) t.loop = null;
+    delete t.info;
+    t.derivedFrom = { motif: mo.id, variation: plan.variation, recipe: U.clone(plan.recipe || {}) };
+    return t;
+  };
+  var TRACK_KEYS = ['tempo', 'instruments', 'slots', 'patterns', 'order', 'loop', 'derivedFrom'];
+  function buildTracks(b, report) {
+    var ret = retired(b);
+    ART.musicRoles(b).forEach(function (role) {
+      if (role.kind === 'user' || ret.indexOf('music:' + role.key) >= 0) return;
+      if (!role.required && role.key === 'ending') return;
+      var have = A.trackFor(b, role.key);
+      if (have && kept(have)) { bump(report, 'kept'); return; }
+      var body = A.realizeRole(b, role.key);
+      if (!body) return;
+      if (have) {
+        var changed = TRACK_KEYS.some(function (k) { return !same(have[k], body[k]); });
+        TRACK_KEYS.forEach(function (k) { have[k] = body[k]; });
+        bump(report, changed ? 'refreshed' : 'kept');
+        return;
+      }
+      ART.records.put(ART.envelope('mus_', role.label + ' music', { kind: 'role', ref: 'music:' + role.key }, 'procedural', H('mus|' + role.key), body), b);
+      bump(report, 'created');
+    });
+  }
+  // Re-derives one track from its motif (used by the Score view after a motif or variation edit).
+  A.rederive = function (b, track) {
+    var key = track && track.subject && typeof track.subject.ref === 'string' ? track.subject.ref.replace(/^music:/, '') : null, body = key ? A.realizeRole(b, key) : null;
+    if (!body) return false;
+    TRACK_KEYS.forEach(function (k) { track[k] = body[k]; });
+    track.origin = 'procedural';
+    return true;
+  };
+  A.build = function (b, report) { buildInstruments(b, report); buildSounds(b, report); buildMotifs(b, report); buildTracks(b, report); };
+  A.retire = function (b, rec) {
+    var ref = rec && rec.subject && rec.subject.kind === 'role' ? rec.subject.ref : null;
+    ART.records.del(rec.id, b);
+    if (ref && /^(ins|sfx|music):/.test(ref)) { var ret = retired(b); if (ret.indexOf(ref) < 0) ret.push(ref); }
+  };
+  A.restore = function (b, ref) { var ret = retired(b), i = ret.indexOf(ref); if (i >= 0) ret.splice(i, 1); A.build(b, {}); };
+
+  ART.quickBuild.register({ key: 'audio', label: 'Instruments, sound effects, motifs, and a track for every music role', order: 60, run: function (b, r) { A.build(b, r); } });
+
+  // ---------------------------------------------------------------- cues from the presenter and the menus
+  // resolve(kind, id, opts, memo, b) -> {sfx: id} | {music: role} | {stop: ms} | null. memo carries the last action so a
+  // spell's cast and release markers sound like the spell, and a sword's sound like a sword.
+  A.resolve = function (kind, id, opts, memo, b) {
+    b = b || cur(); opts = opts || {}; memo = memo || {};
+    function cue(k) { var r = A.cueSfx(b, k); return r ? { sfx: r.id } : null; }
+    var touchKit = ART.iface ? ART.iface.get(b, 'touch') : null, link = touchKit && U.isObj(touchKit.sfx) ? touchKit.sfx : {};
+    function ui(k) { var l = link[k] && ART.records.get(link[k], b); return l ? { sfx: l.id } : cue('ui.' + k); }
+    if (kind === 'music') {
+      if (id === 'stop') return { stop: 400 };
+      return { music: id === 'victory' || id === 'defeat' ? id : String(id) };
+    }
+    if (kind === 'ui') {
+      if (id === 'confirm' || id === 'move' || id === 'cancel' || id === 'error') return ui(id);
+      return cue('ui.' + id);
+    }
+    if (kind !== 'sfx') return null;
+    var abl = memo.abl && b.rules && b.rules.abl_ ? b.rules.abl_[memo.abl] : null;
+    if (id === 'action') { memo.abl = opts.abl || null; memo.element = opts.element || null; memo.item = false; return null; }
+    if (id === 'item') { memo.abl = opts.abl || null; memo.element = null; memo.item = true; return cue('item'); }
+    if (id === 'cast') { if (memo.item) return null; return magicKind(abl) || memo.element ? cue('cast') : cue('swing'); }
+    if (id === 'release') {
+      if (memo.item) return null;
+      if (!(magicKind(abl) || memo.element)) return null;
+      var own = abl ? A.abilitySfx(b, abl.id) : null, el = memo.element ? A.elementSfx(b, memo.element) : null;
+      return own ? { sfx: own.id } : el ? { sfx: el.id } : cue('release');
+    }
+    return cue(id);
+  };
+
+  // ---------------------------------------------------------------- the player (one AudioContext, made on a gesture)
+  var host = { audio: null, ctx: null, error: null, memo: {}, prefs: null, log: [] };
+  var PREF_KEY = 'art147:audio';
+  A.prefs = function () {
+    if (host.prefs) return host.prefs;
+    var p = { music: 0.7, sfx: 0.8, muted: false };
+    try { var s = JSON.parse(localStorage.getItem(PREF_KEY) || 'null'); if (U.isObj(s)) { if (typeof s.music === 'number') p.music = s.music; if (typeof s.sfx === 'number') p.sfx = s.sfx; p.muted = !!s.muted; } } catch (e) { /* defaults */ }
+    return (host.prefs = p);
+  };
+  A.setPrefs = function (o) {
+    var p = A.prefs();
+    Object.keys(o || {}).forEach(function (k) { if (k in p) p[k] = k === 'muted' ? !!o[k] : Math.max(0, Math.min(1, Number(o[k]) || 0)); });
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) { /* the setting still applies this session */ }
+    if (host.audio) host.audio.setVolume(p);
+    if (A.paintButton) A.paintButton();
+    return p;
+  };
+  A.supported = function () { return typeof window.AudioContext === 'function' || typeof window.webkitAudioContext === 'function'; };
+  function coarse() { try { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); } catch (e) { return false; } }
+  // Call from inside a pointerup, click, or keydown handler. Creates the context the first time.
+  A.unlock = function () {
+    if (host.audio) { host.audio.unlock(); return host.audio; }
+    if (!A.supported()) { host.error = 'This browser has no Web Audio.'; return null; }
+    try {
+      var C = window.AudioContext || window.webkitAudioContext;
+      host.ctx = A.makeContext ? A.makeContext() : new C();
+      var b = cur();
+      host.audio = EA.create(host.ctx, {
+        coarse: coarse(), navigator: window.navigator,
+        createAudioElement: function () { return document.createElement('audio'); },
+        lookaheadMs: b && b.art && b.art.settings && b.art.settings.lookaheadMs, manual: !!A.manual
+      });
+      host.audio.attachLifecycle(document);
+      host.audio.load(b && b.art);
+      host.audio.setVolume(A.prefs());
+      host.audio.unlock();
+      if (A.paintButton) A.paintButton();
+      return host.audio;
+    } catch (e) { host.error = e.message; host.audio = null; return null; }
+  };
+  A.player = function () { return host.audio; };
+  A.error = function () { return host.error; };
+  A.reload = function () { var b = cur(); if (host.audio && b) host.audio.load(b.art); };
+  function note(s) { host.log.push(s); if (host.log.length > 12) host.log.shift(); }
+  A.log = function () { return host.log.slice(); };
+  // cue(kind, id, opts): the presenter's callback. Plays nothing until the context exists.
+  A.cue = function (kind, id, opts) {
+    var r = A.resolve(kind, id, opts, host.memo);
+    if (!r) return null;
+    note(kind + ':' + id + (r.sfx ? '=' + r.sfx : r.music ? '>' + r.music : r.stop != null ? ' stop' : ''));
+    var au = host.audio;
+    if (!au) return r;
+    if (r.sfx) au.playSfx(r.sfx);
+    else if (r.music) au.playRole(r.music, { restart: true });
+    else if (r.stop != null) au.stop(r.stop);
+    return r;
+  };
+  A.playRole = function (key, o) { var au = host.audio || A.unlock(); return au ? au.playRole(key, o) : false; };
+  A.playTrack = function (idOrTrack, o) { var au = host.audio || A.unlock(); return au ? au.playTrack(idOrTrack, o) : false; };
+  A.playSfx = function (idOrParams, o) { var au = host.audio || A.unlock(); return au ? au.playSfx(idOrParams, o) : false; };
+  A.stop = function (ms) { if (host.audio) host.audio.stop(ms == null ? 300 : ms); };
+  A.state = function () { return host.audio ? host.audio.state() : null; };
+  // A single note on an instrument, through a one row track (the instrument editor's keyboard).
+  A.playNote = function (insRec, midi, chan) {
+    var au = host.audio || A.unlock();
+    if (!au || !insRec) return false;
+    var ch = chan || (insRec.wave === 'tri' ? 'tri' : insRec.wave === 'noise' ? 'noise' : 'p1');
+    var t = { kind: 'track', tempo: 120, instruments: {}, slots: [], patterns: { N: EA.mml.serialize([{ t: 0, d: 48, n: midi, v: 13, i: null }]) }, order: [[null, null, null, null]], loop: null };
+    t.order[0][EA.CHANNELS.indexOf(ch)] = 'N';
+    t.instruments[ch] = insRec.id;
+    return au.playTrack(t, { crossfadeMs: 30 });
+  };
+  // Unlock on the first gesture anywhere, so the first cue already has a context.
+  function firstGesture() { A.unlock(); document.removeEventListener('pointerup', firstGesture, true); document.removeEventListener('keydown', firstGesture, true); }
+  if (typeof document !== 'undefined') { document.addEventListener('pointerup', firstGesture, true); document.addEventListener('keydown', firstGesture, true); }
+  Kit.on('load', function () { host.memo = {}; if (host.audio) { host.audio.stop(0); A.reload(); } });
+  Kit.on('change', U.debounce(A.reload, 300));
+
+  // ---------------------------------------------------------------- icons (KIT:CORE has none for sound)
+  var ICONS = {
+    play: '<path d="M7 5v14l12-7z"/>', stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
+    sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+    mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/>',
+    note: '<path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    dice: '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/>'
+  };
+  A.icon = function (name) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || '') + '</svg>'; };
+
+  // ---------------------------------------------------------------- validation
+  var CUE_KEYS = A.CUES.map(function (c) { return c.key; });
+  Kit.validate.register('art.audio', function (b, ctx) {
+    var R = b.art && U.isObj(b.art.records) ? b.art.records : {};
+    function add(id, path, msg, level) { ctx.add({ recordId: id, fieldPath: path, message: msg, level: level || 'error' }); }
+    function intArr(r, key, lo, hi, label) {
+      var a = r[key];
+      if (a == null) return;
+      if (!Array.isArray(a) || a.length > 256 || a.some(function (x) { return typeof x !== 'number' || x !== Math.floor(x) || x < lo || x > hi; })) add(r.id, key, label + ' is a list of up to 256 whole numbers from ' + lo + ' to ' + hi + '.');
+    }
+    var insM = U.isObj(R.ins_) ? R.ins_ : {}, seenIns = {};
+    Object.keys(insM).forEach(function (id) {
+      var r = insM[id];
+      if (!U.isObj(r)) return;
+      if (EA.WAVES.indexOf(r.wave) < 0) add(r.id, 'wave', 'Wave must be pulse, tri, or noise.');
+      intArr(r, 'duty', 0, 3, 'The duty sequence'); intArr(r, 'vol', 0, 15, 'The volume table'); intArr(r, 'arp', -48, 48, 'The arpeggio table'); intArr(r, 'pitch', -4800, 4800, 'The pitch table');
+      if (Array.isArray(r.vol) && !r.vol.length) add(r.id, 'vol', 'The volume table needs at least one step.');
+      if (r.volLoop != null && !(Array.isArray(r.vol) && r.volLoop >= 0 && r.volLoop < r.vol.length && r.volLoop === Math.floor(r.volLoop))) add(r.id, 'volLoop', 'The loop point must be a step of the volume table, or empty.');
+      if (!(r.release >= 0 && r.release <= 240)) add(r.id, 'release', 'Release runs from 0 to 240 frames.');
+      if (r.vibrato != null && !(U.isObj(r.vibrato) && r.vibrato.delay >= 0 && r.vibrato.delay <= 600 && r.vibrato.depth >= 0 && r.vibrato.depth <= 2 && r.vibrato.rate > 0 && r.vibrato.rate <= 20)) add(r.id, 'vibrato', 'Vibrato is {delay 0 to 600 frames, depth 0 to 2 semitones, rate up to 20 Hz}.');
+      if (r.noiseMode != null && ['long', 'short'].indexOf(r.noiseMode) < 0) add(r.id, 'noiseMode', 'Noise mode is long or short.');
+      var k = insKey(r); if (k) { if (seenIns[k]) add(r.id, 'subject.ref', 'There is already an instrument for ins:' + k + ' (' + seenIns[k] + ').', 'warning'); else seenIns[k] = r.id; }
+    });
+    var sfxM = U.isObj(R.sfx_) ? R.sfx_ : {};
+    Object.keys(sfxM).forEach(function (id) {
+      var r = sfxM[id];
+      if (!U.isObj(r)) return;
+      if (EA.sfxr.CATEGORIES.indexOf(r.category) < 0) add(r.id, 'category', 'Category must be ' + EA.sfxr.CATEGORIES.join(', ') + '.');
+      if (!U.isObj(r.params)) { add(r.id, 'params', 'A sound needs its sfxr parameters.'); return; }
+      if (EA.sfxr.WAVES.indexOf(r.params.wave) < 0) add(r.id, 'params.wave', 'Wave must be square, saw, sine, or noise.');
+      EA.sfxr.PARAMS.forEach(function (d) { var v = r.params[d.key]; if (v != null && !(typeof v === 'number' && v >= d.min && v <= d.max)) add(r.id, 'params.' + d.key, d.label + ' runs from ' + d.min + ' to ' + d.max + '.'); });
+      var sj = r.subject || {};
+      if (sj.kind === 'abl' && !(b.rules && b.rules.abl_ && b.rules.abl_[sj.ref])) add(r.id, 'subject.ref', 'Ability ' + sj.ref + ' no longer exists.', 'warning');
+      if (sj.kind === 'element' && !elements(b).some(function (e) { return e.key === sj.ref; })) add(r.id, 'subject.ref', 'Element ' + sj.ref + ' is not in the Charter.', 'warning');
+      var ck = A.cueKey(r); if (ck && CUE_KEYS.indexOf(ck) < 0) add(r.id, 'subject.ref', 'No cue is named ' + ck + '; nothing plays this sound.', 'warning');
+    });
+    var musM = U.isObj(R.mus_) ? R.mus_ : {}, roleKeys = ART.musicRoles(b).map(function (r) { return r.key; }), seenRole = {};
+    Object.keys(musM).forEach(function (id) {
+      var r = musM[id];
+      if (!U.isObj(r)) return;
+      if (r.kind === 'motif') {
+        var pd = EM.parseDegrees(r.degrees), pr = EM.parseDurs(r.durs);
+        if (!pd.tokens.length) add(r.id, 'degrees', 'A motif needs at least one scale degree.');
+        pd.errors.slice(0, 3).forEach(function (e) { add(r.id, 'degrees', e.message); });
+        pr.errors.slice(0, 3).forEach(function (e) { add(r.id, 'durs', e.message); });
+        if (pd.tokens.length !== pr.durs.length) add(r.id, 'durs', 'There are ' + pd.tokens.length + ' degrees and ' + pr.durs.length + ' durations; the extra ones are ignored.', 'warning');
+        if (!(r.meter >= 2 && r.meter <= 7)) add(r.id, 'meter', 'Meter runs from 2 to 7 beats.');
+        if (!EM.MODES[r.mode]) add(r.id, 'mode', 'Mode must be ' + Object.keys(EM.MODES).join(', ') + '.');
+        if (!(r.tempo >= 40 && r.tempo <= 300)) add(r.id, 'tempo', 'Tempo runs from 40 to 300.');
+        Object.keys(U.isObj(r.variations) ? r.variations : {}).forEach(function (vk) {
+          var v = r.variations[vk];
+          if (!U.isObj(v)) { add(r.id, 'variations.' + vk, 'A variation is a recipe object.'); return; }
+          if (v.mode != null && !EM.MODES[v.mode]) add(r.id, 'variations.' + vk + '.mode', 'Unknown mode ' + v.mode + '.');
+          if (v.rhythm != null && EM.RHYTHMS.indexOf(v.rhythm) < 0) add(r.id, 'variations.' + vk + '.rhythm', 'Rhythm must be ' + EM.RHYTHMS.join(', ') + '.');
+          if (v.accomp != null && EM.ACCOMP.indexOf(v.accomp) < 0) add(r.id, 'variations.' + vk + '.accomp', 'Accompaniment must be ' + EM.ACCOMP.join(', ') + '.');
+          if (v.bass != null && EM.BASS.indexOf(v.bass) < 0) add(r.id, 'variations.' + vk + '.bass', 'Bass must be ' + EM.BASS.join(', ') + '.');
+          if (v.drums != null && EM.DRUMS.indexOf(v.drums) < 0) add(r.id, 'variations.' + vk + '.drums', 'Drums must be ' + EM.DRUMS.join(', ') + '.');
+          if (v.tempoScale != null && !(v.tempoScale >= 0.25 && v.tempoScale <= 4)) add(r.id, 'variations.' + vk + '.tempoScale', 'Tempo scale runs from 0.25 to 4.');
+          if (v.lead && !insM[v.lead]) add(r.id, 'variations.' + vk + '.lead', 'Instrument ' + v.lead + ' does not exist.');
+        });
+        var sj2 = r.subject || {};
+        if (sj2.kind === 'chr' && !(b.rules && b.rules.chr_ && b.rules.chr_[sj2.ref])) add(r.id, 'subject.ref', 'Character ' + sj2.ref + ' no longer exists.', 'warning');
+      } else if (r.kind === 'track') {
+        if (!(r.tempo >= 40 && r.tempo <= 300)) add(r.id, 'tempo', 'Tempo runs from 40 to 300.');
+        var c = EA.track.compile(r);
+        c.errors.slice(0, 5).forEach(function (e) { add(r.id, 'patterns.' + e.pattern, (e.pos ? 'At ' + e.pos + ': ' : '') + e.message); });
+        if (!Array.isArray(r.order) || !r.order.length) add(r.id, 'order', 'The order list needs at least one row.');
+        else r.order.forEach(function (row, i) { if (!Array.isArray(row) || row.length !== 4) add(r.id, 'order.' + i, 'Each row names four patterns (pulse 1, pulse 2, triangle, noise); use empty for silence.'); });
+        if (r.loop != null && !(Array.isArray(r.order) && r.loop >= 0 && r.loop < r.order.length && r.loop === Math.floor(r.loop))) add(r.id, 'loop', 'The loop point must be a row of the order list, or empty for no loop.');
+        EA.CHANNELS.forEach(function (ch) {
+          var iid = U.isObj(r.instruments) ? r.instruments[ch] : null;
+          if (!iid) return;
+          if (!insM[iid]) add(r.id, 'instruments.' + ch, 'Instrument ' + iid + ' does not exist.');
+          else { var want = ch === 'tri' ? 'tri' : ch === 'noise' ? 'noise' : 'pulse'; if (insM[iid].wave !== want) add(r.id, 'instruments.' + ch, 'This ' + insM[iid].wave + ' instrument plays as ' + want + ' on this channel.', 'warning'); }
+        });
+        (Array.isArray(r.slots) ? r.slots : []).forEach(function (sid, i) { if (sid && !insM[sid]) add(r.id, 'slots.' + i, 'Instrument ' + sid + ' does not exist.'); });
+        var ref = r.subject && r.subject.ref, rk = typeof ref === 'string' && ref.indexOf('music:') === 0 ? ref.slice(6) : null;
+        if (!rk) add(r.id, 'subject.ref', 'A track needs a role such as music:battle.', 'warning');
+        else {
+          if (roleKeys.indexOf(rk) < 0) add(r.id, 'subject.ref', 'No music role is named ' + rk + '; add it in Score by role or pick another.', 'warning');
+          if (seenRole[rk]) add(r.id, 'subject.ref', 'Role ' + rk + ' already has a track; the one with the lower ID plays.', 'warning'); else seenRole[rk] = r.id;
+        }
+        if (r.derivedFrom && r.derivedFrom.motif && !musM[r.derivedFrom.motif]) add(r.id, 'derivedFrom.motif', 'Motif ' + r.derivedFrom.motif + ' no longer exists.', 'warning');
+      } else add(r.id, 'kind', 'Music is kind motif or track.');
+    });
+  });
+  function goSound(rid) { if (!Kit.go('sound')) return false; if (ART.WS.sound && ART.WS.sound.focus) ART.WS.sound.focus(rid); return true; }
+  Kit.jump.register({
+    test: function (rid) { var p = Kit.ids.prefixOf(rid); return p === 'ins_' || p === 'sfx_' || p === 'mus_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: goSound
+  });
+})();
+// === ART:AUDIO END ===
+// === WS:SOUND BEGIN ===
+(function () {
+  'use strict';
+  // The Sound tab: Instruments, Effects, Motifs, Score by role, and the Jukebox. Every list plays what it shows; every
+  // drawer edits one record and marks it edited, so Quick Build keeps it.
+  var U = Kit.util, el = U.el, esc = U.esc, EA = ENGINE_AUDIO, EM = EA.motif, A = ART.audio, W = ART.ui;
+  ART.WS = ART.WS || {};
+  var SUBS = [['instruments', 'Instruments'], ['effects', 'Effects'], ['motifs', 'Motifs'], ['score', 'Score by role'], ['jukebox', 'Jukebox']];
+  var ui = { sub: 'score', focus: null, cat: '', variation: {}, octave: 4 };
+  var CH_LABEL = { p1: 'Pulse 1', p2: 'Pulse 2', tri: 'Triangle', noise: 'Noise' };
+  var VAR_LABEL = { field: 'Field', sorrow: 'Sorrow', battle: 'Battle', finale: 'Finale' };
+  function cur() { return Kit.bundle.current(); }
+  function touch(reason) { Kit.bundle.touch(reason || 'sound'); Kit.refreshValidation(); }
+  function nameOf(id) { var b = cur(), p = Kit.ids.prefixOf(id), m = p && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : null; return m && m[id] && m[id].name ? m[id].name : String(id || ''); }
+  function ibtn(label, icon, cls, fn, aria) {
+    var b = el('button', 'btn' + (cls ? ' ' + cls : ''), A.icon(icon) + (label ? '<span>' + esc(label) + '</span>' : '')); b.type = 'button';
+    if (aria || !label) b.setAttribute('aria-label', aria || label);
+    if (fn) b.addEventListener('click', fn);
+    return b;
+  }
+  function origin(r) { return A.isKept(r) ? W.chip('edited', 'accent') : W.chip(r.origin === 'default' ? 'default' : 'generated', 'muted'); }
+  function textField(label, value, onChange, opts) {
+    opts = opts || {};
+    var id = 'a7x' + U.rand36(6), w = el('label', 'a7-text' + (opts.wide ? ' a7-wide' : '')); w.htmlFor = id; w.innerHTML = '<span>' + esc(label) + '</span>';
+    var inp = el(opts.area ? 'textarea' : 'input', 'inp' + (opts.mono ? ' a7-mono' : '')); if (!opts.area) inp.type = 'text'; inp.id = id; inp.value = value == null ? '' : value;
+    if (opts.placeholder) inp.placeholder = opts.placeholder; if (opts.max) inp.maxLength = opts.max; if (opts.rows) inp.rows = opts.rows;
+    inp.spellcheck = false;
+    inp.addEventListener('change', function () { onChange(inp.value, inp); });
+    if (opts.onInput) inp.addEventListener('input', function () { opts.onInput(inp.value, inp); });
+    w.appendChild(inp); return w;
+  }
+  function ints(s, lo, hi) {
+    var parts = String(s || '').trim().split(/[\s,]+/).filter(Boolean), out = [];
+    for (var i = 0; i < parts.length; i++) { var v = Number(parts[i]); if (!isFinite(v) || v !== Math.floor(v) || v < lo || v > hi) return null; out.push(v); }
+    return out;
+  }
+  function soundNotice(host) {
+    if (!A.supported()) { host.appendChild(el('p', 'msg msg-warning', 'This browser has no Web Audio, so nothing can play here. Records still edit and export normally.')); return; }
+    if (!A.player()) host.appendChild(el('p', 'muted a7-small', 'Sound starts with your first tap or key press on the page, as browsers require.'));
+    else if (A.prefs().muted) host.appendChild(el('p', 'msg msg-warning', 'Sound is muted. Use the speaker button at the top to turn it back on.'));
+  }
+  function needBuild(host, what) {
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">No ' + esc(what) + ' yet</h3><p class="muted">Quick Build makes the instruments, the sound effects for every battle and menu cue, a sound for each element and ability, a motif for the main theme, the villain, and every character, and a track for every music role, all without an API key.</p>';
+    p.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+    host.appendChild(p);
+  }
+  function confirmDelete(r, msg, after) {
+    Kit.ui.dialog({ title: 'Delete ' + r.name + '?', body: msg, actions: [{ label: 'Cancel' }, { label: 'Delete', kind: 'danger', onClick: function () { A.retire(cur(), r); touch('sound-delete'); if (after) after(); Kit.rerender(); } }] });
+  }
+
+  // ---------------------------------------------------------------- small canvases
+  function canvas(w, h, label) { var c = el('canvas', 'a7-snd-cv'); c.width = w; c.height = h; c.setAttribute('role', 'img'); if (label) c.setAttribute('aria-label', label); return c; }
+  function ink() { var s = getComputedStyle(document.documentElement); return { ink: (s.getPropertyValue('--ink') || '#e8e8f0').trim() || '#e8e8f0', acc: (s.getPropertyValue('--accent') || '#d8b048').trim() || '#d8b048', line: (s.getPropertyValue('--line2') || '#444').trim() || '#444' }; }
+  function drawEnvelope(cv, insRec) {
+    var g = cv.getContext && cv.getContext('2d'); if (!g) return;
+    var n = EA.instrument.normalize(insRec, insRec.wave === 'tri' ? 'tri' : insRec.wave === 'noise' ? 'noise' : 'p1'), col = ink(), W0 = cv.width, H0 = cv.height;
+    g.clearRect(0, 0, W0, H0);
+    var frames = Math.max(24, n.vol.length + 12) + n.release, bw = W0 / frames;
+    var pl = EA.instrument.plan(n, 60, 15, 0, (frames - n.release) / 60);
+    g.fillStyle = col.line; g.fillRect(0, H0 - 1, W0, 1);
+    for (var f = 0; f < frames; f++) {
+      var t = f / 60, v = 0;
+      pl.gain.forEach(function (x) { if (x[0] <= t + 1e-9) v = x[1]; });
+      g.fillStyle = f >= frames - n.release ? col.acc : col.ink;
+      var h = Math.round(v * (H0 - 4));
+      g.fillRect(Math.floor(f * bw), H0 - 1 - h, Math.max(1, Math.ceil(bw) - 1), h);
+    }
+  }
+  function drawWave(cv, data) {
+    var g = cv.getContext && cv.getContext('2d'); if (!g) return;
+    var col = ink(), W0 = cv.width, H0 = cv.height, mid = H0 / 2;
+    g.clearRect(0, 0, W0, H0);
+    g.fillStyle = col.line; g.fillRect(0, Math.round(mid), W0, 1);
+    g.fillStyle = col.acc;
+    var per = Math.max(1, Math.floor(data.length / W0));
+    for (var x = 0; x < W0; x++) {
+      var lo = 0, hi = 0;
+      for (var i = x * per; i < Math.min(data.length, (x + 1) * per); i++) { if (data[i] < lo) lo = data[i]; if (data[i] > hi) hi = data[i]; }
+      g.fillRect(x, Math.round(mid - hi * mid), 1, Math.max(1, Math.round((hi - lo) * mid)));
+    }
+  }
+  // A four lane piano roll of one order row (or a motif's melody).
+  function drawRoll(cv, lanes, ticks) {
+    var g = cv.getContext && cv.getContext('2d'); if (!g) return;
+    var col = ink(), W0 = cv.width, H0 = cv.height, n = lanes.length, lh = H0 / n;
+    g.clearRect(0, 0, W0, H0);
+    lanes.forEach(function (evs, li) {
+      var ns = evs.filter(function (e) { return e.n != null; }).map(function (e) { return e.n; }), lo = ns.length ? Math.min.apply(null, ns) : 60, hi = ns.length ? Math.max.apply(null, ns) : 72, span = Math.max(12, hi - lo + 1);
+      g.fillStyle = col.line; g.fillRect(0, Math.round((li + 1) * lh) - 1, W0, 1);
+      g.fillStyle = li === 0 ? col.acc : col.ink;
+      evs.forEach(function (e) {
+        if (e.n == null) return;
+        var x = Math.floor(e.t / ticks * W0), w = Math.max(1, Math.floor(e.d / ticks * W0) - 1), y = li * lh + 2 + (1 - (e.n - lo + 0.5) / span) * (lh - 6);
+        g.fillRect(x, Math.round(y), w, 2);
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------- instruments
+  function waveChip(r) { return W.chip(r.wave === 'tri' ? 'triangle' : r.wave, r.wave === 'noise' ? 'muted' : 'accent'); }
+  function viewInstruments(host) {
+    var b = cur(), list = A.instruments(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Instruments</h3><p class="muted">Each instrument is a set of tables stepped 60 times a second: duty (the pulse width), volume with an optional loop point, arpeggio, and pitch, plus vibrato and a release. Pulse instruments play on pulse 1 and 2, triangle on the triangle voice, noise on the noise voice.</p>';
+    soundNotice(intro);
+    host.appendChild(intro);
+    if (!list.length) { needBuild(host, 'instruments'); return; }
+    var p = el('section', 'panel'), grid = el('div', 'a7-snd-list');
+    list.forEach(function (r) {
+      var card = el('div', 'a7-snd-card' + (ui.focus === r.id ? ' a7-hit' : '')); card.dataset.rid = r.id;
+      card.appendChild(el('div', 'a7-snd-name', '<strong>' + esc(r.name) + '</strong> ' + waveChip(r) + ' ' + origin(r)));
+      var cv = canvas(160, 40, 'Volume envelope of ' + r.name); card.appendChild(cv); drawEnvelope(cv, r);
+      var row = el('div', 'btn-row');
+      row.appendChild(ibtn('Play', 'play', '', function () { A.playNote(r, r.wave === 'tri' ? 48 : r.wave === 'noise' ? (A.insKey(r) === 'hat' ? 106 : A.insKey(r) === 'snare' ? 96 : 62) : 69); }, 'Play ' + r.name));
+      row.appendChild(W.button('Edit', 'edit', 'btn-ghost', function () { openInstrument(r.id); }));
+      card.appendChild(row);
+      grid.appendChild(card);
+    });
+    p.appendChild(grid);
+    var add = el('div', 'btn-row');
+    add.appendChild(W.button('New instrument', 'plus', '', function () {
+      var r = ART.envelope('ins_', 'New instrument', null, 'user', 0, EA.instrument.normalize(null, 'p1'));
+      ART.records.put(r); touch('ins-new'); openInstrument(r.id);
+    }));
+    p.appendChild(add);
+    host.appendChild(p);
+  }
+  var KEYS = [['C', 0], ['D', 2], ['E', 4], ['F', 5], ['G', 7], ['A', 9], ['B', 11], ['C+', 12]];
+  function openInstrument(id) {
+    Kit.ui.drawer({
+      title: 'Instrument',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), r = ART.records.get(id);
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This instrument no longer exists.')); return; }
+          h.setTitle(r.name);
+          function set(fn, again) { fn(); r.origin = 'user'; touch('ins-edit'); if (again !== false) paint(); }
+          var head = el('div', 'a7-edhead'), cv = canvas(320, 80, 'Volume envelope'); head.appendChild(cv); drawEnvelope(cv, r);
+          var meta = el('div', 'a7-grow');
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(r.id) + '</code></dd><dt>Library</dt><dd>' + esc(A.insKey(r) || 'your own') + '</dd><dt>Origin</dt><dd>' + origin(r) + '</dd></dl>';
+          head.appendChild(meta); body.appendChild(head);
+          var keys = el('div', 'a7-keys'); keys.setAttribute('role', 'group'); keys.setAttribute('aria-label', 'Play a note');
+          var base = r.wave === 'tri' ? 36 + 12 * (ui.octave - 3) : r.wave === 'noise' ? 84 : 12 * (ui.octave + 1);
+          KEYS.forEach(function (k) { var bt = el('button', 'btn', esc(k[0])); bt.type = 'button'; bt.setAttribute('aria-label', 'Play ' + k[0]); bt.addEventListener('click', function () { A.playNote(r, base + k[1]); }); keys.appendChild(bt); });
+          body.appendChild(keys);
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(textField('Name', r.name, function (v) { set(function () { r.name = String(v).trim().slice(0, 60) || r.name; }); }, { max: 60 }));
+          ctl.appendChild(W.select('Wave', r.wave, [['pulse', 'Pulse'], ['tri', 'Triangle'], ['noise', 'Noise']], function (v) { set(function () { r.wave = v; }); }));
+          if (r.wave === 'noise') ctl.appendChild(W.select('Noise mode', r.noiseMode || 'long', [['long', 'Long (hiss)'], ['short', 'Short (metallic)']], function (v) { set(function () { r.noiseMode = v; }); }));
+          if (r.wave !== 'noise') ctl.appendChild(W.select('Keyboard octave', String(ui.octave), [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']], function (v) { ui.octave = Number(v); paint(); }));
+          body.appendChild(ctl);
+          var tab = el('div', 'a7-ctl');
+          function table(label, key, lo, hi, help) {
+            return textField(label, (r[key] || []).join(' '), function (v, inp) {
+              var a = ints(v, lo, hi);
+              if (!a || (key === 'vol' && !a.length)) { Kit.ui.toast(label + ' takes whole numbers from ' + lo + ' to ' + hi + ', separated by spaces.', 'error'); inp.value = (r[key] || []).join(' '); return; }
+              set(function () { r[key] = a; if (key === 'vol' && r.volLoop != null && r.volLoop >= a.length) r.volLoop = null; });
+            }, { wide: true, mono: true, placeholder: help });
+          }
+          if (r.wave === 'pulse') tab.appendChild(table('Duty steps (0 is 12.5%, 1 is 25%, 2 is 50%, 3 is 75%)', 'duty', 0, 3, '2'));
+          tab.appendChild(table('Volume steps (0 to 15)', 'vol', 0, 15, '15 14 13 12'));
+          tab.appendChild(table('Arpeggio (semitones, loops)', 'arp', -48, 48, 'empty for none'));
+          tab.appendChild(table('Pitch (cents, holds the last)', 'pitch', -4800, 4800, 'empty for none'));
+          body.appendChild(tab);
+          var ctl2 = el('div', 'a7-ctl');
+          ctl2.appendChild(W.select('Volume loop', r.volLoop == null ? '' : String(r.volLoop), [['', 'Hold the last step']].concat((r.vol || []).map(function (v, i) { return [String(i), 'Loop from step ' + (i + 1) + ' (' + v + ')']; })), function (v) { set(function () { r.volLoop = v === '' ? null : Number(v); }); }));
+          ctl2.appendChild(W.slider('Release frames', r.release || 0, 0, 60, 1, function (v) { set(function () { r.release = v; }); }));
+          ctl2.appendChild(W.toggle('Vibrato', !!r.vibrato, function (on) { set(function () { r.vibrato = on ? { delay: 18, depth: 0.15, rate: 5.5 } : null; }); }));
+          body.appendChild(ctl2);
+          if (r.vibrato) {
+            var vb = el('div', 'a7-ctl');
+            vb.appendChild(W.slider('Vibrato delay (frames)', r.vibrato.delay, 0, 120, 1, function (v) { set(function () { r.vibrato.delay = v; }); }));
+            vb.appendChild(W.slider('Vibrato depth (semitones)', r.vibrato.depth, 0.02, 1, 0.01, function (v) { set(function () { r.vibrato.depth = v; }); }));
+            vb.appendChild(W.slider('Vibrato rate (Hz)', r.vibrato.rate, 1, 12, 0.5, function (v) { set(function () { r.vibrato.rate = v; }); }));
+            body.appendChild(vb);
+          }
+          var row = el('div', 'btn-row');
+          row.appendChild(W.button('Duplicate', 'plus', '', function () { var c = ART.envelope('ins_', r.name + ' copy', null, 'user', 0, U.clone(EA.instrument.normalize(r, 'p1'))); c.wave = r.wave; ART.records.put(c); touch('ins-dup'); id = c.id; paint(); }));
+          var lib = A.INSTRUMENTS.filter(function (d) { return d.key === A.insKey(r); })[0];
+          if (lib) row.appendChild(W.button('Reset to default', 'check', 'btn-ghost', function () { var d = lib.body(); Object.keys(d).forEach(function (k) { r[k] = d[k]; }); r.origin = 'default'; touch('ins-reset'); paint(); }));
+          row.appendChild(W.button('Delete', 'trash', 'btn-ghost', function () { confirmDelete(r, 'Tracks that use it fall back to the voice\'s built in sound.' + (lib ? ' Quick Build will not recreate it.' : ''), function () { h.close(); }); }));
+          body.appendChild(row);
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+
+  // ---------------------------------------------------------------- effects
+  function soundGroups(b) {
+    var all = A.sounds(b);
+    return [
+      ['Battle and menu cues', all.filter(function (r) { return r.subject && r.subject.kind === 'role'; })],
+      ['Element spells', all.filter(function (r) { return r.subject && r.subject.kind === 'element'; })],
+      ['Abilities', all.filter(function (r) { return r.subject && r.subject.kind === 'abl'; })],
+      ['Your own', all.filter(function (r) { return !r.subject || ['role', 'element', 'abl'].indexOf(r.subject.kind) < 0; })]
+    ];
+  }
+  function soundLabel(r) {
+    var sj = r.subject || {};
+    if (sj.kind === 'abl') return nameOf(sj.ref);
+    if (sj.kind === 'element') { var e = ((cur().charter.ruleset || {}).elements || []).filter(function (x) { return x.key === sj.ref; })[0]; return e ? (e.label || e.key) : sj.ref; }
+    return r.name;
+  }
+  function viewEffects(host) {
+    var b = cur();
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Sound effects</h3><p class="muted">Every effect is a set of sfxr parameters rendered once into a buffer and played on its own bus, so effects never steal a music voice. Battle cues, menu sounds, each element\'s spell, and each ability have their own. Mutate nudges a sound into a cousin of itself.</p>';
+    soundNotice(intro);
+    var cats = el('div', 'a7-seg'); cats.setAttribute('role', 'group'); cats.setAttribute('aria-label', 'Category');
+    [['', 'All']].concat(EA.sfxr.CATEGORIES.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; })).forEach(function (c) {
+      var bt = el('button', 'btn', esc(c[1])); bt.type = 'button'; bt.setAttribute('aria-pressed', ui.cat === c[0] ? 'true' : 'false');
+      bt.addEventListener('click', function () { ui.cat = c[0]; Kit.rerender(); });
+      cats.appendChild(bt);
+    });
+    intro.appendChild(cats);
+    host.appendChild(intro);
+    if (!A.sounds(b).length) { needBuild(host, 'sound effects'); return; }
+    soundGroups(b).forEach(function (g) {
+      var list = g[1].filter(function (r) { return !ui.cat || r.category === ui.cat; });
+      if (!list.length) return;
+      var p = el('section', 'panel'); p.appendChild(el('h3', 'section-h', esc(g[0]) + ' <span class="muted a7-small">' + list.length + '</span>'));
+      var grid = el('div', 'a7-sfx-grid');
+      list.forEach(function (r) {
+        var row = el('div', 'a7-sfx' + (ui.focus === r.id ? ' a7-hit' : '')); row.dataset.rid = r.id;
+        row.appendChild(ibtn('', 'play', 'btn-icon', function () { A.playSfx(r.id); }, 'Play ' + soundLabel(r)));
+        var nm = el('button', 'a7-sfx-name'); nm.type = 'button'; nm.innerHTML = '<strong>' + esc(soundLabel(r)) + '</strong><small>' + esc(r.category) + (A.cueKey(r) ? ' &middot; cue ' + esc(A.cueKey(r)) : '') + '</small>';
+        nm.setAttribute('aria-label', 'Edit ' + soundLabel(r)); nm.addEventListener('click', function () { openSound(r.id); });
+        row.appendChild(nm);
+        if (A.isKept(r)) row.appendChild(el('span', null, W.chip('edited', 'accent')));
+        grid.appendChild(row);
+      });
+      p.appendChild(grid);
+      host.appendChild(p);
+    });
+    var add = el('section', 'panel'), row = el('div', 'a7-ctl');
+    var pick = { cat: 'hit' };
+    row.appendChild(W.select('New sound from a preset', pick.cat, EA.sfxr.CATEGORIES.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { pick.cat = v; }));
+    row.appendChild(W.button('Create', 'plus', '', function () {
+      var seed = (Math.random() * 4294967295) >>> 0, r = ART.envelope('sfx_', 'New ' + pick.cat + ' sound', null, 'user', seed, { params: EA.sfxr.preset(pick.cat, seed), category: pick.cat, lastMutate: null });
+      ART.records.put(r); touch('sfx-new'); A.playSfx(r.id); openSound(r.id);
+    }));
+    add.appendChild(row); host.appendChild(add);
+  }
+  function openSound(id) {
+    Kit.ui.drawer({
+      title: 'Sound effect',
+      body: function (body, h) {
+        var mut = { amount: 0.15 };
+        function paint() {
+          var r = ART.records.get(id);
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This sound no longer exists.')); return; }
+          h.setTitle(soundLabel(r));
+          function set(fn, play) { fn(); r.params = EA.sfxr.normalize(r.params); r.origin = 'user'; touch('sfx-edit'); paint(); if (play) A.playSfx(r.id); }
+          var data = EA.sfxr.render(r.params, 11025, r.seed >>> 0 || 1);
+          var head = el('div', 'a7-edhead'), cv = canvas(320, 80, 'Waveform of ' + soundLabel(r)); head.appendChild(cv); drawWave(cv, data);
+          var meta = el('div', 'a7-grow'), sj = r.subject || {};
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(r.id) + '</code></dd><dt>For</dt><dd>' + esc(sj.kind === 'role' ? 'cue ' + (A.cueKey(r) || sj.ref) : sj.kind ? sj.kind + ' ' + soundLabel(r) : 'nothing yet') + '</dd><dt>Length</dt><dd>' + (data.length / 11025).toFixed(2) + ' s</dd><dt>Origin</dt><dd>' + origin(r) + '</dd></dl>';
+          head.appendChild(meta); body.appendChild(head);
+          var row = el('div', 'btn-row');
+          row.appendChild(ibtn('Play', 'play', 'btn-primary', function () { A.playSfx(r.id); }));
+          row.appendChild(ibtn('Mutate', 'dice', '', function () { var seed = (Math.random() * 4294967295) >>> 0; set(function () { r.params = EA.sfxr.mutate(r.params, mut.amount, seed); r.lastMutate = { amount: mut.amount, seed: seed }; }, true); }));
+          row.appendChild(ibtn('New from preset', 'spark', 'btn-ghost', function () { var seed = (Math.random() * 4294967295) >>> 0; set(function () { r.params = EA.sfxr.preset(r.category, seed); r.seed = seed; r.lastMutate = null; }, true); }));
+          body.appendChild(row);
+          var top = el('div', 'a7-ctl');
+          top.appendChild(W.slider('Mutate amount', mut.amount, 0.05, 0.5, 0.05, function (v) { mut.amount = v; }));
+          if (!sj.kind || sj.kind !== 'role') top.appendChild(textField('Name', r.name, function (v) { set(function () { r.name = String(v).trim().slice(0, 60) || r.name; }); }, { max: 60 }));
+          top.appendChild(W.select('Category', r.category, EA.sfxr.CATEGORIES.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { set(function () { r.category = v; }); }));
+          top.appendChild(W.select('Wave', r.params.wave, EA.sfxr.WAVES.map(function (w) { return [w, w.charAt(0).toUpperCase() + w.slice(1)]; }), function (v) { set(function () { r.params.wave = v; }, true); }));
+          body.appendChild(top);
+          var grid = el('div', 'a7-ctl a7-params');
+          EA.sfxr.PARAMS.forEach(function (d) {
+            grid.appendChild(W.slider(d.label, r.params[d.key], d.min, d.max, 0.01, function (v) { set(function () { r.params[d.key] = v; }, true); }));
+          });
+          body.appendChild(grid);
+          var tail = el('div', 'btn-row');
+          var cue = A.CUES.filter(function (c) { return c.key === A.cueKey(r); })[0];
+          if (cue) tail.appendChild(W.button('Reset to default', 'check', 'btn-ghost', function () { r.params = EA.sfxr.normalize(cue.p); r.category = cue.cat; r.origin = 'default'; r.lastMutate = null; touch('sfx-reset'); paint(); }));
+          else if (sj.kind === 'element' || sj.kind === 'abl') tail.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () { r.origin = 'procedural'; A.build(cur(), {}); touch('sfx-reset'); paint(); }));
+          tail.appendChild(W.button('Duplicate', 'plus', 'btn-ghost', function () { var c = ART.envelope('sfx_', soundLabel(r) + ' copy', null, 'user', r.seed, { params: U.clone(r.params), category: r.category, lastMutate: null }); ART.records.put(c); touch('sfx-dup'); id = c.id; paint(); }));
+          tail.appendChild(W.button('Delete', 'trash', 'btn-ghost', function () { confirmDelete(r, cue ? 'This cue falls silent until you restore it from Score by role or make another sound for it.' : 'Nothing plays it any more.', function () { h.close(); }); }));
+          body.appendChild(tail);
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+
+  // ---------------------------------------------------------------- motifs
+  function motifLabel(r) {
+    var sj = r.subject || {};
+    if (sj.kind === 'chr') return nameOf(sj.ref) + ' (leitmotif)';
+    return r.name;
+  }
+  function melodyLane(r, recipe) {
+    var t = EM.realize(r, recipe || { rhythm: 'straight', accomp: 'none', bass: 'none', drums: 'none' }, {}), p = EA.mml.parse(t.patterns.A);
+    return { events: p.events, ticks: Math.max(1, p.ticks), track: t };
+  }
+  function playVariation(r, vk) {
+    var vars = U.isObj(r.variations) ? r.variations : {}, recipe = Object.assign({}, EM.VARIATIONS[vk] || {}, vars[vk] || {});
+    var t = EM.realize(r, recipe, A.kit(cur()));
+    delete t.info;
+    return A.playTrack(t, { loop: false, crossfadeMs: 120 });
+  }
+  function viewMotifs(host) {
+    var b = cur(), list = A.motifs(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Motifs</h3><p class="muted">A motif is a short melody in scale degrees. The main theme, the villain, and every character have one. Each carries four variations (field, sorrow, battle, finale) that re-voice the same notes with a mode, tempo, rhythm, accompaniment, bass, and drums, so a character\'s theme can return in a battle or a lament and still be recognized.</p>';
+    soundNotice(intro);
+    host.appendChild(intro);
+    if (!list.length) { needBuild(host, 'motifs'); return; }
+    var order = { role: 0, chr: 1 };
+    list.sort(function (x, y) { return (order[(x.subject || {}).kind] || 2) - (order[(y.subject || {}).kind] || 2) || (x.id < y.id ? -1 : 1); });
+    var p = el('section', 'panel'), grid = el('div', 'a7-snd-list');
+    list.forEach(function (r) {
+      var card = el('div', 'a7-snd-card' + (ui.focus === r.id ? ' a7-hit' : '')); card.dataset.rid = r.id;
+      card.appendChild(el('div', 'a7-snd-name', '<strong>' + esc(motifLabel(r)) + '</strong> ' + origin(r)));
+      card.appendChild(el('div', 'muted a7-small', esc(r.mode + ' in ' + (typeof r.key === 'number' ? EM.KEYS[r.key] : r.key) + ', ' + r.meter + ' beats, ' + r.tempo + ' bpm')));
+      var lane = melodyLane(r), cv = canvas(240, 44, 'Melody of ' + motifLabel(r)); card.appendChild(cv); drawRoll(cv, [lane.events], lane.ticks);
+      var row = el('div', 'a7-seg');
+      Object.keys(VAR_LABEL).forEach(function (vk) { row.appendChild(ibtn(VAR_LABEL[vk], 'play', '', function () { playVariation(r, vk); }, 'Play the ' + VAR_LABEL[vk].toLowerCase() + ' variation of ' + motifLabel(r))); });
+      card.appendChild(row);
+      var row2 = el('div', 'btn-row');
+      row2.appendChild(W.button('Edit', 'edit', 'btn-ghost', function () { openMotif(r.id); }));
+      row2.appendChild(ibtn('Stop', 'stop', 'btn-ghost', function () { A.stop(150); }));
+      card.appendChild(row2);
+      grid.appendChild(card);
+    });
+    p.appendChild(grid);
+    host.appendChild(p);
+  }
+  function retrackFrom(motifId) {
+    var b = cur(), n = 0;
+    A.tracks(b).forEach(function (t) { if (!A.isKept(t) && t.derivedFrom && t.derivedFrom.motif === motifId && A.rederive(b, t)) n++; });
+    return n;
+  }
+  function openMotif(id) {
+    Kit.ui.drawer({
+      title: 'Motif',
+      body: function (body, h) {
+        function paint() {
+          var r = ART.records.get(id), b = cur();
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This motif no longer exists.')); return; }
+          h.setTitle(motifLabel(r));
+          function set(fn) { fn(); r.origin = 'user'; var n = retrackFrom(r.id); touch('motif-edit'); paint(); if (n) Kit.ui.toast(n + ' track' + (n === 1 ? '' : 's') + ' re-derived from this motif.', 'ok'); }
+          var vk = ui.variation[id] || 'field';
+          var lane = melodyLane(r), cv = canvas(480, 80, 'Melody of ' + motifLabel(r));
+          body.appendChild(cv); drawRoll(cv, [lane.events], lane.ticks);
+          var pd = EM.parseDegrees(r.degrees), pr = EM.parseDurs(r.durs);
+          var probs = pd.errors.concat(pr.errors).map(function (e) { return e.message; });
+          if (pd.tokens.length !== pr.durs.length) probs.push(pd.tokens.length + ' degrees and ' + pr.durs.length + ' durations: the extras are ignored.');
+          if (probs.length) body.appendChild(el('p', 'msg msg-warning', esc(probs.slice(0, 3).join(' '))));
+          var tx = el('div', 'a7-ctl');
+          tx.appendChild(textField('Scale degrees (1 to 9, # or b before, \' up or , down after, r rest)', r.degrees, function (v) { set(function () { r.degrees = String(v).trim().replace(/\s+/g, ' '); }); }, { wide: true, mono: true, area: true, rows: 2 }));
+          tx.appendChild(textField('Durations in eighths (2 is a quarter, 2/3 a triplet eighth)', r.durs, function (v) { set(function () { r.durs = String(v).trim().replace(/\s+/g, ' '); }); }, { wide: true, mono: true, area: true, rows: 2 }));
+          body.appendChild(tx);
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(W.select('Mode', r.mode, Object.keys(EM.MODES).map(function (m) { return [m, m.charAt(0).toUpperCase() + m.slice(1)]; }), function (v) { set(function () { r.mode = v; }); }));
+          ctl.appendChild(W.select('Key', typeof r.key === 'number' ? EM.KEYS[r.key] : r.key, EM.KEYS.map(function (k) { return [k, k]; }), function (v) { set(function () { r.key = v; }); }));
+          ctl.appendChild(W.select('Meter', String(r.meter), ['2', '3', '4', '5', '6', '7'].map(function (m) { return [m, m + ' beats']; }), function (v) { set(function () { r.meter = Number(v); }); }));
+          ctl.appendChild(W.slider('Tempo', r.tempo, 40, 240, 1, function (v) { set(function () { r.tempo = v; }); }));
+          body.appendChild(ctl);
+          var row = el('div', 'btn-row');
+          row.appendChild(ibtn('New melody', 'dice', '', function () { var seed = (Math.random() * 4294967295) >>> 0, m = EM.generate(seed, { mode: r.mode, key: r.key, tempo: r.tempo, meter: r.meter }); set(function () { r.degrees = m.degrees; r.durs = m.durs; r.seed = seed; }); }));
+          if (A.isKept(r) && r.subject) row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () { r.origin = 'procedural'; A.build(cur(), {}); touch('motif-reset'); paint(); }));
+          body.appendChild(row);
+          // Variations
+          body.appendChild(el('h3', 'section-h', 'Variations'));
+          var seg = el('div', 'a7-seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Variation');
+          var vars = U.isObj(r.variations) ? r.variations : (r.variations = {});
+          Object.keys(EM.VARIATIONS).concat(Object.keys(vars).filter(function (k) { return !EM.VARIATIONS[k]; })).forEach(function (k) {
+            var bt = el('button', 'btn', esc(VAR_LABEL[k] || k)); bt.type = 'button'; bt.setAttribute('aria-pressed', k === vk ? 'true' : 'false');
+            bt.addEventListener('click', function () { ui.variation[id] = k; paint(); });
+            seg.appendChild(bt);
+          });
+          body.appendChild(seg);
+          var v = vars[vk] = vars[vk] || U.clone(EM.VARIATIONS[vk] || EM.VARIATIONS.field);
+          function setV(fn) { set(fn); }
+          var vc = el('div', 'a7-ctl');
+          vc.appendChild(W.select('Mode', v.mode || '', [['', 'Same as the motif']].concat(Object.keys(EM.MODES).map(function (m) { return [m, m.charAt(0).toUpperCase() + m.slice(1)]; })), function (x) { setV(function () { v.mode = x || null; }); }));
+          vc.appendChild(W.select('Key', v.key == null ? '' : (typeof v.key === 'number' ? EM.KEYS[v.key] : v.key), [['', 'Same as the motif']].concat(EM.KEYS.map(function (k) { return [k, k]; })), function (x) { setV(function () { v.key = x || null; }); }));
+          vc.appendChild(W.slider('Tempo scale', v.tempoScale == null ? 1 : v.tempoScale, 0.25, 2.5, 0.05, function (x) { setV(function () { v.tempoScale = x; }); }));
+          vc.appendChild(W.select('Rhythm', v.rhythm || 'straight', EM.RHYTHMS.map(function (x) { return [x, x.charAt(0).toUpperCase() + x.slice(1)]; }), function (x) { setV(function () { v.rhythm = x; }); }));
+          vc.appendChild(W.select('Octave', String(v.octave || 5), ['3', '4', '5', '6', '7'].map(function (x) { return [x, x]; }), function (x) { setV(function () { v.octave = Number(x); }); }));
+          var leads = A.instruments(b).filter(function (x) { return x.wave === 'pulse'; });
+          vc.appendChild(W.select('Lead', v.lead || '', [['', 'Default lead']].concat(leads.map(function (x) { return [x.id, x.name]; })), function (x) { setV(function () { v.lead = x || null; }); }));
+          vc.appendChild(W.select('Accompaniment', v.accomp || 'arp', EM.ACCOMP.map(function (x) { return [x, x.charAt(0).toUpperCase() + x.slice(1)]; }), function (x) { setV(function () { v.accomp = x; }); }));
+          vc.appendChild(W.select('Bass', v.bass || 'root', EM.BASS.map(function (x) { return [x, x.charAt(0).toUpperCase() + x.slice(1)]; }), function (x) { setV(function () { v.bass = x; }); }));
+          vc.appendChild(W.select('Drums', v.drums || 'none', EM.DRUMS.map(function (x) { return [x, x.charAt(0).toUpperCase() + x.slice(1)]; }), function (x) { setV(function () { v.drums = x; }); }));
+          vc.appendChild(W.toggle('Use a fragment', !!v.fragment, function (on) { setV(function () { v.fragment = on ? { start: 0, len: Math.max(1, Math.floor(pd.tokens.length / 2)), repeat: 2 } : null; }); }));
+          body.appendChild(vc);
+          if (v.fragment) {
+            var fc = el('div', 'a7-ctl'), nTok = Math.max(1, pd.tokens.length);
+            fc.appendChild(W.slider('Fragment start', v.fragment.start, 0, nTok - 1, 1, function (x) { setV(function () { v.fragment.start = x; }); }));
+            fc.appendChild(W.slider('Fragment notes', v.fragment.len, 1, nTok, 1, function (x) { setV(function () { v.fragment.len = x; }); }));
+            fc.appendChild(W.slider('Repeats', v.fragment.repeat, 1, 8, 1, function (x) { setV(function () { v.fragment.repeat = x; }); }));
+            body.appendChild(fc);
+          }
+          var pr2 = el('div', 'btn-row');
+          pr2.appendChild(ibtn('Play ' + (VAR_LABEL[vk] || vk).toLowerCase(), 'play', 'btn-primary', function () { playVariation(r, vk); }));
+          pr2.appendChild(ibtn('Stop', 'stop', 'btn-ghost', function () { A.stop(150); }));
+          body.appendChild(pr2);
+          var uses = A.tracks(b).filter(function (t) { return t.derivedFrom && t.derivedFrom.motif === r.id; });
+          body.appendChild(el('p', 'muted a7-small', uses.length ? esc('Scores ' + uses.map(function (t) { return t.name; }).join(', ') + '. Generated tracks re-derive when you edit this motif; edited tracks keep their notes.') : 'No track is derived from this motif yet.'));
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+
+  // ---------------------------------------------------------------- score by role
+  function viewScore(host) {
+    var b = cur(), roles = ART.musicRoles(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Score by role</h3><p class="muted">Every place the game plays music is a role: the eight static ones, one field role per continent the Charter names, and one per ending. Quick Build derives each track from a motif. Battles call battle (or boss), victory, and defeat on their own.</p>';
+    soundNotice(intro);
+    host.appendChild(intro);
+    var p = el('section', 'panel'), t = el('table', 'tbl a7-score');
+    t.innerHTML = '<thead><tr><th scope="col">Role</th><th scope="col">Track</th><th scope="col">Length</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>';
+    var tb = el('tbody');
+    var ret = (b.art.settings.retired || []);
+    roles.forEach(function (role) {
+      var tr = el('tr'), trk = A.trackFor(b, role.key);
+      if (trk && ui.focus === trk.id) tr.classList.add('a7-hit');
+      if (trk) tr.dataset.rid = trk.id;
+      tr.innerHTML = '<th scope="row">' + esc(role.label) + '<div class="muted a7-small"><code>' + esc(role.key) + '</code> ' + (role.required ? W.chip('required', 'muted') : W.chip(role.kind === 'user' ? 'your own' : 'optional', 'muted')) + '</div></th>';
+      var td = el('td');
+      if (trk) {
+        var src = trk.derivedFrom && ART.records.get(trk.derivedFrom.motif);
+        td.innerHTML = esc(trk.name) + ' ' + origin(trk) + (src ? '<div class="muted a7-small">' + esc(motifLabel(src) + ', ' + (VAR_LABEL[trk.derivedFrom.variation] || trk.derivedFrom.variation)) + '</div>' : '');
+      } else td.innerHTML = role.required ? W.chip('missing', 'warning') : '<span class="muted">none</span>';
+      tr.appendChild(td);
+      var tdl = el('td', 'num');
+      if (trk) { var d = EA.track.duration(trk); tdl.textContent = d.once.toFixed(1) + ' s' + (d.loops ? ', loops' : ''); }
+      tr.appendChild(tdl);
+      var act = el('td'), row = el('div', 'btn-row a7-tight');
+      if (trk) {
+        row.appendChild(ibtn('', 'play', 'btn-icon', function () { A.playTrack(trk.id, { role: role.key }); }, 'Play ' + role.label));
+        row.appendChild(ibtn('', 'stop', 'btn-icon btn-ghost', function () { A.stop(300); }, 'Stop'));
+        row.appendChild(W.button('Edit', 'edit', 'btn-ghost', function () { openTrack(trk.id); }));
+      } else {
+        row.appendChild(W.button('Make track', 'plus', '', function () {
+          var bb = cur(), i = ret.indexOf('music:' + role.key);
+          if (i >= 0) ret.splice(i, 1);
+          var body = A.realizeRole(bb, role.key) || A.realizeRole(bb, 'field:default') || A.realizeRole(bb, 'title');
+          if (!body) { Kit.ui.toast('Run Quick Build first: tracks are derived from motifs.', 'warn'); return; }
+          ART.records.put(ART.envelope('mus_', role.label + ' music', { kind: 'role', ref: 'music:' + role.key }, role.kind === 'user' ? 'user' : 'procedural', ENGINE_RENDER.util.hash32('mus|' + role.key), body));
+          touch('track-new'); Kit.rerender();
+        }));
+      }
+      act.appendChild(row); tr.appendChild(act);
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    var wrap = el('div', 'tbl-wrap'); wrap.appendChild(t); p.appendChild(wrap);
+    host.appendChild(p);
+    // Your own roles.
+    var add = el('section', 'panel');
+    add.appendChild(el('h3', 'section-h', 'Add a role'));
+    add.appendChild(el('p', 'muted a7-small', 'For music the game calls by name, such as a villain reveal or a mystery. Your roles are optional, so coverage never asks for them.'));
+    var form = { key: '', label: '' }, row2 = el('div', 'a7-ctl');
+    row2.appendChild(textField('Label', '', function (v) { form.label = v; }, { max: 40, placeholder: 'Mystery' }));
+    row2.appendChild(W.button('Add role', 'plus', '', function () {
+      var label = String(form.label || '').trim(), key = 'user:' + U.slug(label);
+      if (!label || key === 'user:') { Kit.ui.toast('Give the role a label first.', 'warn'); return; }
+      var bb = cur();
+      if (ART.musicRoles(bb).some(function (r) { return r.key === key; })) { Kit.ui.toast('There is already a role named ' + label + '.', 'warn'); return; }
+      bb.art.musicRoles.push({ key: key, label: label, kind: 'user' });
+      touch('role-add'); Kit.rerender();
+    }));
+    add.appendChild(row2);
+    var mine = (b.art.musicRoles || []).filter(function (r) { return r && r.kind === 'user'; });
+    if (mine.length) {
+      var lst = el('div', 'btn-row');
+      mine.forEach(function (r) { lst.appendChild(W.button('Remove ' + r.label, 'x', 'btn-ghost', function () { var bb = cur(); bb.art.musicRoles = bb.art.musicRoles.filter(function (x) { return x !== r; }); touch('role-remove'); Kit.rerender(); })); });
+      add.appendChild(lst);
+    }
+    host.appendChild(add);
+  }
+  function openTrack(id) {
+    Kit.ui.drawer({
+      title: 'Track',
+      body: function (body, h) {
+        function paint() {
+          var r = ART.records.get(id), b = cur();
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This track no longer exists.')); return; }
+          h.setTitle(r.name);
+          function set(fn) { fn(); r.origin = 'user'; touch('track-edit'); paint(); }
+          var c = EA.track.compile(r), d = EA.track.duration(r);
+          if (c.rows.length) {
+            var row0 = c.rows[0], cv = canvas(480, 120, 'First row of ' + r.name + ' as a piano roll');
+            body.appendChild(cv); drawRoll(cv, EA.CHANNELS.map(function (ch) { return row0.ch[ch]; }), row0.len);
+          }
+          body.appendChild(el('p', 'muted a7-small', esc(c.rows.length + ' row' + (c.rows.length === 1 ? '' : 's') + ', ' + d.once.toFixed(1) + ' s' + (d.loops ? ', then loops ' + d.loop.toFixed(1) + ' s from row ' + (r.loop + 1) : ', no loop') + '.')));
+          if (c.errors.length) body.appendChild(el('p', 'msg msg-error', esc(c.errors.slice(0, 3).map(function (e) { return 'Pattern ' + e.pattern + (e.pos ? ' at ' + e.pos : '') + ': ' + e.message; }).join(' '))));
+          var row = el('div', 'btn-row');
+          row.appendChild(ibtn('Play', 'play', 'btn-primary', function () { A.playTrack(r.id); }));
+          row.appendChild(ibtn('Stop', 'stop', 'btn-ghost', function () { A.stop(200); }));
+          if (r.derivedFrom && r.derivedFrom.motif) row.appendChild(W.button('Re-derive from its motif', 'spark', 'btn-ghost', function () { if (A.rederive(cur(), r)) { touch('track-rederive'); paint(); } else Kit.ui.toast('This role has no motif plan.', 'warn'); }));
+          body.appendChild(row);
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(textField('Name', r.name, function (v) { set(function () { r.name = String(v).trim().slice(0, 60) || r.name; }); }, { max: 60 }));
+          var roles = ART.musicRoles(b), ref = r.subject && r.subject.ref ? r.subject.ref.replace(/^music:/, '') : '';
+          ctl.appendChild(W.select('Role', ref, roles.map(function (x) { return [x.key, x.label]; }).concat(roles.some(function (x) { return x.key === ref; }) ? [] : [[ref, ref || 'none']]), function (v) { set(function () { r.subject = { kind: 'role', ref: 'music:' + v }; }); }));
+          ctl.appendChild(W.slider('Tempo', r.tempo, 40, 300, 1, function (v) { set(function () { r.tempo = v; }); }));
+          ctl.appendChild(W.select('Loop from', r.loop == null ? '' : String(r.loop), [['', 'No loop (plays once)']].concat((r.order || []).map(function (_, i) { return [String(i), 'Row ' + (i + 1)]; })), function (v) { set(function () { r.loop = v === '' ? null : Number(v); }); }));
+          body.appendChild(ctl);
+          var ins = A.instruments(b), ic = el('div', 'a7-ctl');
+          r.instruments = U.isObj(r.instruments) ? r.instruments : {};
+          EA.CHANNELS.forEach(function (ch) {
+            var want = ch === 'tri' ? 'tri' : ch === 'noise' ? 'noise' : 'pulse';
+            ic.appendChild(W.select(CH_LABEL[ch], r.instruments[ch] || '', [['', 'Built in']].concat(ins.filter(function (x) { return x.wave === want; }).map(function (x) { return [x.id, x.name]; })), function (v) { set(function () { r.instruments[ch] = v || null; }); }));
+          });
+          body.appendChild(ic);
+          var sc = el('div', 'a7-ctl'); r.slots = Array.isArray(r.slots) ? r.slots : [];
+          r.slots.forEach(function (sid, i) { sc.appendChild(W.select('Slot @' + i, sid || '', [['', 'Channel default']].concat(ins.map(function (x) { return [x.id, x.name]; })), function (v) { set(function () { r.slots[i] = v || null; }); })); });
+          if (r.slots.length < 16) sc.appendChild(W.button('Add slot', 'plus', 'btn-ghost', function () { set(function () { r.slots.push(null); }); }));
+          body.appendChild(sc);
+          body.appendChild(el('h3', 'section-h', 'Patterns'));
+          body.appendChild(el('p', 'muted a7-small', 'MML: a to g with + or - for sharps and flats, a length (4 is a quarter, 8 an eighth) with dots, r rest, ^ tie, o octave, > up, < down, l default length, v volume 0 to 15, @n instrument slot.'));
+          r.patterns = U.isObj(r.patterns) ? r.patterns : {};
+          Object.keys(r.patterns).sort().forEach(function (k) {
+            var pr = EA.mml.parse(r.patterns[k]), note = el('span', 'muted a7-small');
+            function status(res) { note.innerHTML = res.errors.length ? W.chip(res.errors.length + ' problem' + (res.errors.length === 1 ? '' : 's'), 'error') + ' ' + esc(res.errors[0].message) : W.chip('ok', 'ok') + ' ' + (res.ticks / 48).toFixed(1) + ' beats'; }
+            status(pr);
+            var f = textField('Pattern ' + k, r.patterns[k], function (v) { set(function () { r.patterns[k] = String(v); }); }, { wide: true, mono: true, area: true, rows: 3, onInput: function (v) { status(EA.mml.parse(v)); } });
+            body.appendChild(f); body.appendChild(note);
+          });
+          var pr3 = el('div', 'btn-row');
+          pr3.appendChild(W.button('Add pattern', 'plus', 'btn-ghost', function () { var k = 'P' + (Object.keys(r.patterns).length + 1); while (r.patterns[k]) k += 'x'; set(function () { r.patterns[k] = 'l8 o4 c d e f g4 r4'; }); }));
+          body.appendChild(pr3);
+          body.appendChild(el('h3', 'section-h', 'Order'));
+          body.appendChild(el('p', 'muted a7-small', 'Each row names the patterns for pulse 1, pulse 2, triangle, and noise, separated by spaces. A dash is silence.'));
+          r.order = Array.isArray(r.order) ? r.order : [];
+          r.order.forEach(function (row3, i) {
+            body.appendChild(textField('Row ' + (i + 1), (row3 || []).map(function (k) { return k == null ? '-' : k; }).join(' '), function (v, inp) {
+              var parts = String(v).trim().split(/\s+/);
+              if (parts.length !== 4) { Kit.ui.toast('A row names exactly four patterns or dashes.', 'error'); inp.value = (row3 || []).map(function (k) { return k == null ? '-' : k; }).join(' '); return; }
+              set(function () { r.order[i] = parts.map(function (x) { return x === '-' ? null : x; }); });
+            }, { mono: true }));
+          });
+          var or = el('div', 'btn-row');
+          or.appendChild(W.button('Add row', 'plus', 'btn-ghost', function () { set(function () { r.order.push(r.order.length ? r.order[r.order.length - 1].slice() : [null, null, null, null]); }); }));
+          if (r.order.length > 1) or.appendChild(W.button('Remove last row', 'x', 'btn-ghost', function () { set(function () { r.order.pop(); if (r.loop != null && r.loop >= r.order.length) r.loop = r.order.length - 1; }); }));
+          or.appendChild(W.button('Delete track', 'trash', 'btn-ghost', function () { confirmDelete(r, 'The role falls silent until you make another track for it. Quick Build will not recreate it.', function () { h.close(); }); }));
+          body.appendChild(or);
+        }
+        paint();
+      },
+      onClose: function () { Kit.rerender(); }
+    });
+  }
+
+  // ---------------------------------------------------------------- jukebox
+  var NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  function viewJukebox(host) {
+    var b = cur();
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">Jukebox</h3><p class="muted">Every track and every cue, with the mixer. The four meters show what each voice plays right now.</p>';
+    soundNotice(p);
+    var vol = el('div', 'a7-ctl'), pf = A.prefs();
+    vol.appendChild(W.slider('Music volume', Math.round(pf.music * 100), 0, 100, 5, function (v) { A.setPrefs({ music: v / 100 }); }));
+    vol.appendChild(W.slider('Effects volume', Math.round(pf.sfx * 100), 0, 100, 5, function (v) { A.setPrefs({ sfx: v / 100 }); }));
+    vol.appendChild(W.toggle('Mute', pf.muted, function (on) { A.setPrefs({ muted: on }); }));
+    p.appendChild(vol);
+    var now = el('div', 'a7-now'); now.setAttribute('aria-live', 'polite');
+    var meters = el('div', 'a7-meters');
+    var bars = {};
+    EA.CHANNELS.forEach(function (ch) { var m = el('div', 'a7-meter-ch', '<span>' + esc(CH_LABEL[ch]) + '</span><i></i><b>-</b>'); bars[ch] = m; meters.appendChild(m); });
+    p.appendChild(now); p.appendChild(meters);
+    p.appendChild(ibtn('Stop', 'stop', '', function () { A.stop(300); }));
+    host.appendChild(p);
+    var poll = setInterval(function () {
+      if (!meters.isConnected) { clearInterval(poll); return; }
+      var s = A.state();
+      now.innerHTML = s && s.playing && !s.playing.ended ? '<strong>' + esc(s.playing.name || 'Preview') + '</strong> <span class="muted a7-small">row ' + (s.position.row + 1) + (s.position.passes ? ', looped ' + s.position.passes + 'x' : '') + ', ' + s.position.seconds.toFixed(1) + ' s</span>' : '<span class="muted">Nothing playing.</span>';
+      EA.CHANNELS.forEach(function (ch) {
+        var c = s && s.channels[ch], m = bars[ch];
+        m.querySelector('i').style.width = c ? Math.round((c.v || 0) / 15 * 100) + '%' : '0%';
+        m.querySelector('b').textContent = c ? (ch === 'noise' ? 'hit' : NOTE_NAMES[c.n % 12] + (Math.floor(c.n / 12) - 1)) : '-';
+      });
+    }, 100);
+    var tracks = A.tracks(b);
+    if (!tracks.length) { needBuild(host, 'tracks'); return; }
+    var tp = el('section', 'panel'); tp.appendChild(el('h3', 'section-h', 'Tracks'));
+    var grid = el('div', 'a7-sfx-grid');
+    tracks.forEach(function (t) {
+      var row = el('div', 'a7-sfx');
+      row.appendChild(ibtn('', 'play', 'btn-icon', function () { A.playTrack(t.id); }, 'Play ' + t.name));
+      var nm = el('button', 'a7-sfx-name'); nm.type = 'button'; nm.innerHTML = '<strong>' + esc(t.name) + '</strong><small>' + esc((t.subject && t.subject.ref || '').replace(/^music:/, '') + ', ' + t.tempo + ' bpm') + '</small>';
+      nm.addEventListener('click', function () { openTrack(t.id); }); nm.setAttribute('aria-label', 'Edit ' + t.name);
+      row.appendChild(nm);
+      grid.appendChild(row);
+    });
+    tp.appendChild(grid); host.appendChild(tp);
+    var sp = el('section', 'panel'); sp.appendChild(el('h3', 'section-h', 'Cue board'));
+    var board = el('div', 'a7-seg');
+    A.CUES.forEach(function (c) { var r = A.cueSfx(b, c.key); if (!r) return; board.appendChild(ibtn(c.label, 'play', '', function () { A.playSfx(r.id); })); });
+    sp.appendChild(board); host.appendChild(sp);
+  }
+
+  var VIEWS = { instruments: viewInstruments, effects: viewEffects, motifs: viewMotifs, score: viewScore, jukebox: viewJukebox };
+  function render(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Sound</h2><p class="muted">Four voice chiptune music (two pulses, a triangle, and noise), sfxr effects, and leitmotifs that follow characters from the field into battle. Everything plays in the browser and works without Claude.</p>';
+    host.appendChild(head);
+    W.subtabs(host, SUBS, ui, VIEWS);
+  }
+  function focus(rid) {
+    var r = ART.records.get(rid), p = Kit.ids.prefixOf(rid);
+    ui.focus = rid;
+    ui.sub = p === 'ins_' ? 'instruments' : p === 'sfx_' ? 'effects' : r && r.kind === 'motif' ? 'motifs' : 'score';
+    Kit.rerender();
+  }
+  ART.WS.sound = { render: render, focus: focus, ui: ui, views: VIEWS, openInstrument: openInstrument, openSound: openSound, openMotif: openMotif, openTrack: openTrack };
+
+  // ---------------------------------------------------------------- the header sound button
+  A.paintButton = function () {
+    var bt = document.getElementById('btnSound'); if (!bt) return;
+    var m = A.prefs().muted;
+    bt.innerHTML = A.icon(m ? 'mute' : 'sound');
+    bt.setAttribute('aria-pressed', m ? 'true' : 'false');
+    bt.setAttribute('aria-label', m ? 'Sound is off. Turn sound on' : 'Sound is on. Mute');
+    bt.title = m ? 'Sound off' : 'Sound on';
+  };
+  (function () {
+    var bt = document.getElementById('btnSound');
+    if (!bt) return;
+    bt.addEventListener('click', function () { A.unlock(); A.setPrefs({ muted: !A.prefs().muted }); });
+    A.paintButton();
+  })();
+})();
+// === WS:SOUND END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -12759,7 +14819,7 @@ var ENGINE_RENDER = (function () {
     var mus = el('section', 'card');
     var roles = ART.musicRoles(b).filter(function (x) { return x.required; });
     mus.innerHTML = '<h3 class="section-h">Music roles (' + roles.length + ' required)</h3><div class="a7-prefixes">' +
-      roles.map(function (x) { return '<span class="chip ' + (x.kind === 'generated' ? 'chip-accent' : 'chip-muted') + '">' + esc(x.key) + '</span>'; }).join('') + '</div>';
+      roles.map(function (x) { var has = ART.audio && ART.audio.trackFor(b, x.key); return '<span class="chip ' + (has ? 'chip-ok' : x.kind === 'generated' ? 'chip-accent' : 'chip-muted') + '" title="' + (has ? 'Scored: ' + esc(has.name) : 'No track yet') + '">' + esc(x.key) + '</span>'; }).join('') + '</div>';
     grid.appendChild(mus);
 
     var size = el('section', 'panel');
@@ -12818,8 +14878,8 @@ var ENGINE_RENDER = (function () {
       var rows = ART_DEMO.selfTest();
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
-      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Battle</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.battle ? r.battle.beats + ' beats, ' + r.battle.hits + ' hits in ' + r.battle.ms + ' ms, ' + (r.battle.ended || 'open') + (r.battle.real ? '; engine: ' + r.battle.real.outcome + ', ' + r.battle.real.beats + ' beats' : '; engine not loaded') : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
+      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Battle</th><th scope="col">Audio</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.battle ? r.battle.beats + ' beats, ' + r.battle.hits + ' hits in ' + r.battle.ms + ' ms, ' + (r.battle.ended || 'open') + (r.battle.real ? '; engine: ' + r.battle.real.outcome + ', ' + r.battle.real.beats + ' beats' : '; engine not loaded') : 'none') + '</td><td class="muted">' + esc(r.audio ? r.audio.roles + '/' + r.audio.required + ' roles scored, ' + r.audio.tracks + ' tracks (' + r.audio.notes + ' notes, ' + r.audio.seconds + ' s' + (r.audio.errors ? ', ' + r.audio.errors + ' MML errors' : '') + '), ' + r.audio.sounds + ' sounds rendered in ' + r.audio.renderMs + ' ms, ' + r.audio.instruments + ' instruments, ' + r.audio.motifs + ' motifs' : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);

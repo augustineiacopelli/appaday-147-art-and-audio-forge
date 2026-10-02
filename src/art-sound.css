@@ -1,0 +1,45 @@
+/* === ART:SOUND CSS BEGIN === */
+.a7-snd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.a7-snd-card { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-snd-card.a7-hit { border-color: var(--accent); }
+.a7-snd-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.a7-snd-name strong { overflow-wrap: anywhere; }
+.a7-snd-cv { display: block; width: 100%; max-width: 100%; height: auto; image-rendering: pixelated; background: var(--bg); border: 1px solid var(--line2); border-radius: 6px; }
+.a7-snd-card .a7-snd-cv { aspect-ratio: auto; }
+.a7-edhead .a7-snd-cv { max-width: 320px; }
+.a7-keys { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.a7-keys .btn { min-width: 44px; min-height: 44px; padding: 0 6px; justify-content: center; font-weight: 800; }
+.a7-mono { font-family: var(--font-mono); font-size: .82rem; }
+.a7-text.a7-wide { flex: 1 1 100%; align-items: stretch; flex-direction: column; gap: 4px; }
+.a7-text.a7-wide input, .a7-text.a7-wide textarea { width: 100%; min-height: 44px; }
+.a7-text textarea { resize: vertical; }
+.a7-params .a7-range { flex: 1 1 200px; }
+.a7-sfx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.a7-sfx { display: flex; align-items: center; gap: 6px; padding: 4px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-sfx.a7-hit { border-color: var(--accent); }
+.a7-sfx .btn-icon { flex: 0 0 auto; min-width: 44px; min-height: 44px; }
+.a7-sfx-name { flex: 1 1 auto; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px; padding: 2px 6px; border: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; border-radius: 6px; font: inherit; }
+.a7-sfx-name:hover, .a7-sfx-name:focus-visible { background: var(--accent-soft); }
+.a7-sfx-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.a7-sfx-name small { color: var(--ink3); font-size: .76rem; }
+.a7-score td, .a7-score th { vertical-align: middle; }
+.a7-tight { gap: 4px; flex-wrap: nowrap; }
+.a7-tight .btn-icon { min-width: 44px; min-height: 44px; }
+.a7-now { min-height: 28px; margin: 8px 0 4px; }
+.a7-meters { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.a7-meter-ch { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); font-weight: 700; font-size: .84rem; }
+.a7-meter-ch i { display: block; height: 10px; width: 0; border-radius: 99px; background: var(--accent); transition: width 80ms linear; }
+.a7-meter-ch b { font-family: var(--font-mono); font-size: .8rem; min-width: 3ch; text-align: right; }
+#btnSound[aria-pressed="true"] { color: var(--warn); }
+@media (max-width: 520px) {
+  .a7-snd-list, .a7-sfx-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Phone: each role becomes a two column card (role and track on the left, play controls on the right). */
+  .a7-score thead, .a7-score td.num { display: none; }
+  .a7-score tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; border-bottom: 1px solid var(--line2); padding: 6px 0; }
+  .a7-score tr > th, .a7-score tr > td { border: 0; padding: 2px 6px; }
+  .a7-score tr > th { grid-column: 1; grid-row: 1; }
+  .a7-score tr > td:nth-of-type(1) { grid-column: 1; grid-row: 2; }
+  .a7-score tr > td:last-child { grid-column: 2; grid-row: 1 / span 2; }
+  .a7-score .a7-tight { flex-direction: column; align-items: stretch; }
+}
+/* === ART:SOUND CSS END === */

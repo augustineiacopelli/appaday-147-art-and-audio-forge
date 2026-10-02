@@ -206,10 +206,23 @@
           } catch (e5) { battle.real = { outcome: 'error: ' + e5.message }; }
         }
       }
+      // Phase 6: every track compiled (notes, MML errors, length) and every sound effect rendered once, the work the
+      // player does on first play; roles counts required music roles that have a track.
+      var audio = null;
+      if (ART.audio) {
+        var ta = performance.now(), EA6 = ENGINE_AUDIO, notes = 0, errs = 0, secs = 0, smp = 0;
+        ART.audio.tracks(copy).forEach(function (t6) { var c6 = EA6.track.compile(t6); errs += c6.errors.length; c6.rows.forEach(function (r6) { EA6.CHANNELS.forEach(function (ch) { notes += r6.ch[ch].filter(function (e) { return e.n != null; }).length; }); }); secs += EA6.track.duration(t6).once; });
+        var tr6 = performance.now();
+        ART.audio.sounds(copy).forEach(function (s6) { smp += EA6.sfxr.render(s6.params, 22050, s6.seed >>> 0 || 1).length; });
+        var need = ART.musicRoles(copy).filter(function (r) { return r.required; });
+        audio = { instruments: ART.audio.instruments(copy).length, sounds: ART.audio.sounds(copy).length, motifs: ART.audio.motifs(copy).length, tracks: ART.audio.tracks(copy).length,
+          notes: notes, errors: errs, seconds: Math.round(secs), roles: need.filter(function (r) { return ART.audio.trackFor(copy, r.key); }).length, required: need.length,
+          sfxSeconds: Math.round(smp / 22050 * 10) / 10, renderMs: Math.round(performance.now() - tr6), ms: Math.round(performance.now() - ta) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake

@@ -253,10 +253,11 @@
       else if (h.key === 'dpad') { touchUi.pressed.dpad = h.dir || true; touchUi.last = 'pad ' + (h.dir || 'center'); }
       else { touchUi.pressed[h.key] = true; touchUi.last = 'button ' + h.key.toUpperCase(); }
       out.textContent = 'Last input: ' + touchUi.last;
+      if (ART.audio && touchUi.last !== touchUi.sounded) { touchUi.sounded = touchUi.last; ART.audio.cue('ui', h.key === 'a' ? 'confirm' : h.key === 'b' ? 'cancel' : h.key === 'menu' ? 'confirm' : 'move'); }
     }
     st.cv.addEventListener('pointerdown', function (e) { if (st.cv.setPointerCapture) try { st.cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } press(e); e.preventDefault(); });
     st.cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') press(e); });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { st.cv.addEventListener(n, function () { touchUi.pressed = {}; }); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { st.cv.addEventListener(n, function () { touchUi.pressed = {}; touchUi.sounded = null; }); });
     p.appendChild(st.wrap); p.appendChild(out);
     p.appendChild(colorRow(tk, 'touch'));
     var ctl = el('div', 'a7-ctl');
@@ -272,7 +273,14 @@
       labs.appendChild(textField(x[1] + ' label', tk.labels[x[0]], x[0] === 'menu' ? '=' : x[0].toUpperCase(), function (v) { tk.labels[x[0]] = String(v).slice(0, 2) || null; tk.origin = 'user'; touch('ui-touch'); }));
     });
     p.appendChild(labs);
-    p.appendChild(el('p', 'muted a7-small', 'Menu sounds (move, confirm, cancel, error) link here in Phase 6. Turn the skin on in Playtest, Test room, to walk with it.'));
+    // Menu sounds: each links an sfx_ record; empty plays the cue library's sound of the same name.
+    var snd = el('div', 'a7-ctl'), sounds = ART.audio ? ART.audio.sounds(b) : [];
+    tk.sfx = tk.sfx || {};
+    [['move', 'Move sound'], ['confirm', 'Confirm sound'], ['cancel', 'Cancel sound'], ['error', 'Error sound']].forEach(function (x) {
+      snd.appendChild(W.select(x[1], tk.sfx[x[0]] || '', [['', 'Default (' + x[0] + ' cue)']].concat(sounds.map(function (r) { return [r.id, r.name]; })), function (v) { tk.sfx[x[0]] = v || null; tk.origin = 'user'; touch('ui-touch'); if (ART.audio) ART.audio.cue('ui', x[0]); }));
+    });
+    p.appendChild(snd);
+    p.appendChild(el('p', 'muted a7-small', 'Pressing the controls in the preview plays these sounds. Turn the skin on in Playtest, Test room, to walk with it.'));
   }
   function viewTitle(host) {
     late();

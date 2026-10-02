@@ -198,7 +198,9 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   const rf = await in146(fin.files[0].text, async (w2, K, r) => { let blocked = null; try { K.buildExport('final'); } catch (e) { blocked = e.message; } return { blocked }; });
   check('Final export with palettes opens art and 146 still allows Final', JSON.parse(fin.files[0].text).kit.opened.includes('art') && rf.matches && !rf.summary.errors && !rf.summary.broken && !rf.blocked, rf);
   const sz = ART.size(Kit.bundle.current());
-  check('demo bundle with palettes stays small', sz.total < 160000 && JSON.stringify([b.art.records.pal_, b.art.records.efx_]).length < 40000, { total: sz.total, art: sz.ns.art });
+  // Quick Build now runs every phase's step, so the whole demo is held to the plan's typical 150 to 300 KB; the palette
+  // records themselves keep their own 40 KB cap.
+  check('demo bundle with palettes stays small', sz.total < 300000 && JSON.stringify([b.art.records.pal_, b.art.records.efx_]).length < 40000, { total: sz.total, art: sz.ns.art });
 
   const pass = results.filter((r) => r.ok).length;
   results.forEach((r) => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : '  ' + JSON.stringify(r.detail).slice(0, 900))));

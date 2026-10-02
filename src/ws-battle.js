@@ -15,7 +15,14 @@
   function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(function (r) { return U.isObj(r) && r.id; }); }
   function chapters(b) { return (b.charter && b.charter.sections && Array.isArray(b.charter.sections.chapters)) ? b.charter.sections.chapters : []; }
   var cueLog = [];
-  function cue(kind, id) { cueLog.push(kind + ':' + id); if (cueLog.length > 10) cueLog.shift(); }
+  // Every presenter cue is logged for the chips under the stage and handed to ART:AUDIO, which plays it.
+  function cue(kind, id, opts) { cueLog.push(kind + ':' + id); if (cueLog.length > 10) cueLog.shift(); if (ART.audio) ART.audio.cue(kind, id, opts); }
+  // Battle music: the boss role when any foe in the troop is a boss, else battle.
+  function battleRole(b, troopId) {
+    var tr = troopId && b.rules && b.rules.trp_ ? b.rules.trp_[troopId] : null, enm = b.rules && b.rules.enm_ || {};
+    var boss = tr && Array.isArray(tr.members) && tr.members.some(function (m) { return m && enm[m.enm] && enm[m.enm].isBoss; });
+    return boss ? 'boss' : 'battle';
+  }
 
   // ---------------------------------------------------------------- the engine panel
   function enginePanel(host, repaint) {
@@ -209,12 +216,12 @@
     stagePanel.appendChild(bar);
     var info = el('div', 'a7-room-hud'); info.setAttribute('aria-live', 'polite');
     stagePanel.appendChild(info);
-    var cues = el('div', 'a7-cues'); cues.setAttribute('aria-label', 'Sound cues (Phase 6 plays them)');
+    var cues = el('div', 'a7-cues'); cues.setAttribute('aria-label', 'Sound cues');
     stagePanel.appendChild(cues);
     host.appendChild(stagePanel);
     var lastInfo = '', lastCues = '';
     var poll = setInterval(function () {
-      if (!cv.isConnected || !live || live.cv !== cv) { clearInterval(poll); return; }
+      if (!cv.isConnected || !live || live.cv !== cv) { clearInterval(poll); if (!cv.isConnected && ART.audio && !(live && live.cv && live.cv.isConnected)) ART.audio.stop(400); return; }
       if (menu) menu.poll();
       var txt = live.describe();
       if (txt !== lastInfo) { lastInfo = txt; info.innerHTML = txt; }
@@ -225,12 +232,13 @@
   // start(b) -> {P, step(dt), describe(), sess?}
   function start(b) {
     cueLog = [];
+    if (ART.audio && ART.audio.player()) ART.audio.cue('music', ui.mode === 'battle' ? battleRole(b, ui.troopId) : 'battle');
     if (ui.mode === 'demo') {
       var sc = B.script(b), pc = B.presenterConfig(b, sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 }), P0 = ER.createPresenter(pc);
       var player = B.playScript(P0, sc), rest = 0, o = { P: P0, script: sc };
       o.step = function (dt) {
         player.step(dt);
-        if (player.done()) { rest += dt; if (rest > 1800) { cueLog = []; var P1 = ER.createPresenter(B.presenterConfig(cur(), sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 })); o.P = P1; player = B.playScript(P1, sc); rest = 0; } }
+        if (player.done()) { rest += dt; if (rest > 1800) { cueLog = []; if (ART.audio && ART.audio.player()) ART.audio.cue('music', 'battle'); var P1 = ER.createPresenter(B.presenterConfig(cur(), sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 })); o.P = P1; player = B.playScript(P1, sc); rest = 0; } }
       };
       o.describe = function () { var s = o.P.stats(); return '<span class="muted a7-small">Scripted demo, ' + player.fed + ' of ' + sc.feeds.length + ' advances shown, ' + s.beats + ' beats. It loops. No engine is involved: the events are written in ENGINE_BATTLE\'s shapes from your own records.</span>'; };
       return o;
@@ -274,7 +282,7 @@
     var items = ['Items', 'Magic', 'Equip', 'Status', 'Save'], prem = (b.charter.sections && b.charter.sections.premise) || {};
     var lineText = prem.premise || 'A small company of travelers sets out at dawn.';
     var panel = el('section', 'panel');
-    panel.appendChild(el('p', 'muted', esc('The window frame, font, and cursor at ' + R.w + ' by ' + R.h + '. Arrow keys or a tap on the menu move the cursor. Edit them on the Interface tab.')));
+    panel.appendChild(el('p', 'muted', esc('The window frame, font, and cursor at ' + R.w + ' by ' + R.h + '. Arrow keys or a tap on the menu move the cursor; Enter confirms and Escape cancels, with the menu sounds. Edit them on the Interface and Sound tabs.')));
     var wrap = el('div', 'a7-bt-stage');
     var cv = M.stage(R.w, R.h, scale(), function (ctx, t, dt) {
       wp.openT += dt;
@@ -312,13 +320,19 @@
       }
     }, 'Window preview: a menu with a cursor, a party window, and a dialogue window.');
     cv.classList.add('a7-bt-cv'); cv.tabIndex = 0;
-    function move(d) { wp.cursor = (wp.cursor + d + items.length) % items.length; }
-    cv.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 's') { move(1); e.preventDefault(); } else if (e.key === 'ArrowUp' || e.key === 'w') { move(-1); e.preventDefault(); } });
+    function move(d) { wp.cursor = (wp.cursor + d + items.length) % items.length; if (ART.audio) ART.audio.cue('ui', 'move'); }
+    cv.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 's') { move(1); e.preventDefault(); } else if (e.key === 'ArrowUp' || e.key === 'w') { move(-1); e.preventDefault(); }
+      else if ((e.key === 'Enter' || e.key === ' ') && ART.audio) { ART.audio.cue('ui', wp.cursor === items.length - 1 ? 'error' : 'confirm'); e.preventDefault(); }
+      else if ((e.key === 'Escape' || e.key === 'Backspace') && ART.audio) { ART.audio.cue('ui', 'cancel'); e.preventDefault(); }
+    });
     cv.addEventListener('pointerdown', function (e) { var r = cv.getBoundingClientRect(), ly = (e.clientY - r.top) / (r.height || 1) * R.h; move(ly < R.h / 2 ? -1 : 1); cv.focus(); });
     wrap.appendChild(cv); panel.appendChild(wrap);
     var row = el('div', 'btn-row');
     row.appendChild(W.button('Up', 'up', '', function () { move(-1); }));
     row.appendChild(W.button('Down', 'down', '', function () { move(1); }));
+    row.appendChild(W.button('Confirm', 'check', '', function () { if (ART.audio) ART.audio.cue('ui', wp.cursor === items.length - 1 ? 'error' : 'confirm'); }));
+    row.appendChild(W.button('Cancel', 'x', 'btn-ghost', function () { if (ART.audio) ART.audio.cue('ui', 'cancel'); }));
     row.appendChild(W.button('Replay opening', 'spark', 'btn-ghost', function () { wp.openT = 0; cv.restart(); }));
     panel.appendChild(row);
     host.appendChild(panel);

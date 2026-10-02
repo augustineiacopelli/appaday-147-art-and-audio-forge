@@ -65,6 +65,7 @@ ${R('src/art-sprites.css').trim()}
 ${fs.existsSync(path.join(__dirname, 'src/art-motion.css')) ? R('src/art-motion.css').trim() : ''}
 ${fs.existsSync(path.join(__dirname, 'src/art-world.css')) ? R('src/art-world.css').trim() : ''}
 ${fs.existsSync(path.join(__dirname, 'src/art-ui.css')) ? R('src/art-ui.css').trim() : ''}
+${R('src/art-sound.css').trim()}
 </style>
 </head>
 <body>
@@ -75,6 +76,7 @@ ${fs.existsSync(path.join(__dirname, 'src/art-ui.css')) ? R('src/art-ui.css').tr
       <span class="brand-num">App 147</span>
     </div>
     <a class="backlink" href="https://augustineiacopelli.github.io/appaday/" title="Back to the AppADay portfolio">&larr; AppADay</a>
+    <button class="btn btn-ghost btn-icon" id="btnSound" type="button" aria-label="Sound" aria-pressed="false" title="Sound"></button>
     <button class="btn btn-ghost btn-icon" id="btnTheme" type="button" aria-label="Toggle night and parchment theme" title="Toggle theme"></button>
     <button class="btn btn-ghost btn-icon" id="btnSettings" type="button" aria-label="Settings" title="Settings"></button>
   </header>
@@ -106,9 +108,10 @@ ${R('src/art-store.js').trim()}
 ${demoSrc.trim()}
 ${R('src/art-contract.js').trim()}
 ${engineRender}
+${R('src/engine-audio.js').trim()}
 ${R('src/art-palette.js').trim()}
 ${R('src/ws-palette.js').trim()}
-${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js', 'src/art-motion.js', 'src/ws-motion.js', 'src/art-tiles.js', 'src/ws-world.js', 'src/ws-playtest.js', 'src/art-ui.js', 'src/art-battle.js', 'src/ws-battle.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
+${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js', 'src/art-motion.js', 'src/ws-motion.js', 'src/art-tiles.js', 'src/ws-world.js', 'src/ws-playtest.js', 'src/art-ui.js', 'src/art-battle.js', 'src/ws-battle.js', 'src/art-audio.js', 'src/ws-sound.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
 ${R('src/ws-art147.js').trim()}
 ${R('src/app-boot.js').trim()}
 </script>

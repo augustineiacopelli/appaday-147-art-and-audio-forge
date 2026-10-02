@@ -9,7 +9,11 @@
   var S = ART.sprites, P = ART.palette, M = ART.motion, TL = ART.tiles, W = ART.ui;
   ART.WS = ART.WS || {};
   var SUBS = [['room', 'Test room'], ['battle', 'Battle'], ['window', 'Window preview']];
-  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false };
+  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false, sound: false };
+  // Sound in the test room (ART:AUDIO loads later, so it is looked up when used): field music, footsteps, and the
+  // damage and encounter cues.
+  function sfx(kind, id) { if (ui.sound && ART.audio) ART.audio.cue(kind, id); }
+  function fieldMusic(b) { var f = ART.musicRoles(b).filter(function (r) { return r.key.indexOf('field:') === 0; })[0]; return f ? f.key : 'town'; }
   var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
   var STEP_MS = 190;
@@ -66,8 +70,9 @@
     var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null, pressed: {} };
     var EU = ER.ui, tkRec = ART.iface ? ART.iface.get(b, 'touch') : null, tkLayout = EU.touch.layout(ART.iface ? ART.iface.scheme(b, tkRec) : 'dpad', R.w, R.h, tkRec || {});
     var walker = createWalker(b.art, map, map.start, { arrive: function (w, flags) {
-      if (flags & ET.FLAGS.damage) { st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
-      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
+      if (w.steps % 2 === 0) sfx('sfx', 'step');
+      if (flags & ET.FLAGS.damage) { sfx('sfx', 'hurt'); st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
+      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { sfx('ui', 'ready'); st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
       hud();
     } });
     room = { map: map, walker: walker, state: st };
@@ -81,6 +86,7 @@
     if (wovs.length) ctl.appendChild(W.select('Weather', ui.weather, [['', 'None']].concat(wovs.map(function (o) { return [o.id, o.name.replace(/ overlay$/, '')]; })), function (v) { ui.weather = v; repaint(); }));
     ctl.appendChild(W.toggle('Show flags', ui.flags, function (on) { ui.flags = on; }));
     ctl.appendChild(W.toggle('Touch skin', ui.touch, function (on) { ui.touch = on; st.pressed = {}; }));
+    ctl.appendChild(W.toggle('Sound', ui.sound, function (on) { ui.sound = on; if (!ART.audio) return; if (on) ART.audio.playRole(fieldMusic(cur())); else ART.audio.stop(300); }));
     ctl.appendChild(W.button('New world', 'spark', 'btn-ghost', function () { ui.seed = (ui.seed * 7 + 13) % 100000 + 1; repaint(); }));
     panel.appendChild(ctl);
 
@@ -133,7 +139,7 @@
       if (h.key === 'tap') { aim(e); return; }
       if (h.key === 'dpad' || h.key === 'stick') { st.held = h.dir || null; st.pressed[h.key] = h.key === 'stick' ? { vx: h.vx, vy: h.vy } : (h.dir || true); return; }
       st.held = null; st.pressed[h.key] = true;
-      if (st.lastBtn !== h.key) { st.lastBtn = h.key; say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
+      if (st.lastBtn !== h.key) { st.lastBtn = h.key; sfx('ui', h.key === 'b' ? 'cancel' : 'confirm'); say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
     }
     cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); if (ui.touch) skin(e); else aim(e); e.preventDefault(); });
     cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (ui.touch) { if (st.held !== null || e.buttons || Object.keys(st.pressed).length) skin(e); } else if (st.held !== null || e.buttons) aim(e); } });
@@ -164,7 +170,8 @@
     }
     hud();
     var lastCell = '';
-    var poll = setInterval(function () { if (!cv.isConnected) { clearInterval(poll); return; } var k = walker.x + ',' + walker.y + (walker.blocked ? '!' : ''); if (k !== lastCell) { lastCell = k; hud(); } }, 120);
+    if (ui.sound && ART.audio) ART.audio.playRole(fieldMusic(b));
+    var poll = setInterval(function () { if (!cv.isConnected) { clearInterval(poll); if (ui.sound && ART.audio && !document.querySelector('.a7-room-cv')) ART.audio.stop(300); return; } var k = walker.x + ',' + walker.y + (walker.blocked ? '!' : ''); if (k !== lastCell) { lastCell = k; hud(); } }, 120);
 
     var legend = el('p', 'muted a7-small', esc('Map ' + map.w + ' by ' + map.h + ' cells from seed ' + ui.seed + '. Flag colors: red blocked, blue swimmable (blocked on foot), green encounters, amber damage floor. The beam over the house door and the arch over the ruin door are above layer tiles: the walker passes under them.'));
     host.appendChild(legend);
