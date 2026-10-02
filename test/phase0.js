@@ -18,6 +18,8 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   // Phase 0 proves the envelope and the Day 146 contract with envelope-only records. The sprite validator (Phase 2)
   // rightly calls those records incomplete, so it is switched off here; test/phase2.js covers it.
   Kit.validate.unregister('art.sprites');
+  // Phase 4 likewise: an envelope-only til_ has no palette or climate keys, so art.tiles is off here (test/phase4.js).
+  Kit.validate.unregister('art.tiles');
   const tabs = Array.from(win.document.querySelectorAll('#tabs .tab')).map((t) => t.dataset.ws + (t.classList.contains('locked') ? '(locked)' : ''));
   check('boots with no page errors', !errors.length, errors.slice(0, 2));
   check('tabs mounted', tabs.length === 10, tabs.join(' '));

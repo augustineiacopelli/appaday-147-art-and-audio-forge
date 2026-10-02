@@ -170,10 +170,29 @@
         motion = { anims: anms.filter(function (a) { return a.kind !== 'ability'; }).length, abilities: anms.filter(function (a) { return a.kind === 'ability'; }).length,
           overlays: ART.motion.overlays(copy).length, generic: ART.motion.overlays(copy).filter(function (o) { return o.generic; }).length, steps: steps, ms: Math.round(performance.now() - tm) };
       }
+      // Phase 4: every tileset baked whole (all 47 blob tiles and every animation frame, every interior tile and its
+      // frames, one of each fill variant), a test room generated and walked cell by cell for flags, and the cost if
+      // everything were kept. The UI never keeps it all: tiles bake lazily into the capped cache.
+      var tiles = null;
+      if (ART.tiles && ART.palette.master(copy)) {
+        var tt = performance.now(), ER3 = ENGINE_RENDER, ET3 = ER3.tiles, T3 = ART.sprites.tileSize(copy), nT = 0;
+        var k3 = ER3.createCache(copy.art, { size: T3, entries: ART.palette.entries(copy), budget: 512e6 });
+        ART.tiles.tilesets(copy).forEach(function (t) {
+          function frames(anim) { var a = ET3.anim(copy.art, anim); return a ? a.frames : 1; }
+          if (t.kind === 'biome') {
+            for (var f3 = 0; f3 < frames(t.anim); f3++) for (var i3 = 0; i3 < 47; i3++) { k3.tile(t.id, i3, f3); nT++; }
+            (t.fillVariants || []).forEach(function (_, v) { k3.tile(t.id, ET3.BLOB_FULL, 0, null, v + 1); nT++; });
+          } else (t.tiles || []).forEach(function (it) { for (var f4 = 0; f4 < frames(it.anim); f4++) for (var i4 = 0; i4 < (it.autotile ? 47 : 1); i4++) { k3.tile(t.id, i4, f4, it.key); nT++; } });
+        });
+        var bakeMs = Math.round(performance.now() - tt), tr = performance.now(), room = ART.tiles.room(copy, 7, 40, 30), walk = 0;
+        for (var c3 = 0; c3 < room.w * room.h; c3++) if (ET3.flagsAt(copy.art, room, c3 % room.w, Math.floor(c3 / room.w)) & 1) walk++;
+        tiles = { biomes: ART.tiles.biomes(copy).length, interiors: ART.tiles.interiors(copy).length, backgrounds: ART.tiles.backgrounds(copy).length,
+          tiles: nT, ms: bakeMs, bytes: k3.stats().bytes, roomMs: Math.round(performance.now() - tr), walkable: walk, cells: room.w * room.h, town: !!room.town, ruin: !!room.ruin };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake

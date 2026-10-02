@@ -189,6 +189,77 @@ SESSION 3 / PHASE 3 (2026-10-01, Opus): MOTION. COMPLETE.
   Known limits: element identity in two color mode rests on particle shape and screen behavior. Pose sliders cover six
     parameters; arm reach and leg spread are edited by drawing the frame. Sound markers name cues for Phase 6.
 === END SESSION 3 ===
+SESSION 4 / PHASE 4 (2026-10-01, Opus): TILES. COMPLETE.
+  Fences, in order: ... ART:MOTION, WS:MOTION, ART:TILES, WS:WORLD, WS:PLAYTEST, WS:ART147, APP:BOOT. CSS adds ART:WORLD
+    CSS. Engine tile code lives in src/engine-tiles.js, spliced into ENGINE:RENDER after engine-motion.js. KIT:CORE still
+    verbatim. engine-sprites.js createCache gained tile(tilId, blob, frame, key, variant) plus a template memo (stats
+    reports templates); clear and invalidate drop it too.
+  Engine sections: tiles {SLOTS, RAMPS, FLAGS, STYLES, ISTYLES, TECHNIQUES, ANIM_TYPES, BLOB, BLOB_FULL, slots, colorway,
+    detailCell, reduce, mask8, blobIndex, quarterFor, compose, template, compose47, tile, slotsFor, cycleSlots, anim,
+    frameAt, item, resolve, prioList, prepare, flagsAt, drawMap, matchClimate, variantAt}, bg {KINDS, STYLES, draw}.
+  Blob: bits N1 NE2 E4 SE8 S16 SW32 W64 NW128; corner rule reduces 256 masks to 47, sorted (0 isolated, 46 full). Off the
+    map a neighbor repeats the nearest edge cell. compose builds each tile from four quarters of the 2T by 3T template
+    (RPG Maker A2 layout: preview, inner corners, 2 by 2 block), parity kept so odd tile sizes and textures line up.
+  Tile palettes: 32 slots, 0 clear, 1 outline, ramps A 2-6, B 7-11, C 12-15, D 16-19, E 20-23, F 24-27, 28-31 spare
+    (outline). One pal_ per tileset {kind local, layout tile, source {A..F hex}, colorway, slots, ramps}, role
+    tiles:<subject>. Materials may share master colors (no avoid penalty, unlike colorways). Refits on master rebuild;
+    a pal_ with origin user keeps its indices and remaps.
+  Generators: twelve biome styles (water, beach, marsh, grass, steppe, sand, forest, jungle, tundra, snow, mountain, lava)
+    and four interior autotile styles (wall.brick, wall.block, rug, channel) paint the template from fill(x, y) in tile
+    coordinates (periodic noise and hashed detail cells, a detail cell is a divisor of T near T/16) plus an edge band by
+    distance to the region boundary (rounded corners r = 0.28T, square for walls and rugs) and a non negative organic
+    wobble. Twenty one single interior tiles (floors, doors, stairs, counter, altar, table, barrel, bed, shelf, plant,
+    pillar, torch, chest, spikes, beam, arch) draw from rectangles and circles with an alpha outline.
+  Repetition: every texture repeats per tile, so large features were cut back and fill variants added: {weight, mode
+    reseed|deco}; reseed redraws the tile middle from another seed behind a dithered seam inside a 2 detail cell border
+    (so neighbors still match), deco adds a small cluster. Forest, jungle, mountain have none (crowns and peaks).
+  Animation: art.tileAnimTypes registry (liquid cycle, flame phase, flow scroll, foliage phase, mechanism phase), a
+    record's anim {type, technique, params {mat, ms, frames, dx, dy}} overrides it. cycle rotates the last four slots of
+    one material (pixels unchanged, works on hand drawn templates); scroll slides texture through the shape; phase
+    redraws the generator. At most four frames; tiles bake lazily per (blob, frame) into the capped cache.
+  Maps: {w, h, ground [ref], deco [ref or null]}, ref = til id (biome) or "til id:key" (interior tile). Priority: a cell
+    belongs to every biome layer at or below its own; per cell, layers present in its 3 by 3 neighborhood are walked down
+    from its own until a full mask, then drawn upward. Interior autotiles draw the set's floor under them. Deco tiles with
+    the above flag draw in drawMap(..., {layer: 'above'}). flagsAt: deco flags win over ground; off map 0.
+  Records: til_ biome {kind, key, climate {temp, moist, elev [lo, hi] 0-4, feature}, priority, templates {gen {style,
+    params} | px {w, h, d}}, fillVariants, flags, anim, pal} role biome:<key>; til_ interior {kind, key, tiles [{key,
+    label, gen {style, params}, px, flags, autotile, under, anim}], pal} role interior:<key>. bgd_ {layers [{kind
+    sky|far|mid|near|floor, gen {style, seed, colors [m x3], hex [source]}, parallax, drift}]} with the tileset's role.
+    art.priority lists biome til ids lowest first; reorder renumbers til.priority.
+  Defaults: the plan's twelve biomes with its climate table (volcanic is a feature biome, flags 11), town and dungeon sets
+    (walls, rugs, channels autotile; counter flag 16; spikes 9; beam and arch 33), fourteen background recipes.
+    Duplicating makes an invented biome with its own role, palette, background, and priority slot; deleting a default
+    retires it (art.settings.retired biome:<key>, bg:<role>).
+  Quick Build 'tiles' (order 40): animation registry, tilesets and palettes, priority sync, backgrounds. Second run
+    changes nothing.
+  Validator art.tiles: kind, palette layout and 32 slots, climate ranges, priority number, style known, px decodes
+    (warning when resampled from another tile size), flags 0-63, variant weights and modes, anim type and technique,
+    interior keys unique and a floor present (warning), subject role (warning), priority list entries, registry
+    techniques, background kinds, styles, parallax, colors, orphaned background role (warning). phase0.js turns
+    art.tiles off like art.sprites (its envelope-only til_ is incomplete by design).
+  UI: World Art tab (Tilesets, Interiors, Priority, Tile animations, Backgrounds). Tileset drawer: live patch over the
+    biome below, the 47 sheet, the template, name, style, detail, rough edge, seed, climate keys, feature, flags,
+    animation, fill variants, six material colors, draw the template by hand (pixel editor with 32 slot labels).
+    Interior tile drawer: preview, label, flags, animation, draw by hand. Background drawer: per layer style,
+    parallax, drift, three colors, seed, add and remove layers. Playtest tab is live: Test room; Battle and Window
+    preview are Phase 5 stubs. Test room: ART.tiles.room(b, seed, w, h) builds a world from temperature, moisture, and
+    elevation fields matched to climate keys, puts the feature biome on the highest ground, and places a town house and
+    a dungeon ruin; walked by a party sprite with the walk animation, one cell per 190 ms, collision on the passable
+    flag, damage floors and encounters reported, weather overlay and a flag overlay optional. Keys (arrows, WASD), a
+    48 px direction pad, or hold on the map.
+  Self test: new Tiles column bakes every tileset whole (all 47, every frame, every interior tile, each variant) and
+    walks the test room. Demo: 1600 tiles in about 180 ms, 2 MB if all kept. F2 (32 px): about 0.7 s, 8 MB. F3 (64 px):
+    about 2.6 s, 32 MB if all kept; the UI cache stays capped at 12 MB and bakes only what is on screen.
+  Tests: test/phase4.js 79 of 79 (static and fence checks, the blob table and parity, compose at 8, 9, 16, 24, 32, 64,
+    mask8, records and idempotence, climate matching, every generator at five sizes, variant borders, periodic fills,
+    the three techniques, cache budget and invalidation, flags, transitions, the above pass, camera culling, the walker,
+    backgrounds, edit survival, duplicate, delete, reorder, master rebuild, hand drawn templates, validator, both tabs
+    and drawers, live keyboard and pad walking, Day 146 draft round trip, manifest, fixtures). phase3 80, phase2 67,
+    phase1 59, phase0 27 still pass. test/tiles-sheet.js writes blob, interior, room, and background contact sheets.
+  Checked in Chromium at 390 and 1280 wide: no horizontal scroll, no stage drawing errors, arrow keys walk the room.
+  Known limits: tiles repeat per cell by nature; variants soften it. Background peaks shade by column (stylized). The
+    test room is a stand in for Day 148: same climate keys and priority, simpler fields. Swimmable cells block on foot.
+=== END SESSION 4 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

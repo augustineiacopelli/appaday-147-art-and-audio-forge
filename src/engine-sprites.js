@@ -864,7 +864,7 @@
   function lightest(list) { var bi = null, bl = -1; (list || []).forEach(function (h) { var l = hexToLab(h); if (l && l[0] > bl) { bl = l[0]; bi = h; } }); return bi || '#ffffff'; }
   function createCache(art, opts) {
     opts = opts || {};
-    var map = new Map(), bytes = 0, cap = opts.budget || 8e6, st = { hits: 0, misses: 0, evictions: 0 };
+    var map = new Map(), tmemo = new Map(), bytes = 0, cap = opts.budget || 8e6, st = { hits: 0, misses: 0, evictions: 0 };
     function put(k, v) {
       v.bytes = v.w * v.h * (v.canvas ? 9 : 5);
       map.set(k, v); bytes += v.bytes;
@@ -907,10 +907,17 @@
         if (!ico) return null;
         return get('i|' + icoId, function () { return finish(iconFrame(art, ico, T), slotsFor(art, ico.pal, ico.tintRamp)); });
       },
-      invalidate: function (id) { var tag = '|' + id + '|', tail = '|' + id; Array.from(map.keys()).forEach(function (k) { if (k.indexOf(tag) >= 0 || k.slice(-tail.length) === tail) { bytes -= map.get(k).bytes; map.delete(k); } }); },
+      // Phase 4: one tile of a tileset, baked lazily per blob index and animation frame (ENGINE_RENDER.tiles). key names
+      // an interior tile; variant picks a decorated full fill. Templates are memoized per cache, outside the LRU.
+      tile: function (tilId, blob, frame, key, variant) {
+        var til = rec(art, tilId);
+        if (!til) return null;
+        return get('t|' + tilId + '|' + (blob | 0) + '|' + (frame | 0) + '|' + (key || '') + '|' + (variant | 0), function () { return tileBake(art, til, blob | 0, frame | 0, key || null, variant | 0, T, entries, tmemo); });
+      },
+      invalidate: function (id) { var tag = '|' + id + '|', tail = '|' + id; Array.from(map.keys()).forEach(function (k) { if (k.indexOf(tag) >= 0 || k.slice(-tail.length) === tail) { bytes -= map.get(k).bytes; map.delete(k); } }); Array.from(tmemo.keys()).forEach(function (k) { if (k.indexOf(id + '|') === 0) tmemo.delete(k); }); },
       size: T, entries: entries, art: art,
-      stats: function () { return { entries: map.size, bytes: bytes, budget: cap, hits: st.hits, misses: st.misses, evictions: st.evictions }; },
-      clear: function () { map.clear(); bytes = 0; },
+      stats: function () { return { entries: map.size, templates: tmemo.size, bytes: bytes, budget: cap, hits: st.hits, misses: st.misses, evictions: st.evictions }; },
+      clear: function () { map.clear(); tmemo.clear(); bytes = 0; },
       budget: function (n) { if (n > 0) { cap = n; var it = map.keys(); while (bytes > cap && map.size > 1) { var k = it.next().value; bytes -= map.get(k).bytes; map.delete(k); st.evictions++; } } return cap; }
     };
   }

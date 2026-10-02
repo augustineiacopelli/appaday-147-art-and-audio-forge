@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-02T00:43:38.878Z",
-  "pass": 67,
-  "total": 67,
+  "date": "2026-10-02T00:45:21.035Z",
+  "pass": 79,
+  "total": 79,
   "results": [
     {
       "name": "index.html is pure ASCII",
@@ -14,7 +14,7 @@
       "detail": true
     },
     {
-      "name": "fences present in order",
+      "name": "fences present in order, ART:TILES, WS:WORLD, WS:PLAYTEST before WS:ART147",
       "ok": true,
       "detail": [
         1,
@@ -28,6 +28,11 @@
         477307,
         488743,
         530428,
+        538347,
+        566106,
+        614146,
+        651647,
+        682339,
         695623,
         717873
       ]
@@ -37,7 +42,11 @@
       "ok": true
     },
     {
-      "name": "ENGINE:RENDER reads no host globals",
+      "name": "ART:WORLD CSS fence present",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:RENDER (with the tile sections) reads no host globals",
       "ok": true
     },
     {
@@ -50,131 +59,77 @@
       "detail": []
     },
     {
-      "name": "ENGINE_RENDER frozen with the composer sections",
+      "name": "ENGINE_RENDER frozen with tiles and bg",
       "ok": true
     },
     {
-      "name": "codec round trips random frames",
+      "name": "47 distinct tiles, isolated first and full last",
       "ok": true
     },
     {
-      "name": "transparent runs chain correctly at every length",
+      "name": "every one of 256 masks maps through the corner rule",
+      "ok": true
+    },
+    {
+      "name": "a diagonal counts only with both edges",
+      "ok": true
+    },
+    {
+      "name": "compose uses exactly 20 template quarters (4 inner, 16 in the 2 by 2 block), parity kept",
       "ok": true,
-      "detail": [
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true
-      ]
+      "detail": "0,2 0,3 0,4 0,5 1,2 1,3 1,4 1,5 2,0 2,1 2,2 2,3 2,4 2,5 3,0 3,1 3,2 3,3 3,4 3,5"
     },
     {
-      "name": "codec rejects bad characters, short and long data, and high indices",
+      "name": "compose picks the right quarter at every corner at 8, 9 (odd), 16, 24, 32, and 64 px",
       "ok": true
     },
     {
-      "name": "encoding shrinks a sprite well",
-      "ok": true
-    },
-    {
-      "name": "every humanoid part composes at sizes 8 to 64, outlined, slots 0 to 15",
+      "name": "mask8 reads neighbors and repeats edge cells off the map",
       "ok": true,
-      "detail": "8:2240 in 310ms 12:2240 in 383ms 16:2240 in 512ms 24:2240 in 839ms 32:2240 in 1254ms 48:2240 in 2449ms 64:2240 in 4088ms"
+      "detail": 255
     },
     {
-      "name": "left mirrors right exactly",
+      "name": "mask8 sees a missing neighbor",
       "ok": true
     },
     {
-      "name": "compose is deterministic",
-      "ok": true
-    },
-    {
-      "name": "walking frames differ from standing",
-      "ok": true,
-      "detail": [
-        17,
-        24
-      ]
-    },
-    {
-      "name": "down, up, and right frames are distinct",
-      "ok": true
-    },
-    {
-      "name": "the accent alias changes which ramp gear uses",
-      "ok": true
-    },
-    {
-      "name": "all eight enemy rigs compose at 2 by 2 tiles, outlined",
-      "ok": true,
-      "detail": null
-    },
-    {
-      "name": "proportions change the frame height",
-      "ok": true
-    },
-    {
-      "name": "six expressions, each different from neutral",
-      "ok": true
-    },
-    {
-      "name": "portrait size is three tiles, clamped 24 to 96",
-      "ok": true
-    },
-    {
-      "name": "every glyph and status shape draws a distinct, outlined icon",
-      "ok": true
-    },
-    {
-      "name": "icon size follows the tile size",
-      "ok": true
-    },
-    {
-      "name": "Quick Build makes parts, sprites, portraits, icons",
+      "name": "Quick Build makes 12 biomes, 2 interiors, and 14 backgrounds",
       "ok": true,
       "detail": {
-        "prt": 42,
-        "spr": 24,
-        "por": 4,
-        "ico": 18,
-        "steps": {
-          "created": 89,
-          "refreshed": 0,
+        "biomes": 12,
+        "ints": 2,
+        "bgs": 14,
+        "step": {
+          "created": 29,
+          "refreshed": 1,
           "kept": 0,
-          "ms": 10
+          "ms": 17
         }
       }
     },
     {
-      "name": "every character has a field and a battle sprite; battle shares field",
+      "name": "every tileset has a 32 slot tile palette",
       "ok": true
     },
     {
-      "name": "villain has both modes; ten NPC archetypes have field sprites",
+      "name": "priority list holds every biome, lowest first",
+      "ok": true,
+      "detail": "ocean coast swamp grassland steppe desert forest rainforest tundra snow mountain volcanic"
+    },
+    {
+      "name": "animation registry has five types with techniques",
       "ok": true
     },
     {
-      "name": "every family has a battle sprite; tier families share their base",
+      "name": "climate keys and flags follow the plan table",
       "ok": true
     },
     {
-      "name": "every sprite points at its own palette",
+      "name": "interior sets carry floors, walls, doors, stairs, counters, and furnishings",
       "ok": true
     },
     {
-      "name": "rigs come from family names",
-      "ok": true
-    },
-    {
-      "name": "weapon classes map to front gear",
-      "ok": true
-    },
-    {
-      "name": "demo validates clean after Quick Build",
+      "name": "the demo validates clean after Quick Build",
       "ok": true,
       "detail": {
         "errors": 0,
@@ -189,141 +144,207 @@
       "detail": {
         "created": 0,
         "refreshed": 0,
-        "kept": 89,
-        "ms": 4
+        "kept": 30,
+        "ms": 9
       }
     },
     {
-      "name": "demo with sprites stays small",
+      "name": "matchClimate picks the tightest box",
       "ok": true,
-      "detail": 142868
+      "detail": "2,1,2=grassland 4,0,3=desert 0,1,2=tundra 0,3,3=snow 2,4,2=swamp 4,4,2=rainforest 3,2,0=ocean 2,2,1=coast 1,2,4=mountain 2,2,2=grassland 2,3,3=forest 2,0,3=steppe"
     },
     {
-      "name": "a kept sprite keeps its recipe through Quick Build",
+      "name": "feature biomes never match by climate; gaps fall back to the nearest box",
       "ok": true
     },
     {
-      "name": "a generated sprite follows a rules change",
+      "name": "every biome and interior tile generates at 8, 16, 24, 32, and 64 px; variants keep their border",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "generating every tileset at 64 px takes under 4 s",
       "ok": true,
       "detail": {
-        "created": 0,
-        "refreshed": 1,
-        "kept": 88,
-        "ms": 4
+        "8": 51,
+        "16": 140,
+        "24": 264,
+        "32": 455,
+        "64": 1866
       }
     },
     {
-      "name": "a tier shares pixels and differs only by palette",
+      "name": "a full fill repeats without a seam (its texture is periodic)",
       "ok": true
     },
     {
-      "name": "an override replaces its frame",
+      "name": "animOf resolves technique, frames (at most 4), and ms",
       "ok": true
     },
     {
-      "name": "left falls back to the mirrored right override",
+      "name": "frameAt steps by ms and wraps",
       "ok": true
     },
     {
-      "name": "a sharing battle sprite inherits field overrides keyed by its own poses only",
+      "name": "palette cycle rotates only the cycled material",
       "ok": true
     },
     {
-      "name": "a corrupt override is a validation error",
+      "name": "scroll and phase change the pixels; cycle keeps them",
+      "ok": true
+    },
+    {
+      "name": "the cache bakes cycle frames as different colors over the same pixels",
+      "ok": true
+    },
+    {
+      "name": "the tile cache bakes lazily and evicts to its budget",
       "ok": true,
       "detail": {
-        "errors": 1,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      }
-    },
-    {
-      "name": "unshare copies the recipe and keeps the palette",
-      "ok": true
-    },
-    {
-      "name": "the cache evicts least recently used frames under its budget",
-      "ok": true,
-      "detail": {
-        "entries": 3,
-        "templates": 0,
-        "bytes": 15360,
-        "budget": 20000,
+        "entries": 39,
+        "templates": 1,
+        "bytes": 199680,
+        "budget": 200000,
         "hits": 0,
-        "misses": 72,
-        "evictions": 69
+        "misses": 47,
+        "evictions": 8
       }
     },
     {
-      "name": "the cache bakes to a host canvas when one is given",
+      "name": "invalidate drops a tileset's tiles and templates",
       "ok": true
     },
     {
-      "name": "drawing a part by hand makes a frame per pose and direction",
-      "ok": true,
-      "detail": [
-        "stand.down",
-        "stand.up",
-        "stand.right",
-        "stepA.down",
-        "stepA.up",
-        "stepA.right",
-        "stepB.down",
-        "stepB.up",
-        "stepB.right",
-        "idle.right",
-        "ready.right",
-        "step.right",
-        "windup.right",
-        "attack.right",
-        "cast.right",
-        "item.right",
-        "hurt.right",
-        "kneel.right",
-        "revive.right",
-        "victory.right",
-        "limit.right",
-        "nod.down",
-        "shakeL.down",
-        "shakeR.down",
-        "crouch.down",
-        "jump.down",
-        "sit.down",
-        "kneel.down",
-        "laugh.down",
-        "laughB.down"
-      ]
-    },
-    {
-      "name": "a hand drawn copy composes like its generator",
-      "ok": true,
-      "detail": "0.958"
-    },
-    {
-      "name": "a hand drawn part resamples to another tile size",
+      "name": "a missing tileset bakes nothing",
       "ok": true
     },
     {
-      "name": "a resampled hand drawn part warns",
+      "name": "the test room places a town house and a dungeon ruin and starts on a walkable cell",
       "ok": true,
       "detail": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 1
+        "town": {
+          "x": 12,
+          "y": 11,
+          "w": 9,
+          "h": 7
+        },
+        "ruin": {
+          "x": 28,
+          "y": 12,
+          "w": 8,
+          "h": 6
+        },
+        "start": [
+          16,
+          18
+        ]
       }
     },
     {
-      "name": "a deleted NPC archetype is not recreated",
+      "name": "the test room is deterministic per seed",
       "ok": true
     },
     {
-      "name": "restoring it brings it back",
+      "name": "the default seed shows at least seven biomes",
+      "ok": true,
+      "detail": "ocean coast swamp forest tundra grassland rainforest mountain steppe volcanic desert"
+    },
+    {
+      "name": "flags: wall blocks, door and floor pass, counter blocks, beam over the door passes",
       "ok": true
     },
     {
-      "name": "master rebuild: icon tints and icon palette stay valid",
+      "name": "flags: ocean swims but does not pass on foot; off the map is 0",
+      "ok": true
+    },
+    {
+      "name": "a higher biome draws over the lower one, which shows through",
+      "ok": true,
+      "detail": {
+        "cells": 9,
+        "blits": 10
+      }
+    },
+    {
+      "name": "a lower biome hole in a higher one: neighbors stack, the hole draws once",
+      "ok": true,
+      "detail": {
+        "cells": 9,
+        "blits": 17
+      }
+    },
+    {
+      "name": "the above pass draws only above layer tiles (the beam and the arch)",
+      "ok": true,
+      "detail": {
+        "cells": 1200,
+        "blits": 2
+      }
+    },
+    {
+      "name": "drawMap draws only the cells the camera sees",
+      "ok": true,
+      "detail": {
+        "cells": 224,
+        "blits": 327
+      }
+    },
+    {
+      "name": "the walker stops at a wall",
+      "ok": true,
+      "detail": {
+        "y": 12,
+        "top": 11,
+        "blocked": [
+          16,
+          11
+        ]
+      }
+    },
+    {
+      "name": "stepping onto spikes reports a damage floor",
+      "ok": true,
+      "detail": {
+        "hurt": 1,
+        "steps": 1,
+        "x": 5
+      }
+    },
+    {
+      "name": "every background draws with finite rectangles",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "background layers use known kinds and styles with palette colors",
+      "ok": true
+    },
+    {
+      "name": "an edited tileset survives Quick Build",
+      "ok": true
+    },
+    {
+      "name": "a duplicate is a new biome with its own palette, background, and priority slot",
+      "ok": true
+    },
+    {
+      "name": "an invented biome takes the cells its tighter box describes",
+      "ok": true
+    },
+    {
+      "name": "a deleted default stays deleted and leaves the priority list",
+      "ok": true
+    },
+    {
+      "name": "reordering renumbers priorities to match",
+      "ok": true
+    },
+    {
+      "name": "a master rebuild refits tile palettes and backgrounds to valid indices",
+      "ok": true
+    },
+    {
+      "name": "still validates clean after edits, a duplicate, a delete, a reorder, and a rebuild",
       "ok": true,
       "detail": {
         "errors": 0,
@@ -333,54 +354,103 @@
       }
     },
     {
-      "name": "the pixel editor paints, undoes, redoes, fills, and saves",
+      "name": "a hand drawn template composes all 47 tiles",
       "ok": true
     },
     {
-      "name": "an unchanged frame encodes to nothing",
+      "name": "a hand drawn template made at another size resamples (with a warning)",
       "ok": true
     },
     {
-      "name": "the editor canvas blocks touch scrolling",
-      "ok": true
-    },
-    {
-      "name": "every Sprites and Interface view renders",
+      "name": "the art.tiles validator catches each broken field",
       "ok": true,
-      "detail": [
-        "sprites.characters:12",
-        "sprites.cast:34",
-        "sprites.bestiary:6",
-        "sprites.portraits:24",
-        "sprites.parts:42",
-        "interface.icons:18",
-        "interface.window:1",
-        "interface.cursor:1",
-        "interface.touch:1",
-        "interface.title:1"
-      ]
+      "detail": []
     },
     {
-      "name": "jumps open the right tab and section",
+      "name": "every World Art view renders its rows",
       "ok": true,
-      "detail": [
-        "spr_slime_battle_ceh1",
-        "por_courier_portrait_5qz8",
-        "prt_slight_build_6kv0",
-        "ico_tonic_icon_2axp"
-      ]
+      "detail": {
+        "tilesets": 12,
+        "interiors": 25,
+        "priority": 12,
+        "anims": 5,
+        "backgrounds": 14
+      }
     },
     {
-      "name": "the sprite drawer lists every field and emote frame",
-      "ok": true,
-      "detail": 22
-    },
-    {
-      "name": "Start offers the Day 146 draft only when one exists",
+      "name": "the tileset drawer shows a live patch, the 47 sheet, and the template",
       "ok": true
     },
     {
-      "name": "146 imports a 147 draft with sprites: hash ok, no errors",
+      "name": "a flag toggle in the drawer edits the tileset and marks it yours",
+      "ok": true
+    },
+    {
+      "name": "the interior tile drawer opens with an animated preview",
+      "ok": true
+    },
+    {
+      "name": "the background drawer opens with a preview and layer controls",
+      "ok": true
+    },
+    {
+      "name": "the Priority view moves a biome up one place",
+      "ok": true
+    },
+    {
+      "name": "jump goes to the World Art tab for til_ and bgd_",
+      "ok": true
+    },
+    {
+      "name": "the Playtest tab mounts the test room with a canvas, a direction pad, and a readout",
+      "ok": true
+    },
+    {
+      "name": "Battle and Window preview say they arrive in Phase 5",
+      "ok": true
+    },
+    {
+      "name": "World Art stages run through requestAnimationFrame with no drawing errors",
+      "ok": true,
+      "detail": {
+        "stErr": [],
+        "errors": []
+      }
+    },
+    {
+      "name": "arrow keys walk the room through the live loop",
+      "ok": true,
+      "detail": {
+        "from": [
+          12,
+          16
+        ],
+        "to": [
+          12,
+          20
+        ],
+        "blocked": null
+      }
+    },
+    {
+      "name": "the direction pad walks too",
+      "ok": true,
+      "detail": "up"
+    },
+    {
+      "name": "the test room draws with no errors",
+      "ok": true,
+      "detail": {
+        "stErr": [],
+        "errors": []
+      }
+    },
+    {
+      "name": "the loop stops when the room leaves the screen",
+      "ok": true
+    },
+    {
+      "name": "146 imports a 147 draft with tile records: hash ok, no errors",
       "ok": true,
       "detail": {
         "matches": true,
@@ -391,60 +461,75 @@
           "warnings": 1
         },
         "pageErrors": [],
-        "art": 10
+        "til": 14,
+        "bgd": 14,
+        "priority": 12
       }
     },
     {
-      "name": "manifest counts the new records",
-      "ok": true
-    },
-    {
-      "name": "every fixture bakes with no validation errors",
-      "ok": true,
-      "detail": "F0:261 frames in 62 ms | F1a:316 frames in 41 ms | F1b:316 frames in 40 ms | F2:911 frames in 524 ms | F3:911 frames in 1613 ms | F4:416 frames in 99 ms | F5d:420 frames in 163 ms | F5s:420 frames in 120 ms | F5t:420 frames in 102 ms | F5h:420 frames in 99 ms"
-    },
-    {
-      "name": "F2 (32 px, 256 colors, eight characters) bakes every frame in under 2 s",
+      "name": "manifest counts til_ and bgd_",
       "ok": true,
       "detail": {
-        "ms": 524,
-        "frames": 911,
-        "bytes": 13598720
+        "anm_": 35,
+        "bgd_": 14,
+        "efx_": 4,
+        "ico_": 18,
+        "pal_": 36,
+        "por_": 4,
+        "prt_": 42,
+        "spr_": 24,
+        "til_": 14,
+        "wov_": 3
       }
     },
     {
-      "name": "the draft lives under art147:draft, not kit:draft",
-      "ok": true
+      "name": "every fixture builds tiles with no validation errors",
+      "ok": true,
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1}:12/true/true | F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true | F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:12/true/true"
     },
     {
-      "name": "a refused save falls back to IndexedDB without the banner",
-      "ok": true
-    },
-    {
-      "name": "a reload restores the draft from IndexedDB",
+      "name": "F1a (8 px, two colors) bakes every tile",
       "ok": true,
       "detail": {
-        "title": "Demo Saga",
-        "errors": []
+        "biomes": 12,
+        "interiors": 2,
+        "backgrounds": 14,
+        "tiles": 1600,
+        "ms": 79,
+        "bytes": 512000,
+        "roomMs": 207,
+        "walkable": 649,
+        "cells": 1200,
+        "town": true,
+        "ruin": true
       }
     },
     {
-      "name": "once localStorage has room again the draft moves back",
-      "ok": true
-    },
-    {
-      "name": "an older Day 147 draft under kit:draft is adopted once",
-      "ok": true
+      "name": "F3 (64 px) bakes every tile in under 15 s",
+      "ok": true,
+      "detail": {
+        "biomes": 12,
+        "interiors": 2,
+        "backgrounds": 14,
+        "tiles": 1600,
+        "ms": 2514,
+        "bytes": 32768000,
+        "roomMs": 222,
+        "walkable": 649,
+        "cells": 1200,
+        "town": true,
+        "ruin": true
+      }
     }
   ],
   "selfTest": [
     {
       "key": "F0",
       "purpose": "Empty and sparse",
-      "buildMs": 3,
+      "buildMs": 2,
       "hashOk": true,
-      "quickBuild": "130 new in 30 ms",
-      "quickBuildMs": 30,
+      "quickBuild": "130 new in 22 ms",
+      "quickBuildMs": 22,
       "palette": {
         "master": 64,
         "want": 64,
@@ -467,9 +552,9 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 221,
+        "ms": 211,
         "bytes": 2048000,
-        "roomMs": 201,
+        "roomMs": 230,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -483,12 +568,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 78710,
+      "size": 78712,
       "records": 0,
-      "bakeMs": "261 frames in 62 ms",
+      "bakeMs": "261 frames in 99 ms",
       "cacheBytes": 581760,
       "bake": {
-        "ms": 62,
+        "ms": 99,
         "frames": 261,
         "bytes": 581760
       }
@@ -496,7 +581,7 @@
     {
       "key": "F1a",
       "purpose": "Tiny, two colors",
-      "buildMs": 3,
+      "buildMs": 4,
       "hashOk": true,
       "quickBuild": "147 new in 10 ms",
       "quickBuildMs": 10,
@@ -515,16 +600,16 @@
         "overlays": 0,
         "generic": 0,
         "steps": 588,
-        "ms": 2
+        "ms": 4
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 73,
+        "ms": 79,
         "bytes": 512000,
-        "roomMs": 197,
+        "roomMs": 207,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -538,12 +623,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 112947,
+      "size": 112950,
       "records": 17,
-      "bakeMs": "316 frames in 41 ms",
+      "bakeMs": "316 frames in 51 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 41,
+        "ms": 51,
         "frames": 316,
         "bytes": 192640
       }
@@ -577,9 +662,9 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 67,
+        "ms": 68,
         "bytes": 512000,
-        "roomMs": 187,
+        "roomMs": 192,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -593,12 +678,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 112960,
+      "size": 112963,
       "records": 17,
-      "bakeMs": "316 frames in 40 ms",
+      "bakeMs": "316 frames in 42 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 40,
+        "ms": 42,
         "frames": 316,
         "bytes": 192640
       }
@@ -606,10 +691,10 @@
     {
       "key": "F2",
       "purpose": "Large",
-      "buildMs": 8,
+      "buildMs": 9,
       "hashOk": true,
-      "quickBuild": "411 new in 136 ms",
-      "quickBuildMs": 136,
+      "quickBuild": "411 new in 210 ms",
+      "quickBuildMs": 210,
       "palette": {
         "master": 256,
         "want": 256,
@@ -625,16 +710,16 @@
         "overlays": 5,
         "generic": 0,
         "steps": 1100,
-        "ms": 7
+        "ms": 8
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 642,
+        "ms": 672,
         "bytes": 8192000,
-        "roomMs": 192,
+        "roomMs": 200,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -650,10 +735,10 @@
       "roles": 16,
       "size": 288415,
       "records": 262,
-      "bakeMs": "911 frames in 524 ms",
+      "bakeMs": "911 frames in 576 ms",
       "cacheBytes": 13598720,
       "bake": {
-        "ms": 524,
+        "ms": 576,
         "frames": 911,
         "bytes": 13598720
       }
@@ -661,10 +746,10 @@
     {
       "key": "F3",
       "purpose": "Budget stress",
-      "buildMs": 7,
+      "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "408 new in 136 ms",
-      "quickBuildMs": 136,
+      "quickBuild": "408 new in 146 ms",
+      "quickBuildMs": 146,
       "palette": {
         "master": 256,
         "want": 256,
@@ -680,16 +765,16 @@
         "overlays": 2,
         "generic": 0,
         "steps": 1010,
-        "ms": 5
+        "ms": 7
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 2474,
+        "ms": 2514,
         "bytes": 32768000,
-        "roomMs": 196,
+        "roomMs": 222,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -703,12 +788,12 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 286375,
+      "size": 286371,
       "records": 259,
-      "bakeMs": "911 frames in 1613 ms",
+      "bakeMs": "911 frames in 1633 ms",
       "cacheBytes": 46929920,
       "bake": {
-        "ms": 1613,
+        "ms": 1633,
         "frames": 911,
         "bytes": 46929920
       }
@@ -718,8 +803,8 @@
       "purpose": "Optional fields missing",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "177 new in 38 ms",
-      "quickBuildMs": 38,
+      "quickBuild": "177 new in 27 ms",
+      "quickBuildMs": 27,
       "palette": {
         "master": 64,
         "want": 64,
@@ -735,14 +820,14 @@
         "overlays": 3,
         "generic": 1,
         "steps": 775,
-        "ms": 5
+        "ms": 9
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 186,
+        "ms": 180,
         "bytes": 2048000,
         "roomMs": 192,
         "walkable": 649,
@@ -758,12 +843,12 @@
         "warnings": 1
       },
       "roles": 9,
-      "size": 132917,
+      "size": 132921,
       "records": 38,
-      "bakeMs": "416 frames in 99 ms",
+      "bakeMs": "416 frames in 100 ms",
       "cacheBytes": 1169920,
       "bake": {
-        "ms": 99,
+        "ms": 100,
         "frames": 416,
         "bytes": 1169920
       }
@@ -771,120 +856,10 @@
     {
       "key": "F5d",
       "purpose": "Typical, dpad controls",
-      "buildMs": 3,
-      "hashOk": true,
-      "quickBuild": "181 new in 26 ms",
-      "quickBuildMs": 26,
-      "palette": {
-        "master": 64,
-        "want": 64,
-        "locals": 14,
-        "tiers": 6,
-        "collapsed": 0,
-        "offset": 0,
-        "effects": 4
-      },
-      "motion": {
-        "anims": 26,
-        "abilities": 9,
-        "overlays": 3,
-        "generic": 0,
-        "steps": 784,
-        "ms": 5
-      },
-      "tiles": {
-        "biomes": 12,
-        "interiors": 2,
-        "backgrounds": 14,
-        "tiles": 1600,
-        "ms": 210,
-        "bytes": 2048000,
-        "roomMs": 235,
-        "walkable": 649,
-        "cells": 1200,
-        "town": true,
-        "ruin": true
-      },
-      "coverage": "pending (Phase 8)",
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      },
-      "roles": 11,
-      "size": 142798,
-      "records": 46,
-      "bakeMs": "420 frames in 163 ms",
-      "cacheBytes": 1175040,
-      "bake": {
-        "ms": 163,
-        "frames": 420,
-        "bytes": 1175040
-      }
-    },
-    {
-      "key": "F5s",
-      "purpose": "Typical, stick controls",
-      "buildMs": 7,
-      "hashOk": true,
-      "quickBuild": "181 new in 30 ms",
-      "quickBuildMs": 30,
-      "palette": {
-        "master": 64,
-        "want": 64,
-        "locals": 14,
-        "tiers": 6,
-        "collapsed": 0,
-        "offset": 0,
-        "effects": 4
-      },
-      "motion": {
-        "anims": 26,
-        "abilities": 9,
-        "overlays": 3,
-        "generic": 0,
-        "steps": 784,
-        "ms": 5
-      },
-      "tiles": {
-        "biomes": 12,
-        "interiors": 2,
-        "backgrounds": 14,
-        "tiles": 1600,
-        "ms": 182,
-        "bytes": 2048000,
-        "roomMs": 202,
-        "walkable": 649,
-        "cells": 1200,
-        "town": true,
-        "ruin": true
-      },
-      "coverage": "pending (Phase 8)",
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      },
-      "roles": 11,
-      "size": 142862,
-      "records": 46,
-      "bakeMs": "420 frames in 120 ms",
-      "cacheBytes": 1175040,
-      "bake": {
-        "ms": 120,
-        "frames": 420,
-        "bytes": 1175040
-      }
-    },
-    {
-      "key": "F5t",
-      "purpose": "Typical, tap controls",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "181 new in 28 ms",
-      "quickBuildMs": 28,
+      "quickBuild": "181 new in 25 ms",
+      "quickBuildMs": 25,
       "palette": {
         "master": 64,
         "want": 64,
@@ -907,9 +882,9 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 187,
+        "ms": 185,
         "bytes": 2048000,
-        "roomMs": 199,
+        "roomMs": 190,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -923,12 +898,122 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142819,
+      "size": 142793,
       "records": 46,
-      "bakeMs": "420 frames in 102 ms",
+      "bakeMs": "420 frames in 99 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 102,
+        "ms": 99,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5s",
+      "purpose": "Typical, stick controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "181 new in 25 ms",
+      "quickBuildMs": 25,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
+      "tiles": {
+        "biomes": 12,
+        "interiors": 2,
+        "backgrounds": 14,
+        "tiles": 1600,
+        "ms": 178,
+        "bytes": 2048000,
+        "roomMs": 186,
+        "walkable": 649,
+        "cells": 1200,
+        "town": true,
+        "ruin": true
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 142856,
+      "records": 46,
+      "bakeMs": "420 frames in 92 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 92,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5t",
+      "purpose": "Typical, tap controls",
+      "buildMs": 3,
+      "hashOk": true,
+      "quickBuild": "181 new in 29 ms",
+      "quickBuildMs": 29,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 3
+      },
+      "tiles": {
+        "biomes": 12,
+        "interiors": 2,
+        "backgrounds": 14,
+        "tiles": 1600,
+        "ms": 182,
+        "bytes": 2048000,
+        "roomMs": 190,
+        "walkable": 649,
+        "cells": 1200,
+        "town": true,
+        "ruin": true
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 142821,
+      "records": 46,
+      "bakeMs": "420 frames in 106 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 106,
         "frames": 420,
         "bytes": 1175040
       }
@@ -955,16 +1040,16 @@
         "overlays": 3,
         "generic": 0,
         "steps": 784,
-        "ms": 3
+        "ms": 4
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 183,
+        "ms": 193,
         "bytes": 2048000,
-        "roomMs": 203,
+        "roomMs": 206,
         "walkable": 649,
         "cells": 1200,
         "town": true,
@@ -978,24 +1063,15 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142868,
+      "size": 142870,
       "records": 46,
-      "bakeMs": "420 frames in 99 ms",
+      "bakeMs": "420 frames in 142 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 99,
+        "ms": 142,
         "frames": 420,
         "bytes": 1175040
       }
     }
-  ],
-  "sizes": [
-    "8:2240 in 310ms",
-    "12:2240 in 383ms",
-    "16:2240 in 512ms",
-    "24:2240 in 839ms",
-    "32:2240 in 1254ms",
-    "48:2240 in 2449ms",
-    "64:2240 in 4088ms"
   ]
 }
