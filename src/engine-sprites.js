@@ -200,6 +200,14 @@
     for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) out[y * w + x] = idx[y * w + (w - 1 - x)];
     return out;
   }
+  // Pixels drawn for a one tile frame placed in a wider battle frame: same height, centered, nothing stretched.
+  function fit(idx, w, h, W, H) {
+    if (w === W && h === H) return idx;
+    if (h !== H || w > W) return resample(idx, w, h, W, H);
+    var out = new Uint8Array(W * H), ox = (W - w) >> 1;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) out[y * W + x + ox] = idx[y * w + x];
+    return out;
+  }
   function resample(idx, w, h, W, H) {
     var out = new Uint8Array(W * H);
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) out[y * W + x] = idx[Math.min(h - 1, Math.floor(y * h / H)) * w + Math.min(w - 1, Math.floor(x * w / W))];
@@ -214,33 +222,74 @@
     small: { sh: 2.8, hip: 2.2, leg: 3.8, torso: 4.4, head: 4.3, arm: 1.5, legW: 1.6 },
     tall: { sh: 3.6, hip: 2.6, leg: 7.4, torso: 6.8, head: 3.8, arm: 1.8, legW: 1.9 }
   };
-  // Pose parameters. legs and arms are -1 to 1 per side (index 0 far or viewer left, 1 near or viewer right). Phase 3
-  // adds entries here; generators read only these fields.
+  // Pose parameters. legs and arms are -1 to 1 per side (index 0 far or viewer left, 1 near or viewer right).
+  //   bob, crouch: units the hips drop. ready: battle stance (near arm forward). lean: upper body forward in side view.
+  //   hdx, hdy: head offset in side view (hdy also in front and back views); fx: head offset in front and back views.
+  //   reach: per arm [x, y] as a fraction of arm length from the shoulder (x forward in side view, outward otherwise).
+  //   wpn: weapon angle in degrees in side view (0 forward, -90 up, 90 down). kneel, sit: bent legs with knees.
+  //   lie: the figure lies on its back (the frame is rotated, so it is wider than tall).
+  // Phase 3 completes the field, emote, and battle sets; generators read only these fields.
   var POSES = {
     stand: { legs: [0, 0], arms: [0, 0], bob: 0 },
     stepA: { legs: [1, -1], arms: [-1, 1], bob: 0.4 },
     stepB: { legs: [-1, 1], arms: [1, -1], bob: 0.4 },
-    idle: { legs: [-0.6, 0.7], arms: [0.2, 0.8], bob: 0, crouch: 0.6, ready: true }
+    idle: { legs: [-0.6, 0.7], arms: [0.2, 0.8], bob: 0, crouch: 0.6, ready: true },
+    ready: { legs: [-0.7, 0.8], arms: [0.2, 0.8], crouch: 0.9, ready: true, lean: 0.25 },
+    step: { legs: [0.9, -0.9], arms: [-0.6, 0.6], bob: 0.3, ready: true, lean: 0.45 },
+    windup: { legs: [-0.5, 0.9], arms: [0.3, 0], crouch: 0.4, lean: -0.2, reach: [null, [-0.3, -0.85]], wpn: -125 },
+    attack: { legs: [1, -0.9], arms: [-0.4, 0], crouch: 0.7, lean: 0.7, reach: [null, [0.9, -0.05]], wpn: 12 },
+    cast: { legs: [-0.3, 0.4], arms: [0, 0], lean: 0.1, hdy: -0.2, reach: [[0.55, -0.75], [0.7, -0.65]], wpn: -70 },
+    item: { legs: [0, 0.3], arms: [0, 0], reach: [null, [0.35, -0.95]], wpn: -80 },
+    hurt: { legs: [-0.8, 0.5], arms: [-0.6, -0.4], lean: -0.6, hdx: -0.4, hdy: -0.2, fx: 0, reach: [[-0.45, 0.55], [-0.5, 0.5]], wpn: 115 },
+    kneel: { legs: [0, 0], arms: [0, 0], kneel: true, lean: 0.35, hdy: 0.5, reach: [[0.2, 0.8], [0.4, 0.75]], wpn: 70 },
+    ko: { legs: [0, 0], arms: [0, 0], lie: true },
+    revive: { legs: [0, 0], arms: [0, 0], kneel: true, lean: 0.1, hdy: -0.2, reach: [[0.1, 0.7], [0.3, -0.3]], wpn: -40 },
+    victory: { legs: [-0.6, 0.6], arms: [0, 0], hdy: -0.3, reach: [[-0.2, 0.85], [0.15, -1]], wpn: -90 },
+    limit: { legs: [-1, 1], arms: [0, 0], crouch: 1.2, lean: 0.3, reach: [[-0.7, 0.1], [0.6, -0.8]], wpn: -55 },
+    nod: { legs: [0, 0], arms: [0, 0], hdx: 0.3, hdy: 0.7 },
+    shakeL: { legs: [0, 0], arms: [0, 0], hdx: -0.4, fx: -0.7 },
+    shakeR: { legs: [0, 0], arms: [0, 0], hdx: 0.4, fx: 0.7 },
+    crouch: { legs: [-0.3, 0.3], arms: [0.2, -0.2], crouch: 1.1 },
+    jump: { legs: [0.4, -0.4], arms: [0, 0], reach: [[-0.5, -0.6], [0.5, -0.6]], hdy: -0.2 },
+    sit: { legs: [0, 0], arms: [0, 0], sit: true, reach: [[-0.15, 0.7], [0.3, 0.65]] },
+    laugh: { legs: [0, 0], arms: [0, 0], bob: 0.3, hdx: -0.3, hdy: -0.4, reach: [[-0.45, 0.55], [0.45, 0.55]] },
+    laughB: { legs: [0, 0], arms: [0, 0], hdx: -0.2, hdy: -0.15, reach: [[-0.35, 0.65], [0.35, 0.65]] }
   };
-  function framePx(size, prop) { var h = clamp(Number(prop && prop.height) || 1.5, 1, 2.5); return { w: size, h: Math.round(size * h) }; }
+  // Battle frames are two tiles wide so weapon swings and lunges have room; field frames stay one tile wide.
+  function framePx(size, prop, wide) { var h = clamp(Number(prop && prop.height) || 1.5, 1, 2.5); return { w: wide ? size * 2 : size, h: Math.round(size * h) }; }
   function skeleton(plan, prop, pose, dir, Wu, Hu) {
     var bp = BODY_PLANS[plan && BODY_PLANS[plan] ? plan : 'average'];
     if (plan && typeof plan === 'object') bp = plan;
     var hs = clamp(Number(prop && prop.headScale) || 1, 0.6, 1.6), head = bp.head * hs;
     var need = head * 1.8 + bp.torso + bp.leg + 2.2, k = Math.min(1.25, (Hu - 1.6) / need);
     var side = dir === 'right', cx = Wu / 2, footY = Hu - 1.6, crouch = (pose.crouch || 0);
-    var L = bp.leg * k - crouch, T = bp.torso * k, r = head * k, bob = pose.bob || 0;
-    var hipY = footY - L + bob * 0.5, neckY = hipY - T, headCy = neckY - r * 0.82;
+    var L0 = bp.leg * k, L = L0 - crouch, T = bp.torso * k, r = head * k, bob = pose.bob || 0;
+    var hipY = footY - L + bob * 0.5;
+    if (pose.kneel) hipY = footY - L0 * 0.52;
+    if (pose.sit) hipY = footY - Math.max(1, L0 * 0.18);
+    var lean = side ? (pose.lean || 0) * 1.3 : 0, ux = cx + lean;
+    var neckY = hipY - T + Math.abs(lean) * 0.35, headCy = neckY - r * 0.82 + (pose.hdy || 0);
+    var hx = ux + (side ? (pose.hdx || 0) : (pose.fx || 0));
     var sh = bp.sh * (side ? 0.62 : 1), hip = bp.hip * (side ? 0.66 : 1);
-    var J = { cx: cx, footY: footY, hipY: hipY, neckY: neckY, headCy: headCy, headR: r, sh: sh, hip: hip, armW: bp.arm, legW: bp.legW, dir: dir, side: side, ready: !!pose.ready, plan: bp, legLen: L };
+    var J = { cx: cx, ux: ux, hx: hx, footY: footY, hipY: hipY, neckY: neckY, headCy: headCy, headR: r, sh: sh, hip: hip, armW: bp.arm, legW: bp.legW, dir: dir, side: side, ready: !!pose.ready, plan: bp, legLen: footY - hipY, wpn: side && typeof pose.wpn === 'number' ? pose.wpn : null };
+    var half = L0 * 0.5;
     J.legs = [0, 1].map(function (i) {
-      var v = pose.legs[i] || 0, hx = side ? cx + (i ? 0.4 : -0.4) : cx + (i ? 1 : -1) * hip * 0.55;
-      if (side) return { hx: hx, x: hx + v * 2.3, y: footY - (v > 0.3 ? 0.4 : 0), far: !i };
-      return { hx: hx, x: hx, y: footY - (v > 0 ? 1 : 0), far: false };
+      var v = pose.legs[i] || 0, hx0 = side ? cx + (i ? 0.4 : -0.4) : cx + (i ? 1 : -1) * hip * 0.55;
+      if (pose.kneel) {
+        if (side) return i ? { hx: hx0, kx: hx0 + half * 0.95, ky: hipY - 0.2, x: hx0 + half * 0.95, y: footY, far: false } : { hx: hx0, kx: hx0 - 0.1, ky: footY - 0.4, x: hx0 - half * 0.95, y: footY - 0.4, far: true };
+        return { hx: hx0, x: hx0 + (i ? 0.3 : -0.3), y: footY - (i ? 0 : 0.6), far: false };
+      }
+      if (pose.sit) {
+        if (side) return { hx: hx0, kx: hx0 + half * 0.85, ky: hipY - half * 0.55 + (i ? 0 : 0.3), x: hx0 + half * 1.55 + (i ? 0.3 : -0.3), y: footY, far: !i };
+        return { hx: hx0, x: hx0 + (i ? 1.6 : -1.6), y: footY, far: false };
+      }
+      if (side) return { hx: hx0, x: hx0 + v * 2.3, y: footY - (v > 0.3 ? 0.4 : 0), far: !i };
+      return { hx: hx0, x: hx0, y: footY - (v > 0 ? 1 : 0), far: false };
     });
     J.arms = [0, 1].map(function (i) {
-      var v = pose.arms[i] || 0, sx = side ? cx + (i ? 0.3 : -0.3) : cx + (i ? 1 : -1) * (sh + 0.1), sy = neckY + 1;
-      var len = T * 0.95;
+      var v = pose.arms[i] || 0, sx = side ? ux + (i ? 0.3 : -0.3) : ux + (i ? 1 : -1) * (sh + 0.1), sy = neckY + 1;
+      var len = T * 0.95, rc = pose.reach && pose.reach[i];
+      if (rc) return { sx: sx, sy: sy, hx: sx + rc[0] * len * (side ? 1 : (i ? 1 : -1)), hy: sy + rc[1] * len, far: side && !i };
       if (side) {
         if (pose.ready && i) return { sx: sx, sy: sy, hx: sx + len * 0.75, hy: sy + len * 0.45, far: false };
         return { sx: sx, sy: sy, hx: sx + v * 2.4, hy: sy + len - Math.abs(v) * 0.4, far: !i };
@@ -249,20 +298,27 @@
     });
     return J;
   }
+  // A leg from hip to foot, through the knee when the pose bends it.
+  function limb(r, g, y0, w, code, trim) {
+    var fy = g.y - (trim || 0);
+    if (g.kx == null) { r.line(g.hx, y0, g.x, fy, w, code); return; }
+    r.line(g.hx, y0, g.kx, g.ky, w, code);
+    r.line(g.kx, g.ky, g.x, fy, w, code);
+  }
   // Materials for the humanoid layout: 2 skin, 3 hair, 4 cloth A, 5 cloth B, 6 metal, 7 accent alias.
   var SKN = M_A, HAI = M_B, CLA = M_C, CLB = M_D, MET = M_E, ACC = M_ACC;
   function farc(code, far) { return far ? fx(code & 15, 0) : code; }
   var HUMANOID = {};
   HUMANOID['shadow.ground'] = function (r, J, p) { r.ell(J.cx, J.footY + 0.4, J.plan.sh * 1.05 * (p.width || 1), 0.9, M_GROUND); };
   HUMANOID['body.plan'] = function (r, J) {
-    r.rect(J.cx - 0.8, J.neckY - 1, J.cx + 0.8, J.neckY + 1.2, SKN);
+    r.rect(J.ux - 0.8, J.neckY - 1, J.ux + 0.8, J.neckY + 1.2, SKN);
     J.arms.forEach(function (a) { if (a.far) { r.line(a.sx, a.sy, a.hx, a.hy, J.armW, farc(SKN, 1)); } });
-    J.legs.forEach(function (g) { r.line(g.hx, J.hipY, g.x, g.y, J.legW, farc(SKN, g.far)); });
-    r.poly([[J.cx - J.sh, J.neckY + 0.4], [J.cx + J.sh, J.neckY + 0.4], [J.cx + J.hip, J.hipY + 0.5], [J.cx - J.hip, J.hipY + 0.5]], SKN);
+    J.legs.forEach(function (g) { limb(r, g, J.hipY, J.legW, farc(SKN, g.far)); });
+    r.poly([[J.ux - J.sh, J.neckY + 0.4], [J.ux + J.sh, J.neckY + 0.4], [J.cx + J.hip, J.hipY + 0.5], [J.cx - J.hip, J.hipY + 0.5]], SKN);
     J.arms.forEach(function (a) { if (!a.far) r.line(a.sx, a.sy, a.hx, a.hy, J.armW, SKN); r.ell(a.hx, a.hy + 0.2, J.armW * 0.55, J.armW * 0.55, farc(SKN, a.far)); });
   };
   function headShape(r, J, shape, code) {
-    var cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR;
+    var cx = J.hx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR;
     if (shape === 'square') r.poly([[cx - R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.9, cy + R0 * 0.4], [cx + R0 * 0.45, cy + R0], [cx - R0 * 0.45, cy + R0], [cx - R0 * 0.9, cy + R0 * 0.4]], code);
     else if (shape === 'long') r.ell(cx, cy + R0 * 0.1, R0 * 0.8, R0 * 1.1, code);
     else r.ell(cx, cy, R0 * 0.92, R0, code);
@@ -270,11 +326,11 @@
   HUMANOID['head.shape'] = function (r, J, p) {
     headShape(r, J, p.shape, SKN);
     var cy = J.headCy + J.headR * 0.18, R0 = J.headR;
-    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.42, cy, M_OUT, true); r.dot(J.cx + R0 * 0.42 - 0.01, cy, M_OUT, true); }
-    else if (J.dir === 'right') { r.dot(J.cx + R0 * 0.55, cy, M_OUT, true); r.dot(J.cx + R0 * 1.12, cy + R0 * 0.25, SKN); }
+    if (J.dir === 'down') { r.dot(J.hx - R0 * 0.42, cy, M_OUT, true); r.dot(J.hx + R0 * 0.42 - 0.01, cy, M_OUT, true); }
+    else if (J.dir === 'right') { r.dot(J.hx + R0 * 0.55, cy, M_OUT, true); r.dot(J.hx + R0 * 1.12, cy + R0 * 0.25, SKN); }
   };
   HUMANOID['hair.style'] = function (r, J, p) {
-    var st = p.style || 'short', cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR, code = st === 'covered' ? CLB : HAI;
+    var st = p.style || 'short', cx = J.hx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR, code = st === 'covered' ? CLB : HAI;
     if (st === 'none') return;
     if (J.dir === 'up') {
       if (st === 'cropped') { r.clip = [-99, -99, 99, cy + R0 * 0.2]; r.ell(cx, cy, R0 * 0.95, R0 * 1.02, code); r.clip = null; }
@@ -306,11 +362,11 @@
   };
   // A hood leaves the face open: redraw it in its own layer so the shading reads.
   function headFace(r, J) {
-    var cx = J.cx + (J.side ? 0.45 : 0), R0 = J.headR;
+    var cx = J.hx + (J.side ? 0.45 : 0), R0 = J.headR;
     r.ell(cx, J.headCy + R0 * 0.2, R0 * 0.62, R0 * 0.7, SKN);
     var cy = J.headCy + J.headR * 0.18;
-    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.32, cy, M_OUT); r.dot(J.cx + R0 * 0.32 - 0.01, cy, M_OUT); }
-    else if (J.dir === 'right') r.dot(J.cx + R0 * 0.62, cy, M_OUT);
+    if (J.dir === 'down') { r.dot(J.hx - R0 * 0.32, cy, M_OUT); r.dot(J.hx + R0 * 0.32 - 0.01, cy, M_OUT); }
+    else if (J.dir === 'right') r.dot(J.hx + R0 * 0.62, cy, M_OUT);
   }
   function sleeves(r, J, len, code) {
     J.arms.forEach(function (a) {
@@ -320,7 +376,7 @@
   }
   function chest(r, J, wid, bottom, flare, code) {
     var s = J.sh * wid, hb = J.hip * flare;
-    r.poly([[J.cx - s, J.neckY + 0.3], [J.cx + s, J.neckY + 0.3], [J.cx + hb, bottom], [J.cx - hb, bottom]], code);
+    r.poly([[J.ux - s, J.neckY + 0.3], [J.ux + s, J.neckY + 0.3], [J.cx + hb, bottom], [J.cx - hb, bottom]], code);
   }
   HUMANOID['torso.cloth'] = function (r, J, p) {
     var st = p.style || 'tunic', front = J.dir === 'down';
@@ -330,7 +386,7 @@
     } else if (st === 'coat') {
       chest(r, J, 1.05, J.hipY + J.legLen * 0.55, 1.45, CLA); sleeves(r, J, 1, CLA);
       if (front) r.rect(J.cx - 0.35, J.neckY + 1.2, J.cx + 0.35, J.hipY + J.legLen * 0.5, CLB);
-      if (J.dir !== 'up') r.rect(J.cx - J.sh * 0.6, J.neckY + 0.2, J.cx + J.sh * 0.6, J.neckY + 1.0, ACC);
+      if (J.dir !== 'up') r.rect(J.ux - J.sh * 0.6, J.neckY + 0.2, J.ux + J.sh * 0.6, J.neckY + 1.0, ACC);
     } else if (st === 'plate') {
       sleeves(r, J, 1, CLA);
       chest(r, J, 1.0, J.hipY + 0.6, 1.1, MET);
@@ -358,41 +414,47 @@
       r.poly([[J.cx - J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.45, J.footY - 0.5], [J.cx - J.hip * 1.45, J.footY - 0.5]], CLA);
       shoes();
     } else {
-      J.legs.forEach(function (g) { r.line(g.hx, J.hipY - 0.3, g.x, g.y - 0.6, J.legW * 1.12, farc(CLB, g.far)); });
+      J.legs.forEach(function (g) { limb(r, g, J.hipY - 0.3, J.legW * 1.12, farc(CLB, g.far), 0.6); });
       r.rect(J.cx - J.hip * 1.02, J.hipY - 0.5, J.cx + J.hip * 1.02, J.hipY + 0.6, CLB);
-      if (st === 'boots') J.legs.forEach(function (g) { r.line(g.x, g.y - J.legLen * 0.38, g.x + (J.side ? 0.4 : 0), g.y - 0.2, J.legW * 1.25, farc(ACC, g.far)); });
+      if (st === 'boots') J.legs.forEach(function (g) { var bx = g.kx == null ? g.x : g.kx + (g.x - g.kx) * 0.3, by = g.kx == null ? g.y - J.legLen * 0.38 : g.ky + (g.y - g.ky) * 0.3; r.line(bx, by, g.x + (J.side ? 0.4 : 0), g.y - 0.2, J.legW * 1.25, farc(ACC, g.far)); });
       else shoes();
     }
   };
   HUMANOID['back.gear'] = function (r, J, p) {
     var st = p.style || 'cape', s = J.sh, dx = J.side ? -1.2 : 0;
     if (st === 'cape') {
-      if (J.side) r.poly([[J.cx + 0.3, J.neckY + 0.2], [J.cx - 0.8, J.neckY + 0.2], [J.cx - s * 1.3 - 1.8, J.hipY + J.legLen * 0.75], [J.cx - 0.4, J.hipY + J.legLen * 0.75]], CLB);
+      if (J.side) r.poly([[J.ux + 0.3, J.neckY + 0.2], [J.ux - 0.8, J.neckY + 0.2], [J.cx - s * 1.3 - 1.8, J.hipY + J.legLen * 0.75], [J.cx - 0.4, J.hipY + J.legLen * 0.75]], CLB);
       else r.poly([[J.cx - s, J.neckY + 0.2], [J.cx + s, J.neckY + 0.2], [J.cx + s * 1.35, J.hipY + J.legLen * 0.75], [J.cx - s * 1.35, J.hipY + J.legLen * 0.75]], CLB);
     }
-    else if (st === 'pack') r.rect(J.cx - s * 0.75 + dx * 1.3, J.neckY + 0.4 - (J.dir === 'down' ? 1 : 0), J.cx + s * 0.75 + dx * 0.4, J.hipY - 0.2, CLB);
-    else r.line(J.cx - s - 0.5 + dx, J.hipY + 1.5, J.cx + s + 1 + dx, J.neckY - J.headR * 1.2, 1.1, MET);
+    else if (st === 'pack') r.rect(J.ux - s * 0.75 + dx * 1.3, J.neckY + 0.4 - (J.dir === 'down' ? 1 : 0), J.ux + s * 0.75 + dx * 0.4, J.hipY - 0.2, CLB);
+    else r.line(J.cx - s - 0.5 + dx, J.hipY + 1.5, J.ux + s + 1 + dx, J.neckY - J.headR * 1.2, 1.1, MET);
   };
   HUMANOID['front.gear'] = function (r, J, p) {
     var st = p.style || 'bare';
     if (st === 'bare') return;
     var hi = J.side ? 1 : J.dir === 'up' ? 1 : 0, off = 1 - hi, h = J.arms[hi], o = J.arms[off], hx = h.hx, hy = h.hy + 0.2;
-    var up = J.ready, dir = J.dir;
+    var up = J.ready, dir = J.dir, w = J.wpn, ca = w == null ? 0 : Math.cos(w * Math.PI / 180), sa = w == null ? 0 : Math.sin(w * Math.PI / 180);
     if (st === 'blade') {
-      var tx = up ? hx + 4.6 : hx + (dir === 'right' ? 1.4 : dir === 'up' ? 1.2 : -1.4), ty = up ? hy - 4.8 : hy + 5.2;
-      r.line(hx, hy, tx, ty, 1.05, MET);
-      r.line(hx - (up ? 0.8 : 1), hy + (up ? 0.8 : 0), hx + (up ? 0.8 : 1), hy - (up ? 0.8 : 0), 0.9, ACC);
+      if (w != null) {
+        r.line(hx, hy, hx + ca * 6.4, hy + sa * 6.4, 1.05, MET);
+        r.line(hx - sa * 0.95, hy + ca * 0.95, hx + sa * 0.95, hy - ca * 0.95, 0.9, ACC);
+      } else {
+        var tx = up ? hx + 4.6 : hx + (dir === 'right' ? 1.4 : dir === 'up' ? 1.2 : -1.4), ty = up ? hy - 4.8 : hy + 5.2;
+        r.line(hx, hy, tx, ty, 1.05, MET);
+        r.line(hx - (up ? 0.8 : 1), hy + (up ? 0.8 : 0), hx + (up ? 0.8 : 1), hy - (up ? 0.8 : 0), 0.9, ACC);
+      }
     } else if (st === 'staff') {
-      r.line(hx, hy + 3, hx + (up ? 1.5 : 0), hy - 8.5, 1.05, ACC);
-      r.ell(hx + (up ? 1.5 : 0), hy - 8.8, 1.1, 1.1, MET);
+      var ex0 = w != null ? hx - ca * 3 : hx, ey0 = w != null ? hy - sa * 3 : hy + 3, ex1 = w != null ? hx + ca * 8.5 : hx + (up ? 1.5 : 0), ey1 = w != null ? hy + sa * 8.5 : hy - 8.5;
+      r.line(ex0, ey0, ex1, ey1, 1.05, ACC);
+      r.ell(ex1 + (w != null ? ca * 0.3 : 0), ey1 + (w != null ? sa * 0.3 : -0.3), 1.1, 1.1, MET);
     } else if (st === 'shield') {
-      var sx = J.side ? J.cx + J.sh + 1.2 : o.hx + (off ? 0.4 : -0.4), sy = J.side ? J.neckY + J.plan.torso * 0.55 : o.hy - 1.4;
+      var sx = J.side ? J.ux + J.sh + 1.2 : o.hx + (off ? 0.4 : -0.4), sy = J.side ? J.neckY + J.plan.torso * 0.55 : o.hy - 1.4;
       r.ell(sx, sy, J.side ? 1.1 : 1.9, 2.3, MET);
       r.dot(sx, sy, ACC);
     } else if (st === 'tool') {
-      var ex = up ? hx + 3 : hx, ey = up ? hy - 3.6 : hy + 3.6;
+      var ex = w != null ? hx + ca * 3.6 : up ? hx + 3 : hx, ey = w != null ? hy + sa * 3.6 : up ? hy - 3.6 : hy + 3.6;
       r.line(hx, hy, ex, ey, 0.9, ACC);
-      r.line(ex - 1.3, ey, ex + 1.3, ey, 1.6, MET);
+      if (w != null) r.line(ex - sa * 1.3, ey + ca * 1.3, ex + sa * 1.3, ey - ca * 1.3, 1.6, MET); else r.line(ex - 1.3, ey, ex + 1.3, ey, 1.6, MET);
     } else if (st === 'device') {
       var bx = hx + (J.side ? 0.6 : 0);
       for (var t = 0; t < 6; t++) {
@@ -634,7 +696,8 @@
   // poseKey is a POSES key; dir is down, up, right, or left (left mirrors right). Returns {w, h, ax, ay, idx}.
   function compose(spec, poseKey, dir) {
     if (dir === 'left') { var f = compose(spec, poseKey, 'right'); return { w: f.w, h: f.h, ax: f.w - 1 - f.ax, ay: f.ay, idx: mirror(f.idx, f.w, f.h) }; }
-    var T = clamp(Math.round(spec.size || 16), 4, 128), layers = spec.layers || [], pose = POSES[poseKey] || POSES.stand;
+    var T = clamp(Math.round(spec.size || 16), 4, 128), layers = spec.layers || [], pose = poseOf(spec, poseKey);
+    if (pose.lie && spec.layout !== 'enemy') return lieDown(spec, pose, dir);
     if (spec.layout === 'enemy') {
       var N = T * 2, r = new Ras(N, N, N / 32), rnd = rng(spec.seed || 1);
       layers.forEach(function (L) {
@@ -644,7 +707,7 @@
       });
       return { w: N, h: N, ax: N >> 1, ay: N - 2, idx: resolve(r, shadeAndOutline(r, true), 'clothB') };
     }
-    var fp = framePx(T, spec.proportions), s = T / 16, Wu = fp.w / s, Hu = fp.h / s;
+    var fp = framePx(T, spec.proportions, spec.wide), s = T / 16, Wu = fp.w / s, Hu = fp.h / s;
     var byLayer = {};
     layers.forEach(function (L) { byLayer[L.layer] = L; });
     var body = byLayer.body && byLayer.body.gen && byLayer.body.gen.params ? byLayer.body.gen.params.plan : 'average';
@@ -660,6 +723,38 @@
     });
     return { w: fp.w, h: fp.h, ax: Math.round(J.cx * s), ay: Math.min(fp.h - 1, Math.round(J.footY * s)), idx: resolve(r2, shadeAndOutline(r2, true), spec.accent) };
   }
+  // A pose key resolves through the spec's own pose table (sprite and project overrides) over the engine defaults; a
+  // pose may also be passed as an object. Unknown keys fall back to stand.
+  function poseOf(spec, key) {
+    if (key && typeof key === 'object') return Object.assign({ legs: [0, 0], arms: [0, 0] }, key);
+    var own = spec && spec.poses && spec.poses[key], base = POSES[key] || (own && own.base && POSES[own.base]) || POSES.stand;
+    if (!own) return base;
+    var out = Object.assign({}, base, own);
+    out.legs = own.legs || base.legs || [0, 0]; out.arms = own.arms || base.arms || [0, 0];
+    return out;
+  }
+  // Lying down: compose the figure standing with limp limbs and no ground shadow, turn it a quarter turn so the head
+  // points behind, and rest it on the bottom row. Rotation is exact, so outlines and shading survive.
+  function lieDown(spec, pose, dir) {
+    var flat = Object.assign({}, pose, { lie: false, crouch: 0, bob: 0, kneel: false, sit: false, ready: false, wpn: 160, reach: [[0.05, 0.95], [0.1, 0.95]] });
+    var d = dir === 'up' || dir === 'down' ? 'right' : dir;
+    // Composed one tile wide even for battle sprites: rotating a two tile battle frame would make a tall frame.
+    var f = compose(Object.assign({}, spec, { shadow: false, poses: null, wide: false }), flat, d === 'left' ? 'right' : d);
+    var W = f.h, H = f.w, out = new Uint8Array(W * H), last = 0;
+    for (var y = 0; y < f.h; y++) for (var x = 0; x < f.w; x++) {
+      var v = f.idx[y * f.w + x];
+      if (!v) continue;
+      var X = y, Y = f.w - 1 - x;
+      out[Y * W + X] = v;
+      if (Y > last) last = Y;
+    }
+    // Drop the figure so its lowest pixel sits on the frame's bottom row (the ground line).
+    var drop = H - 1 - last;
+    if (drop > 0) { var sh = new Uint8Array(W * H); for (var i = 0; i < W * (H - drop); i++) sh[i + W * drop] = out[i]; out = sh; }
+    var res = { w: W, h: H, ax: W >> 1, ay: H - 1, idx: out };
+    if (dir === 'left') res.idx = mirror(res.idx, W, H);
+    return res;
+  }
   // A hand drawn part: variants keyed "<pose>.<dir>" (or "<dir>", or "*"), each {w, h, d} in local slots at the part's
   // base size. Variants at another size are resampled with nearest neighbor, which the editor warns about.
   function pickVariant(px, poseKey, dir) {
@@ -671,7 +766,7 @@
     if (!v) return;
     var a;
     try { a = decodePx(v.d, v.w, v.h); } catch (e) { return; }
-    if (v.w !== r.w || v.h !== r.h) a = resample(a, v.w, v.h, r.w, r.h);
+    a = fit(a, v.w, v.h, r.w, r.h);
     for (var i = 0; i < a.length; i++) if (a[i]) { r.c[i] = slotCell(a[i]); r.l[i] = r.layer; }
   }
   // Just one layer rasterized alone and resolved to slots: what "draw a part by hand" starts from.
@@ -694,6 +789,13 @@
     while (s && s.shares && !seen[s.id]) { seen[s.id] = 1; s = rec(art, s.shares); }
     return s || spr;
   }
+  // Optional poses a project adds to its taxonomy: entries {key, label, required: false, pose: {base, ...params}}.
+  function artPoses(art) {
+    var out = {}, tax = art && art.poseTaxonomy;
+    if (!tax || typeof tax !== 'object') return out;
+    Object.keys(tax).forEach(function (g) { (Array.isArray(tax[g]) ? tax[g] : []).forEach(function (e) { if (e && e.key && e.pose && typeof e.pose === 'object') out[e.key] = e.pose; }); });
+    return out;
+  }
   function spriteSpec(art, spr, size) {
     var b = baseSprite(art, spr), rc = b && b.recipe || {}, parts = rc.parts || {}, layers = [];
     Object.keys(parts).forEach(function (layer) {
@@ -705,7 +807,8 @@
       else if (p.gen) layers.push({ layer: layer, gen: { shape: p.gen.shape, params: Object.assign({}, p.gen.params || {}, (rc.params && rc.params[layer]) || {}) } });
     });
     var cw = rc.colorway || {};
-    return { layout: spr.kind === 'enemy' ? 'enemy' : 'humanoid', rig: rc.rig || 'humanoid', size: size, proportions: rc.proportions || {}, accent: rc.accent || cw.accent || 'clothB', seed: b.seed, layers: layers, shadow: spr.mode !== 'battle' };
+    var poses = Object.assign({}, artPoses(art), b && b.poses || {}, spr !== b && spr.poses || {});
+    return { poses: poses, layout: spr.kind === 'enemy' ? 'enemy' : 'humanoid', rig: rc.rig || 'humanoid', size: size, proportions: rc.proportions || {}, accent: rc.accent || cw.accent || 'clothB', seed: b.seed, layers: layers, shadow: spr.mode !== 'battle', wide: spr.mode === 'battle' && spr.kind !== 'enemy' };
   }
   // The frame with any hand edited override applied. Overrides are keyed "<pose>.<dir>" and stored at the size they
   // were drawn; left falls back to mirroring right.
@@ -720,8 +823,8 @@
     if (o) {
       try {
         var a = decodePx(o.d, o.w, o.h);
-        if (o.w !== g.w || o.h !== g.h) a = resample(a, o.w, o.h, g.w, g.h);
-        return { w: g.w, h: g.h, ax: g.ax, ay: g.ay, idx: a, override: true, resampled: o.w !== g.w || o.h !== g.h };
+        a = fit(a, o.w, o.h, g.w, g.h);
+        return { w: g.w, h: g.h, ax: g.ax, ay: g.ay, idx: a, override: true, resampled: o.h !== g.h || o.w > g.w };
       } catch (e) { g.badOverride = e.message; }
     }
     return g;
@@ -758,6 +861,7 @@
   // ---------------------------------------------------------------- bake cache
   // createCache(art, {size, entries, makeCanvas(w, h), budget}) bakes frames once and keeps them in an LRU capped by an
   // estimate of their memory (index plus RGBA plus canvas). makeCanvas is the host's; without it frames carry RGBA only.
+  function lightest(list) { var bi = null, bl = -1; (list || []).forEach(function (h) { var l = hexToLab(h); if (l && l[0] > bl) { bl = l[0]; bi = h; } }); return bi || '#ffffff'; }
   function createCache(art, opts) {
     opts = opts || {};
     var map = new Map(), bytes = 0, cap = opts.budget || 8e6, st = { hits: 0, misses: 0, evictions: 0 };
@@ -782,11 +886,16 @@
     var T = opts.size || 16, entries = opts.entries || [];
     function finish(f, slots) { if (!f) return null; f.rgba = rgba(f.idx, slots, entries); return f; }
     return {
-      sprite: function (sprId, poseKey, dir, palId) {
+      // flags 'flash' bakes the frame's silhouette in the palette's lightest color (the hurt flash).
+      sprite: function (sprId, poseKey, dir, palId, flags) {
         var spr = rec(art, sprId);
         if (!spr) return null;
         var pal = palId || spr.pal;
-        return get('s|' + sprId + '|' + poseKey + '|' + dir + '|' + pal, function () { return finish(spriteFrame(art, spr, poseKey, dir, T), slotsFor(art, pal)); });
+        return get('s|' + sprId + '|' + poseKey + '|' + dir + '|' + pal + (flags ? '|' + flags : ''), function () {
+          var f = finish(spriteFrame(art, spr, poseKey, dir, T), slotsFor(art, pal));
+          if (f && flags === 'flash') { var c = hexToRgb(lightest(entries)) || [255, 255, 255]; for (var i = 0; i < f.idx.length; i++) if (f.idx[i]) { f.rgba[i * 4] = c[0]; f.rgba[i * 4 + 1] = c[1]; f.rgba[i * 4 + 2] = c[2]; } }
+          return f;
+        });
       },
       portrait: function (porId, expr) {
         var por = rec(art, porId);
@@ -799,6 +908,7 @@
         return get('i|' + icoId, function () { return finish(iconFrame(art, ico, T), slotsFor(art, ico.pal, ico.tintRamp)); });
       },
       invalidate: function (id) { var tag = '|' + id + '|', tail = '|' + id; Array.from(map.keys()).forEach(function (k) { if (k.indexOf(tag) >= 0 || k.slice(-tail.length) === tail) { bytes -= map.get(k).bytes; map.delete(k); } }); },
+      size: T, entries: entries, art: art,
       stats: function () { return { entries: map.size, bytes: bytes, budget: cap, hits: st.hits, misses: st.misses, evictions: st.evictions }; },
       clear: function () { map.clear(); bytes = 0; },
       budget: function (n) { if (n > 0) { cap = n; var it = map.keys(); while (bytes > cap && map.size > 1) { var k = it.next().value; bytes -= map.get(k).bytes; map.delete(k); st.evictions++; } } return cap; }
@@ -808,7 +918,18 @@
   R.sprite = {
     LAYERS: LAYERS, ORDER: ORDER, POSES: POSES, BODY_PLANS: BODY_PLANS, LIBRARY: LIBRARY, RIGS: RIGS, RIG_PARAMS: RIG_PARAMS,
     GENERATORS: Object.keys(HUMANOID).concat(RIGS.map(function (k) { return 'enemy.' + k; })),
-    DIRS: ['down', 'up', 'right', 'left'], FIELD_POSES: ['stand', 'stepA', 'stepB'], BATTLE_POSES: ['idle'],
+    DIRS: ['down', 'up', 'right', 'left'], FIELD_POSES: ['stand', 'stepA', 'stepB'],
+    BATTLE_POSES: ['idle', 'ready', 'step', 'windup', 'attack', 'cast', 'item', 'hurt', 'kneel', 'ko', 'revive', 'victory', 'limit'],
+    EMOTE_POSES: ['nod', 'shakeL', 'shakeR', 'crouch', 'jump', 'sit', 'kneel', 'ko', 'laugh', 'laughB'],
+    ENEMY_POSES: ['idle', 'attack', 'hurt'], poseOf: poseOf, artPoses: artPoses,
+    handPoses: function () {
+      var out = [], seen = {};
+      function add(p, d) { if (POSES[p] && POSES[p].lie) return; var k = p + '.' + d; if (!seen[k]) { seen[k] = 1; out.push([p, d]); } }
+      ['stand', 'stepA', 'stepB'].forEach(function (p) { ['down', 'up', 'right'].forEach(function (d) { add(p, d); }); });
+      ['idle', 'ready', 'step', 'windup', 'attack', 'cast', 'item', 'hurt', 'kneel', 'revive', 'victory', 'limit'].forEach(function (p) { add(p, 'right'); });
+      ['nod', 'shakeL', 'shakeR', 'crouch', 'jump', 'sit', 'kneel', 'laugh', 'laughB'].forEach(function (p) { add(p, 'down'); });
+      return out;
+    },
     framePx: framePx, compose: compose, partFrame: partFrame, mirror: mirror, resample: resample, slotCell: slotCell,
     spec: spriteSpec, frame: spriteFrame, base: baseSprite, slotsFor: slotsFor, rgba: rgba
   };

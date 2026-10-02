@@ -392,6 +392,6 @@
     ui.sub = Kit.ids.prefixOf(rid) === 'efx_' ? 'elements' : r.kind === 'tier' ? 'tiers' : r.kind === 'local' ? 'colorways' : 'master';
     Kit.rerender();
   }
-  ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor };
+  ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor, pickMaster: pickMaster, swatch: swatch };
 })();
 // === WS:PALETTE END ===

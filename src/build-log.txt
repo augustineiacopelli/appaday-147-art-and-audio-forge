@@ -137,6 +137,58 @@ SESSION 2 / PHASE 2 (2026-10-01, Opus): COMPOSER. COMPLETE.
     humanoid slot map (no white ramp), so eyes are dark pupils with a skin highlight. Poses beyond stand, steps, and battle
     idle arrive with the anm_ player in Phase 3.
 === END SESSION 2 ===
+SESSION 3 / PHASE 3 (2026-10-01, Opus): MOTION. COMPLETE.
+  Picked up uncommitted Phase 3 work left by an interrupted session (engine-motion, art-motion, ws-motion, pose
+    additions in engine-sprites), audited it against the plan, fixed what testing found, and wrote test/phase3.js.
+  Fences, in order: ... WS:INTERFACE, ART:MOTION, WS:MOTION, WS:ART147, APP:BOOT. CSS adds ART:MOTION CSS. Engine motion
+    code lives in src/engine-motion.js, spliced into ENGINE:RENDER after engine-sprites.js. KIT:CORE still verbatim.
+  Poses: ENGINE_RENDER.sprite.POSES now holds the full sets as parameter tables (lean, crouch, head offsets, per arm
+    reach, weapon angle, kneel, sit, lie). BATTLE_POSES idle ready step windup attack cast item hurt kneel ko revive
+    victory limit; EMOTE_POSES nod shakeL shakeR crouch jump sit kneel ko laugh laughB; ENEMY_POSES idle attack hurt.
+    Battle party frames are two tiles wide (spec.wide) so swings and lunges fit; a one tile hand drawn frame is centered
+    into them, not stretched (fit). KO lies down by exact quarter turn of a one tile standing frame (fixed this session:
+    rotating the wide battle frame made KO taller than wide). poseOf(spec, key) layers project poses (taxonomy entries
+    with a pose object), then the base sprite's poses, then the sprite's own, over the engine defaults.
+  Engine sections: anim {frameAt, duration, frameStart, markersBetween, firstMarker, forSprite, deathPixels, drawDeath},
+    draw {sprite, frame, line}, fx {create, step, draw, done, screen, wave; shapes spark flake bubble shard ring wisp bolt;
+    screens none wave shake darken}, weather {create, step, draw; streak flake mote band bolt leaf none}, ability
+    {timeline, create}. The cache takes flags 'flash' (the silhouette in the lightest master color, its own entry).
+    Deaths (scatter, fade, melt) are generated from the enemy's own pixels each play and cost nothing to store.
+    Ability timeline: the release is the caster animation's first hit marker, then travel, then hits spread through
+    the impact; markers fire once each at any frame rate. Melee casters run in, hold through the impact, and return.
+    Weather counts scale with logical area (256 by 224 is the reference), never with screen pixels.
+  Records: anm_ sprite {frames [{pose, ms, off, flash}], loop, markers [{f, type, arg}]}, death {method, ms}, ability
+    {caster, travel {type, ms}, impact {fx, ms, flash, shake}, hits, markers [{ms, type, arg}]}. Library animations
+    have subject role anim:<key> (walk, emote.*, battle.*, enemy.*, plus enemy.death.fade and enemy.death.melt); the
+    three default abilities have role ability:attack|cast|item; one procedural anm_ per non passive abl_ (look from
+    kind, targeting scope, and the element's particle shape). spr_ gains anims {key: anm_}; enemies get a death by rig
+    (ooze and plant melt, floater fades, the rest scatter). wov_ {layers [{type, density, angle, speed, depth, m, hex}],
+    tint {m, hex, alpha}, lightning {every, flashMs, m}, ambient, keyword, generic} per wth_, inferred from name plus
+    realWorld by 18 ordered keyword rules; unmatched text gets a generic mote overlay flagged generic (validator
+    warning, cleared on first edit). Master rebuild refits generated overlays and remaps kept ones.
+  Quick Build 'motion' (order 30): library, enemy deaths, ability animations, weather. Second run changes nothing.
+  Validator art.motion: kinds, frame poses (warning when unknown), frame ms, offsets, marker types and frames, death
+    method and ms, caster, travel, missing efx, hit count, orphaned abl_ and wth_ subjects (warning), sprite anims that
+    point nowhere, overlay layer types, densities, colors, tint, lightning range.
+  UI: Motion tab (Poses, Animations, Ability animations, Effects, Weather). One requestAnimationFrame loop drives every
+    visible stage and stops when none is on screen. Stages draw at logical size and scale by a whole number (Charter
+    scale for sprites and the weather drawer, 1x for weather rows). Pose drawer adjusts lean, crouch, bob, head, and
+    weapon angle per base sprite (only the change is stored) or draws the frame by hand; optional poses add a taxonomy
+    entry plus a user anm_. Pose labels read in plain words while label equals key. Animation drawer edits frames,
+    offsets, flashes, markers, loop, death method; library animations reset to default. Ability drawer edits caster,
+    travel, effect, impact, flash, shake, hits and shows the timeline. Effect and weather drawers edit everything.
+  Self test: bake now covers every battle pose, every emote, and enemy idle, attack, hurt; new Motion column plays every
+    animation, ability, and overlay without drawing. F4 gained an invented weather state (Mana Tide) so the generic
+    fallback runs on a fixture. Demo: 420 frames in about 110 ms, 1.1 MB cache. F2: 911 frames in about 0.6 s. F3
+    (64 px): about 1.9 s and 46 MB if everything were kept; the UI cache stays capped at 12 MB.
+  Tests: test/phase3.js 80 of 80 (static and fence checks, player and markers, poses at 8 to 64 px, Quick Build and
+    idempotence, weather inference table, weather and particle engines with a recording 2D context, deaths and the
+    flash, ability playback at two frame rates, edit survival, master remap, validator, the Motion tab and drawers,
+    the live rAF loop, Day 146 draft round trip, manifest counts, fixtures). phase2 67, phase1 59, phase0 27 still pass.
+  Checked in Chromium at 390 and 1280 wide: no horizontal scroll, no stage drawing errors.
+  Known limits: element identity in two color mode rests on particle shape and screen behavior. Pose sliders cover six
+    parameters; arm reach and leg spread are edited by drawing the frame. Sound markers name cues for Phase 6.
+=== END SESSION 3 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

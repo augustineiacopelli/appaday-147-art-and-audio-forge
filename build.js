@@ -17,7 +17,7 @@ const demoSrc = R('src/art-demo.js').replace('/*DEMO_JSON*/null', () => demoJson
 const buildLog = R('src/build-log.txt');
 // ENGINE:RENDER is one fence in the output. Later phases keep their engine sections in their own source files, spliced in
 // order above the freeze line, so each phase's engine code stays readable on its own.
-const ENGINE_SECTIONS = ['src/engine-sprites.js'];
+const ENGINE_SECTIONS = ['src/engine-sprites.js', 'src/engine-motion.js'];
 const FREEZE = '  // ---------------------------------------------------------------- later phases insert sections above this line';
 const engineBase = R('src/engine-render.js');
 if (engineBase.split(FREEZE).length !== 2) throw new Error('ENGINE:RENDER freeze marker not found exactly once.');
@@ -62,6 +62,7 @@ ${kitCss}
 ${artCss}
 ${R('src/art-palette.css').trim()}
 ${R('src/art-sprites.css').trim()}
+${fs.existsSync(path.join(__dirname, 'src/art-motion.css')) ? R('src/art-motion.css').trim() : ''}
 </style>
 </head>
 <body>
@@ -105,7 +106,7 @@ ${R('src/art-contract.js').trim()}
 ${engineRender}
 ${R('src/art-palette.js').trim()}
 ${R('src/ws-palette.js').trim()}
-${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
+${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js', 'src/art-motion.js', 'src/ws-motion.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
 ${R('src/ws-art147.js').trim()}
 ${R('src/app-boot.js').trim()}
 </script>

@@ -77,7 +77,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
         S.FIELD_POSES.concat(S.BATTLE_POSES).forEach((pose) => S.DIRS.forEach((dir) => {
           const f = S.compose(spec, pose, dir); n++;
           const o = outlined(f), max = Math.max(...f.idx), filled = f.idx.filter((v) => v > 1).length;
-          if (!shapeErr && (f.w !== T || f.h !== Math.round(T * 1.5) || o !== true || max > 15 || filled < T)) shapeErr = { T, part: part.key, pose, dir, w: f.w, h: f.h, o, max, filled };
+          const lie = S.POSES[pose] && S.POSES[pose].lie; if (!shapeErr && (lie ? (f.w !== Math.round(T * 1.5) || f.h !== T) : (f.w !== T || f.h !== Math.round(T * 1.5)) || o !== true || max > 15 || filled < T)) shapeErr = { T, part: part.key, pose, dir, w: f.w, h: f.h, o, max, filled };
         }));
       });
     });
@@ -174,7 +174,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
   // 7. Parts by hand.
   const WS = ART.WS.sprites, coat = SP.partByLib(b, 'torso.coat'), px = WS.toPixels(b, coat);
-  check('drawing a part by hand makes a frame per pose and direction', Object.keys(px.variants).length === 10 && px.base === 16, Object.keys(px.variants));
+  check('drawing a part by hand makes a frame per pose and direction', Object.keys(px.variants).length === S.handPoses().length && px.base === 16 && !!px.variants['stand.down'] && !!px.variants['attack.right'] && !!px.variants['nod.down'], Object.keys(px.variants));
   const drawn = ART.records.put(ART.envelope('prt_', 'Coat drawn', { kind: 'role', ref: 'part:custom' }, 'user', 1, { layer: 'torso', rig: 'humanoid', px: px }), b);
   const withGen = S.compose({ layout: 'humanoid', size: 16, layers: [{ layer: 'body', gen: byKey('body.average').gen }, { layer: 'torso', gen: coat.gen }] }, 'stand', 'down');
   const withPx = S.compose({ layout: 'humanoid', size: 16, layers: [{ layer: 'body', gen: byKey('body.average').gen }, { layer: 'torso', px: px }] }, 'stand', 'down');
@@ -226,7 +226,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   ART.WS.sprites.openSprite(f1.id);
   const frameBtns = win.document.querySelectorAll('.drawer .a7-frame').length;
   Kit.ui.closeTop();
-  check('the sprite drawer lists every field frame', frameBtns === 12, frameBtns);
+  check('the sprite drawer lists every field and emote frame', frameBtns === S.FIELD_POSES.length * S.DIRS.length + S.EMOTE_POSES.length, frameBtns);
   Kit.go('start');
   check('Start offers the Day 146 draft only when one exists', !Array.from(win.document.querySelectorAll('#ws button')).some((x) => /Day 146 draft/.test(x.textContent)));
 

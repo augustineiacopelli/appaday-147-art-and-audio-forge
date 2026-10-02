@@ -1,0 +1,950 @@
+{
+  "date": "2026-10-02T00:04:47.821Z",
+  "pass": 80,
+  "total": 80,
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "fences present in order, ART:MOTION and WS:MOTION before WS:ART147",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        160477,
+        223212,
+        227715,
+        344939,
+        364833,
+        389601,
+        421735,
+        433171,
+        474856,
+        482775,
+        510534,
+        558574,
+        580471
+      ]
+    },
+    {
+      "name": "every fence opens and closes once",
+      "ok": true
+    },
+    {
+      "name": "ART:MOTION CSS fence present",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:RENDER (with the motion sections) reads no host globals",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "ENGINE_RENDER frozen with anim, draw, fx, weather, ability",
+      "ok": true
+    },
+    {
+      "name": "duration sums frame times",
+      "ok": true
+    },
+    {
+      "name": "a loop wraps at its length and counts cycles",
+      "ok": true,
+      "detail": [
+        "0:0",
+        "0:0",
+        "1:0",
+        "1:0",
+        "2:0",
+        "2:0",
+        "0:1",
+        "0:1"
+      ]
+    },
+    {
+      "name": "a one shot holds its last frame and reports done, with offset and flash",
+      "ok": true
+    },
+    {
+      "name": "an empty animation is a safe still stand",
+      "ok": true
+    },
+    {
+      "name": "markers fire from frame zero and across loops",
+      "ok": true,
+      "detail": "sfx@0 hit@100 sfx@250 hit@350 sfx@500 hit@600 sfx@750 hit@850 sfx@1000"
+    },
+    {
+      "name": "small steps fire each marker exactly once",
+      "ok": true,
+      "detail": 8
+    },
+    {
+      "name": "firstMarker finds the hit time",
+      "ok": true
+    },
+    {
+      "name": "every battle and emote pose composes outlined at 8 to 64 px (265 frames)",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "KO lies down on the ground line",
+      "ok": true
+    },
+    {
+      "name": "the attack swing reaches further forward than the wind up",
+      "ok": true,
+      "detail": [
+        28,
+        20
+      ]
+    },
+    {
+      "name": "sprite pose overrides layer over the library pose",
+      "ok": true
+    },
+    {
+      "name": "Quick Build makes the animation library, three default ability animations, and one per ability",
+      "ok": true,
+      "detail": {
+        "lib": 26,
+        "steps": {
+          "created": 38,
+          "refreshed": 3,
+          "kept": 0,
+          "ms": 3
+        }
+      }
+    },
+    {
+      "name": "every weather state has an overlay",
+      "ok": true
+    },
+    {
+      "name": "the demo validates clean after Quick Build",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "a second Quick Build changes nothing in motion",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 0,
+        "kept": 41,
+        "ms": 2
+      }
+    },
+    {
+      "name": "pose taxonomy defaults are exactly the brief's lists, all required",
+      "ok": true
+    },
+    {
+      "name": "every required taxonomy entry has a library animation",
+      "ok": true
+    },
+    {
+      "name": "library animations use only known poses and in range markers",
+      "ok": true
+    },
+    {
+      "name": "enemy deaths follow the rig (ooze and plant melt, floater fades)",
+      "ok": true,
+      "detail": [
+        "ooze",
+        "floater",
+        "quadruped"
+      ]
+    },
+    {
+      "name": "tier sprites inherit their base family's death",
+      "ok": true
+    },
+    {
+      "name": "ability looks follow kind and targeting",
+      "ok": true
+    },
+    {
+      "name": "weather keywords map to the right overlay, most specific first",
+      "ok": true,
+      "detail": [
+        "thunderstorm",
+        "freezing rain",
+        "blizzard",
+        "drizzle",
+        "dust",
+        "fog",
+        "clear",
+        "rain",
+        "ash",
+        "aurora",
+        "tornado",
+        "snow",
+        "wind"
+      ]
+    },
+    {
+      "name": "heavy rain is denser than light rain",
+      "ok": true
+    },
+    {
+      "name": "an unknown description is a plainly generic overlay",
+      "ok": true
+    },
+    {
+      "name": "clear weather is a none layer with no tint",
+      "ok": true
+    },
+    {
+      "name": "overlay colors are master indices and lightning has a range",
+      "ok": true
+    },
+    {
+      "name": "weather particle counts scale with logical area",
+      "ok": true,
+      "detail": [
+        84,
+        336
+      ]
+    },
+    {
+      "name": "clear weather makes no particles",
+      "ok": true
+    },
+    {
+      "name": "lightning strikes within its range over 20 s",
+      "ok": true,
+      "detail": 5
+    },
+    {
+      "name": "weather particles wrap and stay near the screen",
+      "ok": true
+    },
+    {
+      "name": "weather draws with fillRect only and resets alpha",
+      "ok": true
+    },
+    {
+      "name": "every weather layer type steps and draws",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "weather is deterministic per seed",
+      "ok": true
+    },
+    {
+      "name": "every particle shape steps, draws, and finishes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "particle counts clamp (rings and bolts are few)",
+      "ok": true
+    },
+    {
+      "name": "shake decays to rest, darken peaks mid effect, wave scales with unit",
+      "ok": true
+    },
+    {
+      "name": "every death starts with the whole sprite",
+      "ok": true,
+      "detail": 256
+    },
+    {
+      "name": "fade empties, scatter fades out, melt sinks",
+      "ok": true
+    },
+    {
+      "name": "deaths are deterministic",
+      "ok": true
+    },
+    {
+      "name": "the hurt flash is a separate cache entry in the lightest master color",
+      "ok": true,
+      "detail": [
+        "#fdfab3",
+        "#fdfab3"
+      ]
+    },
+    {
+      "name": "draw.sprite plays a generated death",
+      "ok": true
+    },
+    {
+      "name": "draw.sprite returns the frame used, and forward offsets mirror facing left",
+      "ok": true
+    },
+    {
+      "name": "the hurt animation flashes on its first frame",
+      "ok": true
+    },
+    {
+      "name": "the release is the caster animation's first hit marker",
+      "ok": true,
+      "detail": {
+        "release": 240,
+        "travelEnd": 500,
+        "impactStart": 500,
+        "impactEnd": 920,
+        "duration": 920,
+        "casterMs": 620,
+        "hits": [
+          500
+        ],
+        "melee": false
+      }
+    },
+    {
+      "name": "multi hit abilities spread hits across the impact",
+      "ok": true
+    },
+    {
+      "name": "ability markers fire once each, the same at any frame rate",
+      "ok": true,
+      "detail": "sfx@0 sfx@240 hit@500 particle@500 flash@500"
+    },
+    {
+      "name": "ability playback finishes and draws its projectile and burst",
+      "ok": true
+    },
+    {
+      "name": "a melee caster runs in, holds, and comes back",
+      "ok": true,
+      "detail": [
+        21,
+        102,
+        0
+      ]
+    },
+    {
+      "name": "limit abilities shake and flash the screen",
+      "ok": true
+    },
+    {
+      "name": "user edits to overlays, abilities, and library animations survive Quick Build",
+      "ok": true
+    },
+    {
+      "name": "overlay colors stay valid master indices after a master change",
+      "ok": true
+    },
+    {
+      "name": "the art.motion validator catches each broken field",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "a generic overlay is a warning, not an error",
+      "ok": true
+    },
+    {
+      "name": "every Motion view renders its rows",
+      "ok": true,
+      "detail": {
+        "poses": 35,
+        "anims": 26,
+        "abilities": 9,
+        "effects": 4,
+        "weather": 3
+      }
+    },
+    {
+      "name": "pose labels read in plain words",
+      "ok": true,
+      "detail": [
+        "Stand, down",
+        "Step A, down",
+        "Step B, down",
+        "Stand, up",
+        "Step A, up",
+        "Step B, up",
+        "Stand, right",
+        "Step A, right",
+        "Step B, right",
+        "Stand, left",
+        "Step A, left",
+        "Step B, left",
+        "Nod",
+        "Shake head"
+      ]
+    },
+    {
+      "name": "openAnim opens a drawer with a live preview",
+      "ok": true
+    },
+    {
+      "name": "openAbility opens a drawer with a live preview",
+      "ok": true
+    },
+    {
+      "name": "openEffect opens a drawer with a live preview",
+      "ok": true
+    },
+    {
+      "name": "openWeather opens a drawer with a live preview",
+      "ok": true
+    },
+    {
+      "name": "adjusting a pose stores only the change on the base sprite",
+      "ok": true,
+      "detail": {
+        "attack": {
+          "lean": 0.5
+        }
+      }
+    },
+    {
+      "name": "an optional pose and its animation validate clean and compose",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "jump goes to the Motion tab for anm_ and wov_",
+      "ok": true
+    },
+    {
+      "name": "preview stages run through requestAnimationFrame with no drawing errors",
+      "ok": true,
+      "detail": {
+        "stages": 3,
+        "stErr": [],
+        "errors": []
+      }
+    },
+    {
+      "name": "stages draw at logical size and scale up by a whole number",
+      "ok": true,
+      "detail": {
+        "scales": [
+          1,
+          1,
+          1
+        ],
+        "animScales": [
+          2,
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "name": "the loop stops when no stage is on screen",
+      "ok": true
+    },
+    {
+      "name": "146 imports a 147 draft with motion records: hash ok, no errors",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "anm": 35,
+        "wov": 3
+      }
+    },
+    {
+      "name": "manifest counts anm_ and wov_",
+      "ok": true,
+      "detail": {
+        "anm_": 35,
+        "efx_": 4,
+        "ico_": 18,
+        "pal_": 22,
+        "por_": 4,
+        "prt_": 42,
+        "spr_": 24,
+        "wov_": 3
+      }
+    },
+    {
+      "name": "every fixture builds motion with no validation errors",
+      "ok": true,
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1}:26 | F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26 | F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}:26"
+    },
+    {
+      "name": "the self test bakes every battle and emote pose",
+      "ok": true,
+      "detail": {
+        "ms": 101,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "name": "F2 (32 px, eight characters, twenty families) bakes in under 3 s",
+      "ok": true,
+      "detail": {
+        "ms": 577,
+        "frames": 911,
+        "bytes": 13598720
+      }
+    },
+    {
+      "name": "F4 unknown weather types get generic overlays",
+      "ok": true,
+      "detail": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 1,
+        "steps": 775,
+        "ms": 10
+      }
+    }
+  ],
+  "selfTest": [
+    {
+      "key": "F0",
+      "purpose": "Empty and sparse",
+      "buildMs": 2,
+      "hashOk": true,
+      "quickBuild": "101 new in 15 ms",
+      "quickBuildMs": 15,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 11,
+        "tiers": 0,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 3,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 497,
+        "ms": 3
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 47300,
+      "records": 0,
+      "bakeMs": "261 frames in 116 ms",
+      "cacheBytes": 581760,
+      "bake": {
+        "ms": 116,
+        "frames": 261,
+        "bytes": 581760
+      }
+    },
+    {
+      "key": "F1a",
+      "purpose": "Tiny, two colors",
+      "buildMs": 9,
+      "hashOk": true,
+      "quickBuild": "118 new in 10 ms",
+      "quickBuildMs": 10,
+      "palette": {
+        "master": 2,
+        "want": 2,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 6,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 588,
+        "ms": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 82133,
+      "records": 17,
+      "bakeMs": "316 frames in 48 ms",
+      "cacheBytes": 192640,
+      "bake": {
+        "ms": 48,
+        "frames": 316,
+        "bytes": 192640
+      }
+    },
+    {
+      "key": "F1b",
+      "purpose": "Tiny, four colors",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "118 new in 7 ms",
+      "quickBuildMs": 7,
+      "palette": {
+        "master": 4,
+        "want": 4,
+        "locals": 12,
+        "tiers": 1,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 1
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 6,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 588,
+        "ms": 2
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 9,
+      "size": 82146,
+      "records": 17,
+      "bakeMs": "316 frames in 44 ms",
+      "cacheBytes": 192640,
+      "bake": {
+        "ms": 44,
+        "frames": 316,
+        "bytes": 192640
+      }
+    },
+    {
+      "key": "F2",
+      "purpose": "Large",
+      "buildMs": 17,
+      "hashOk": true,
+      "quickBuild": "382 new in 154 ms",
+      "quickBuildMs": 154,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 17,
+        "overlays": 5,
+        "generic": 0,
+        "steps": 1100,
+        "ms": 6
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 256619,
+      "records": 262,
+      "bakeMs": "911 frames in 577 ms",
+      "cacheBytes": 13598720,
+      "bake": {
+        "ms": 577,
+        "frames": 911,
+        "bytes": 13598720
+      }
+    },
+    {
+      "key": "F3",
+      "purpose": "Budget stress",
+      "buildMs": 9,
+      "hashOk": true,
+      "quickBuild": "379 new in 102 ms",
+      "quickBuildMs": 102,
+      "palette": {
+        "master": 256,
+        "want": 256,
+        "locals": 19,
+        "tiers": 100,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 12
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 17,
+        "overlays": 2,
+        "generic": 0,
+        "steps": 1010,
+        "ms": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 16,
+      "size": 254576,
+      "records": 259,
+      "bakeMs": "911 frames in 1611 ms",
+      "cacheBytes": 46929920,
+      "bake": {
+        "ms": 1611,
+        "frames": 911,
+        "bytes": 46929920
+      }
+    },
+    {
+      "key": "F4",
+      "purpose": "Optional fields missing",
+      "buildMs": 5,
+      "hashOk": true,
+      "quickBuild": "148 new in 22 ms",
+      "quickBuildMs": 22,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 1,
+        "steps": 775,
+        "ms": 10
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      },
+      "roles": 9,
+      "size": 101552,
+      "records": 38,
+      "bakeMs": "416 frames in 102 ms",
+      "cacheBytes": 1169920,
+      "bake": {
+        "ms": 102,
+        "frames": 416,
+        "bytes": 1169920
+      }
+    },
+    {
+      "key": "F5d",
+      "purpose": "Typical, dpad controls",
+      "buildMs": 3,
+      "hashOk": true,
+      "quickBuild": "152 new in 15 ms",
+      "quickBuildMs": 15,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 111335,
+      "records": 46,
+      "bakeMs": "420 frames in 101 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 101,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5s",
+      "purpose": "Typical, stick controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "152 new in 24 ms",
+      "quickBuildMs": 24,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 111386,
+      "records": 46,
+      "bakeMs": "420 frames in 103 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 103,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5t",
+      "purpose": "Typical, tap controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "152 new in 18 ms",
+      "quickBuildMs": 18,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 3
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 111366,
+      "records": 46,
+      "bakeMs": "420 frames in 114 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 114,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    },
+    {
+      "key": "F5h",
+      "purpose": "Typical, hybrid controls",
+      "buildMs": 4,
+      "hashOk": true,
+      "quickBuild": "152 new in 17 ms",
+      "quickBuildMs": 17,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      },
+      "roles": 11,
+      "size": 111408,
+      "records": 46,
+      "bakeMs": "420 frames in 159 ms",
+      "cacheBytes": 1175040,
+      "bake": {
+        "ms": 159,
+        "frames": 420,
+        "bytes": 1175040
+      }
+    }
+  ]
+}

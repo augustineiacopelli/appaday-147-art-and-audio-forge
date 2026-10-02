@@ -138,6 +138,58 @@ SESSION 2 / PHASE 2 (2026-10-01, Opus): COMPOSER. COMPLETE.
     humanoid slot map (no white ramp), so eyes are dark pupils with a skin highlight. Poses beyond stand, steps, and battle
     idle arrive with the anm_ player in Phase 3.
 === END SESSION 2 ===
+SESSION 3 / PHASE 3 (2026-10-01, Opus): MOTION. COMPLETE.
+  Picked up uncommitted Phase 3 work left by an interrupted session (engine-motion, art-motion, ws-motion, pose
+    additions in engine-sprites), audited it against the plan, fixed what testing found, and wrote test/phase3.js.
+  Fences, in order: ... WS:INTERFACE, ART:MOTION, WS:MOTION, WS:ART147, APP:BOOT. CSS adds ART:MOTION CSS. Engine motion
+    code lives in src/engine-motion.js, spliced into ENGINE:RENDER after engine-sprites.js. KIT:CORE still verbatim.
+  Poses: ENGINE_RENDER.sprite.POSES now holds the full sets as parameter tables (lean, crouch, head offsets, per arm
+    reach, weapon angle, kneel, sit, lie). BATTLE_POSES idle ready step windup attack cast item hurt kneel ko revive
+    victory limit; EMOTE_POSES nod shakeL shakeR crouch jump sit kneel ko laugh laughB; ENEMY_POSES idle attack hurt.
+    Battle party frames are two tiles wide (spec.wide) so swings and lunges fit; a one tile hand drawn frame is centered
+    into them, not stretched (fit). KO lies down by exact quarter turn of a one tile standing frame (fixed this session:
+    rotating the wide battle frame made KO taller than wide). poseOf(spec, key) layers project poses (taxonomy entries
+    with a pose object), then the base sprite's poses, then the sprite's own, over the engine defaults.
+  Engine sections: anim {frameAt, duration, frameStart, markersBetween, firstMarker, forSprite, deathPixels, drawDeath},
+    draw {sprite, frame, line}, fx {create, step, draw, done, screen, wave; shapes spark flake bubble shard ring wisp bolt;
+    screens none wave shake darken}, weather {create, step, draw; streak flake mote band bolt leaf none}, ability
+    {timeline, create}. The cache takes flags 'flash' (the silhouette in the lightest master color, its own entry).
+    Deaths (scatter, fade, melt) are generated from the enemy's own pixels each play and cost nothing to store.
+    Ability timeline: the release is the caster animation's first hit marker, then travel, then hits spread through
+    the impact; markers fire once each at any frame rate. Melee casters run in, hold through the impact, and return.
+    Weather counts scale with logical area (256 by 224 is the reference), never with screen pixels.
+  Records: anm_ sprite {frames [{pose, ms, off, flash}], loop, markers [{f, type, arg}]}, death {method, ms}, ability
+    {caster, travel {type, ms}, impact {fx, ms, flash, shake}, hits, markers [{ms, type, arg}]}. Library animations
+    have subject role anim:<key> (walk, emote.*, battle.*, enemy.*, plus enemy.death.fade and enemy.death.melt); the
+    three default abilities have role ability:attack|cast|item; one procedural anm_ per non passive abl_ (look from
+    kind, targeting scope, and the element's particle shape). spr_ gains anims {key: anm_}; enemies get a death by rig
+    (ooze and plant melt, floater fades, the rest scatter). wov_ {layers [{type, density, angle, speed, depth, m, hex}],
+    tint {m, hex, alpha}, lightning {every, flashMs, m}, ambient, keyword, generic} per wth_, inferred from name plus
+    realWorld by 18 ordered keyword rules; unmatched text gets a generic mote overlay flagged generic (validator
+    warning, cleared on first edit). Master rebuild refits generated overlays and remaps kept ones.
+  Quick Build 'motion' (order 30): library, enemy deaths, ability animations, weather. Second run changes nothing.
+  Validator art.motion: kinds, frame poses (warning when unknown), frame ms, offsets, marker types and frames, death
+    method and ms, caster, travel, missing efx, hit count, orphaned abl_ and wth_ subjects (warning), sprite anims that
+    point nowhere, overlay layer types, densities, colors, tint, lightning range.
+  UI: Motion tab (Poses, Animations, Ability animations, Effects, Weather). One requestAnimationFrame loop drives every
+    visible stage and stops when none is on screen. Stages draw at logical size and scale by a whole number (Charter
+    scale for sprites and the weather drawer, 1x for weather rows). Pose drawer adjusts lean, crouch, bob, head, and
+    weapon angle per base sprite (only the change is stored) or draws the frame by hand; optional poses add a taxonomy
+    entry plus a user anm_. Pose labels read in plain words while label equals key. Animation drawer edits frames,
+    offsets, flashes, markers, loop, death method; library animations reset to default. Ability drawer edits caster,
+    travel, effect, impact, flash, shake, hits and shows the timeline. Effect and weather drawers edit everything.
+  Self test: bake now covers every battle pose, every emote, and enemy idle, attack, hurt; new Motion column plays every
+    animation, ability, and overlay without drawing. F4 gained an invented weather state (Mana Tide) so the generic
+    fallback runs on a fixture. Demo: 420 frames in about 110 ms, 1.1 MB cache. F2: 911 frames in about 0.6 s. F3
+    (64 px): about 1.9 s and 46 MB if everything were kept; the UI cache stays capped at 12 MB.
+  Tests: test/phase3.js 80 of 80 (static and fence checks, player and markers, poses at 8 to 64 px, Quick Build and
+    idempotence, weather inference table, weather and particle engines with a recording 2D context, deaths and the
+    flash, ability playback at two frame rates, edit survival, master remap, validator, the Motion tab and drawers,
+    the live rAF loop, Day 146 draft round trip, manifest counts, fixtures). phase2 67, phase1 59, phase0 27 still pass.
+  Checked in Chromium at 390 and 1280 wide: no horizontal scroll, no stage drawing errors.
+  Known limits: element identity in two color mode rests on particle shape and screen behavior. Pose sliders cover six
+    parameters; arm reach and leg spread are edited by drawing the frame. Sound markers name cues for Phase 6.
+=== END SESSION 3 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
@@ -556,6 +608,23 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
   .a7-pxwrap { max-height: 46vh; }
 }
 /* === ART:SPRITES CSS END === */
+/* === ART:MOTION CSS BEGIN === */
+.a7-stage { flex: none; display: block; max-width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; border-radius: 8px; border: 1px solid var(--line2); background: var(--bg2); }
+.a7-edhead .a7-stage { max-width: 100%; }
+.dlg-body > .a7-stage { margin: 0 auto 10px; }
+.a7-num { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); min-height: 44px; }
+.a7-num input { width: 7.5ch; min-height: 44px; font-family: var(--font-mono); }
+.a7-num input[type="text"] { width: 14ch; font-family: inherit; }
+.a7-ftable { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+.a7-frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-fnum { min-width: 2ch; font: 700 .9rem/1 var(--font-mono); color: var(--accent); }
+.a7-layer { padding: 4px 8px 8px; margin-bottom: 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-colorbtn { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); }
+@media (max-width: 520px) {
+  .a7-row > .a7-stage { width: 100% !important; }
+  .a7-num input { width: 6.5ch; }
+}
+/* === ART:MOTION CSS END === */
 </style>
 </head>
 <body>
@@ -3720,7 +3789,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
     { key: 'F1b', purpose: 'Tiny, four colors', spec: { title: 'F1 Tiny (4 colors)', tileSize: 8, paletteSize: 4, controls: 'tap', res: { w: 160, h: 144 }, chars: 1, elements: 1, families: 1, tiers: 1, chapters: ['Isle'], endings: 1, weather: [] } },
     { key: 'F2', purpose: 'Large', spec: { title: 'F2 Large', tileSize: 32, paletteSize: 256, controls: 'stick', res: { w: 512, h: 448 }, chars: 8, elements: 12, families: 20, tiers: 5, chapters: ['North', 'South', 'East', 'West', 'Isles', 'Sky'], endings: 3, weather: [{ name: 'Clear', realWorld: 'clear sky' }, { name: 'Rain', realWorld: 'steady rain' }, { name: 'Snow', realWorld: 'light snow' }, { name: 'Storm', realWorld: 'supercell thunderstorm' }, { name: 'Fog', realWorld: 'radiation fog' }] } },
     { key: 'F3', purpose: 'Budget stress', spec: { title: 'F3 Budget stress', tileSize: 64, paletteSize: 256, controls: 'stick', res: { w: 1024, h: 896 }, chars: 8, elements: 12, families: 20, tiers: 5, chapters: ['North', 'South', 'East', 'West', 'Isles', 'Sky'], endings: 3, weather: [{ name: 'Clear', realWorld: 'clear sky' }, { name: 'Rain', realWorld: 'steady rain' }] } },
-    { key: 'F4', purpose: 'Optional fields missing', spec: { title: 'F4 Sparse optionals', tileSize: 16, paletteSize: 64, controls: 'hybrid', chars: 3, elements: 4, families: 3, tiers: 2, chapters: ['', ''], endings: 0, weather: [{ name: 'Ashfall', realWorld: 'ashfall from a distant caldera' }, { name: 'Static', realWorld: 'aurora static' }] } }
+    { key: 'F4', purpose: 'Optional fields missing', spec: { title: 'F4 Sparse optionals', tileSize: 16, paletteSize: 64, controls: 'hybrid', chars: 3, elements: 4, families: 3, tiers: 2, chapters: ['', ''], endings: 0, weather: [{ name: 'Ashfall', realWorld: 'ashfall from a distant caldera' }, { name: 'Static', realWorld: 'aurora static' }, { name: 'Mana Tide', realWorld: 'the seventh moon rises' }] } }
   ].concat(SCHEMES.map(function (sc) {
     return { key: 'F5' + sc.charAt(0), purpose: 'Typical, ' + sc + ' controls', demo: true, scheme: sc };
   }));
@@ -3753,24 +3822,41 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           collapsed: tiers.filter(function (t) { return t.collapsed; }).length, offset: tiers.filter(function (t) { return t.derivedFrom && (t.derivedFrom.rampOffset || t.derivedFrom.inverted); }).length,
           effects: ART.palette.effects(copy).length };
       }
-      // Phase 2: bake every frame the forge owns (field poses in four directions, battle idle, every portrait
-      // expression, every icon) through the engine cache, without canvases, and report time and cache memory.
+      // Bake every frame the forge owns (field poses in four directions and emotes facing down, every battle pose for
+      // the party, idle, attack, and hurt for enemies, every portrait expression, every icon) through the engine
+      // cache, without canvases, and report time and cache memory.
       var bake = null;
       if (ART.sprites && ART.palette.master(copy)) {
         var tb = performance.now(), ER = ENGINE_RENDER, n = 0;
         var k = ER.createCache(copy.art, { size: ART.sprites.tileSize(copy), entries: ART.palette.entries(copy), budget: 64e6 });
         ART.sprites.sprites(copy).forEach(function (s) {
-          if (s.mode === 'battle') { k.sprite(s.id, 'idle', s.kind === 'enemy' ? 'right' : 'left'); n++; }
-          else ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+          if (s.mode === 'battle') (s.kind === 'enemy' ? ER.sprite.ENEMY_POSES : ER.sprite.BATTLE_POSES).forEach(function (pz) { k.sprite(s.id, pz, s.kind === 'enemy' ? 'right' : 'left'); n++; });
+          else {
+            ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+            ER.sprite.EMOTE_POSES.forEach(function (pz) { k.sprite(s.id, pz, 'down'); n++; });
+          }
         });
         ART.sprites.portraits(copy).forEach(function (p) { Object.keys(ER.portrait.EXPRESSIONS).forEach(function (e) { k.portrait(p.id, e); n++; }); });
         ART.sprites.icons(copy).forEach(function (i) { k.icon(i.id); n++; });
         bake = { ms: Math.round(performance.now() - tb), frames: n, bytes: k.stats().bytes };
       }
+      // Phase 3: animation library, ability animations, and weather overlays, plus a full play through of every
+      // animation and overlay (frames, markers, particles) without drawing.
+      var motion = null;
+      if (ART.motion && ART.palette.master(copy)) {
+        var tm = performance.now(), anms = ART.motion.anims(copy), ER2 = ENGINE_RENDER, steps = 0;
+        anms.forEach(function (a) {
+          if (a.kind === 'ability') { var pb = ER2.ability.create({ anm: a, entries: ART.palette.entries(copy), unit: 1, seed: 3 }); for (var i = 0; i < 80 && !pb.done(); i++) { pb.step(33); steps++; } }
+          else { var D = ER2.anim.duration(a); for (var t2 = 0; t2 <= D; t2 += 50) { ER2.anim.frameAt(a, t2); steps++; } }
+        });
+        ART.motion.overlays(copy).forEach(function (o) { var st = ER2.weather.create(o, 256, 224, 5, { entries: ART.palette.entries(copy) }); for (var j = 0; j < 30; j++) { ER2.weather.step(st, 33); steps++; } });
+        motion = { anims: anms.filter(function (a) { return a.kind !== 'ability'; }).length, abilities: anms.filter(function (a) { return a.kind === 'ability'; }).length,
+          overlays: ART.motion.overlays(copy).length, generic: ART.motion.overlays(copy).filter(function (o) { return o.generic; }).length, steps: steps, ms: Math.round(performance.now() - tm) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
@@ -4405,6 +4491,14 @@ var ENGINE_RENDER = (function () {
     for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) out[y * w + x] = idx[y * w + (w - 1 - x)];
     return out;
   }
+  // Pixels drawn for a one tile frame placed in a wider battle frame: same height, centered, nothing stretched.
+  function fit(idx, w, h, W, H) {
+    if (w === W && h === H) return idx;
+    if (h !== H || w > W) return resample(idx, w, h, W, H);
+    var out = new Uint8Array(W * H), ox = (W - w) >> 1;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) out[y * W + x + ox] = idx[y * w + x];
+    return out;
+  }
   function resample(idx, w, h, W, H) {
     var out = new Uint8Array(W * H);
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) out[y * W + x] = idx[Math.min(h - 1, Math.floor(y * h / H)) * w + Math.min(w - 1, Math.floor(x * w / W))];
@@ -4419,33 +4513,74 @@ var ENGINE_RENDER = (function () {
     small: { sh: 2.8, hip: 2.2, leg: 3.8, torso: 4.4, head: 4.3, arm: 1.5, legW: 1.6 },
     tall: { sh: 3.6, hip: 2.6, leg: 7.4, torso: 6.8, head: 3.8, arm: 1.8, legW: 1.9 }
   };
-  // Pose parameters. legs and arms are -1 to 1 per side (index 0 far or viewer left, 1 near or viewer right). Phase 3
-  // adds entries here; generators read only these fields.
+  // Pose parameters. legs and arms are -1 to 1 per side (index 0 far or viewer left, 1 near or viewer right).
+  //   bob, crouch: units the hips drop. ready: battle stance (near arm forward). lean: upper body forward in side view.
+  //   hdx, hdy: head offset in side view (hdy also in front and back views); fx: head offset in front and back views.
+  //   reach: per arm [x, y] as a fraction of arm length from the shoulder (x forward in side view, outward otherwise).
+  //   wpn: weapon angle in degrees in side view (0 forward, -90 up, 90 down). kneel, sit: bent legs with knees.
+  //   lie: the figure lies on its back (the frame is rotated, so it is wider than tall).
+  // Phase 3 completes the field, emote, and battle sets; generators read only these fields.
   var POSES = {
     stand: { legs: [0, 0], arms: [0, 0], bob: 0 },
     stepA: { legs: [1, -1], arms: [-1, 1], bob: 0.4 },
     stepB: { legs: [-1, 1], arms: [1, -1], bob: 0.4 },
-    idle: { legs: [-0.6, 0.7], arms: [0.2, 0.8], bob: 0, crouch: 0.6, ready: true }
+    idle: { legs: [-0.6, 0.7], arms: [0.2, 0.8], bob: 0, crouch: 0.6, ready: true },
+    ready: { legs: [-0.7, 0.8], arms: [0.2, 0.8], crouch: 0.9, ready: true, lean: 0.25 },
+    step: { legs: [0.9, -0.9], arms: [-0.6, 0.6], bob: 0.3, ready: true, lean: 0.45 },
+    windup: { legs: [-0.5, 0.9], arms: [0.3, 0], crouch: 0.4, lean: -0.2, reach: [null, [-0.3, -0.85]], wpn: -125 },
+    attack: { legs: [1, -0.9], arms: [-0.4, 0], crouch: 0.7, lean: 0.7, reach: [null, [0.9, -0.05]], wpn: 12 },
+    cast: { legs: [-0.3, 0.4], arms: [0, 0], lean: 0.1, hdy: -0.2, reach: [[0.55, -0.75], [0.7, -0.65]], wpn: -70 },
+    item: { legs: [0, 0.3], arms: [0, 0], reach: [null, [0.35, -0.95]], wpn: -80 },
+    hurt: { legs: [-0.8, 0.5], arms: [-0.6, -0.4], lean: -0.6, hdx: -0.4, hdy: -0.2, fx: 0, reach: [[-0.45, 0.55], [-0.5, 0.5]], wpn: 115 },
+    kneel: { legs: [0, 0], arms: [0, 0], kneel: true, lean: 0.35, hdy: 0.5, reach: [[0.2, 0.8], [0.4, 0.75]], wpn: 70 },
+    ko: { legs: [0, 0], arms: [0, 0], lie: true },
+    revive: { legs: [0, 0], arms: [0, 0], kneel: true, lean: 0.1, hdy: -0.2, reach: [[0.1, 0.7], [0.3, -0.3]], wpn: -40 },
+    victory: { legs: [-0.6, 0.6], arms: [0, 0], hdy: -0.3, reach: [[-0.2, 0.85], [0.15, -1]], wpn: -90 },
+    limit: { legs: [-1, 1], arms: [0, 0], crouch: 1.2, lean: 0.3, reach: [[-0.7, 0.1], [0.6, -0.8]], wpn: -55 },
+    nod: { legs: [0, 0], arms: [0, 0], hdx: 0.3, hdy: 0.7 },
+    shakeL: { legs: [0, 0], arms: [0, 0], hdx: -0.4, fx: -0.7 },
+    shakeR: { legs: [0, 0], arms: [0, 0], hdx: 0.4, fx: 0.7 },
+    crouch: { legs: [-0.3, 0.3], arms: [0.2, -0.2], crouch: 1.1 },
+    jump: { legs: [0.4, -0.4], arms: [0, 0], reach: [[-0.5, -0.6], [0.5, -0.6]], hdy: -0.2 },
+    sit: { legs: [0, 0], arms: [0, 0], sit: true, reach: [[-0.15, 0.7], [0.3, 0.65]] },
+    laugh: { legs: [0, 0], arms: [0, 0], bob: 0.3, hdx: -0.3, hdy: -0.4, reach: [[-0.45, 0.55], [0.45, 0.55]] },
+    laughB: { legs: [0, 0], arms: [0, 0], hdx: -0.2, hdy: -0.15, reach: [[-0.35, 0.65], [0.35, 0.65]] }
   };
-  function framePx(size, prop) { var h = clamp(Number(prop && prop.height) || 1.5, 1, 2.5); return { w: size, h: Math.round(size * h) }; }
+  // Battle frames are two tiles wide so weapon swings and lunges have room; field frames stay one tile wide.
+  function framePx(size, prop, wide) { var h = clamp(Number(prop && prop.height) || 1.5, 1, 2.5); return { w: wide ? size * 2 : size, h: Math.round(size * h) }; }
   function skeleton(plan, prop, pose, dir, Wu, Hu) {
     var bp = BODY_PLANS[plan && BODY_PLANS[plan] ? plan : 'average'];
     if (plan && typeof plan === 'object') bp = plan;
     var hs = clamp(Number(prop && prop.headScale) || 1, 0.6, 1.6), head = bp.head * hs;
     var need = head * 1.8 + bp.torso + bp.leg + 2.2, k = Math.min(1.25, (Hu - 1.6) / need);
     var side = dir === 'right', cx = Wu / 2, footY = Hu - 1.6, crouch = (pose.crouch || 0);
-    var L = bp.leg * k - crouch, T = bp.torso * k, r = head * k, bob = pose.bob || 0;
-    var hipY = footY - L + bob * 0.5, neckY = hipY - T, headCy = neckY - r * 0.82;
+    var L0 = bp.leg * k, L = L0 - crouch, T = bp.torso * k, r = head * k, bob = pose.bob || 0;
+    var hipY = footY - L + bob * 0.5;
+    if (pose.kneel) hipY = footY - L0 * 0.52;
+    if (pose.sit) hipY = footY - Math.max(1, L0 * 0.18);
+    var lean = side ? (pose.lean || 0) * 1.3 : 0, ux = cx + lean;
+    var neckY = hipY - T + Math.abs(lean) * 0.35, headCy = neckY - r * 0.82 + (pose.hdy || 0);
+    var hx = ux + (side ? (pose.hdx || 0) : (pose.fx || 0));
     var sh = bp.sh * (side ? 0.62 : 1), hip = bp.hip * (side ? 0.66 : 1);
-    var J = { cx: cx, footY: footY, hipY: hipY, neckY: neckY, headCy: headCy, headR: r, sh: sh, hip: hip, armW: bp.arm, legW: bp.legW, dir: dir, side: side, ready: !!pose.ready, plan: bp, legLen: L };
+    var J = { cx: cx, ux: ux, hx: hx, footY: footY, hipY: hipY, neckY: neckY, headCy: headCy, headR: r, sh: sh, hip: hip, armW: bp.arm, legW: bp.legW, dir: dir, side: side, ready: !!pose.ready, plan: bp, legLen: footY - hipY, wpn: side && typeof pose.wpn === 'number' ? pose.wpn : null };
+    var half = L0 * 0.5;
     J.legs = [0, 1].map(function (i) {
-      var v = pose.legs[i] || 0, hx = side ? cx + (i ? 0.4 : -0.4) : cx + (i ? 1 : -1) * hip * 0.55;
-      if (side) return { hx: hx, x: hx + v * 2.3, y: footY - (v > 0.3 ? 0.4 : 0), far: !i };
-      return { hx: hx, x: hx, y: footY - (v > 0 ? 1 : 0), far: false };
+      var v = pose.legs[i] || 0, hx0 = side ? cx + (i ? 0.4 : -0.4) : cx + (i ? 1 : -1) * hip * 0.55;
+      if (pose.kneel) {
+        if (side) return i ? { hx: hx0, kx: hx0 + half * 0.95, ky: hipY - 0.2, x: hx0 + half * 0.95, y: footY, far: false } : { hx: hx0, kx: hx0 - 0.1, ky: footY - 0.4, x: hx0 - half * 0.95, y: footY - 0.4, far: true };
+        return { hx: hx0, x: hx0 + (i ? 0.3 : -0.3), y: footY - (i ? 0 : 0.6), far: false };
+      }
+      if (pose.sit) {
+        if (side) return { hx: hx0, kx: hx0 + half * 0.85, ky: hipY - half * 0.55 + (i ? 0 : 0.3), x: hx0 + half * 1.55 + (i ? 0.3 : -0.3), y: footY, far: !i };
+        return { hx: hx0, x: hx0 + (i ? 1.6 : -1.6), y: footY, far: false };
+      }
+      if (side) return { hx: hx0, x: hx0 + v * 2.3, y: footY - (v > 0.3 ? 0.4 : 0), far: !i };
+      return { hx: hx0, x: hx0, y: footY - (v > 0 ? 1 : 0), far: false };
     });
     J.arms = [0, 1].map(function (i) {
-      var v = pose.arms[i] || 0, sx = side ? cx + (i ? 0.3 : -0.3) : cx + (i ? 1 : -1) * (sh + 0.1), sy = neckY + 1;
-      var len = T * 0.95;
+      var v = pose.arms[i] || 0, sx = side ? ux + (i ? 0.3 : -0.3) : ux + (i ? 1 : -1) * (sh + 0.1), sy = neckY + 1;
+      var len = T * 0.95, rc = pose.reach && pose.reach[i];
+      if (rc) return { sx: sx, sy: sy, hx: sx + rc[0] * len * (side ? 1 : (i ? 1 : -1)), hy: sy + rc[1] * len, far: side && !i };
       if (side) {
         if (pose.ready && i) return { sx: sx, sy: sy, hx: sx + len * 0.75, hy: sy + len * 0.45, far: false };
         return { sx: sx, sy: sy, hx: sx + v * 2.4, hy: sy + len - Math.abs(v) * 0.4, far: !i };
@@ -4454,20 +4589,27 @@ var ENGINE_RENDER = (function () {
     });
     return J;
   }
+  // A leg from hip to foot, through the knee when the pose bends it.
+  function limb(r, g, y0, w, code, trim) {
+    var fy = g.y - (trim || 0);
+    if (g.kx == null) { r.line(g.hx, y0, g.x, fy, w, code); return; }
+    r.line(g.hx, y0, g.kx, g.ky, w, code);
+    r.line(g.kx, g.ky, g.x, fy, w, code);
+  }
   // Materials for the humanoid layout: 2 skin, 3 hair, 4 cloth A, 5 cloth B, 6 metal, 7 accent alias.
   var SKN = M_A, HAI = M_B, CLA = M_C, CLB = M_D, MET = M_E, ACC = M_ACC;
   function farc(code, far) { return far ? fx(code & 15, 0) : code; }
   var HUMANOID = {};
   HUMANOID['shadow.ground'] = function (r, J, p) { r.ell(J.cx, J.footY + 0.4, J.plan.sh * 1.05 * (p.width || 1), 0.9, M_GROUND); };
   HUMANOID['body.plan'] = function (r, J) {
-    r.rect(J.cx - 0.8, J.neckY - 1, J.cx + 0.8, J.neckY + 1.2, SKN);
+    r.rect(J.ux - 0.8, J.neckY - 1, J.ux + 0.8, J.neckY + 1.2, SKN);
     J.arms.forEach(function (a) { if (a.far) { r.line(a.sx, a.sy, a.hx, a.hy, J.armW, farc(SKN, 1)); } });
-    J.legs.forEach(function (g) { r.line(g.hx, J.hipY, g.x, g.y, J.legW, farc(SKN, g.far)); });
-    r.poly([[J.cx - J.sh, J.neckY + 0.4], [J.cx + J.sh, J.neckY + 0.4], [J.cx + J.hip, J.hipY + 0.5], [J.cx - J.hip, J.hipY + 0.5]], SKN);
+    J.legs.forEach(function (g) { limb(r, g, J.hipY, J.legW, farc(SKN, g.far)); });
+    r.poly([[J.ux - J.sh, J.neckY + 0.4], [J.ux + J.sh, J.neckY + 0.4], [J.cx + J.hip, J.hipY + 0.5], [J.cx - J.hip, J.hipY + 0.5]], SKN);
     J.arms.forEach(function (a) { if (!a.far) r.line(a.sx, a.sy, a.hx, a.hy, J.armW, SKN); r.ell(a.hx, a.hy + 0.2, J.armW * 0.55, J.armW * 0.55, farc(SKN, a.far)); });
   };
   function headShape(r, J, shape, code) {
-    var cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR;
+    var cx = J.hx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR;
     if (shape === 'square') r.poly([[cx - R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.85, cy - R0 * 0.8], [cx + R0 * 0.9, cy + R0 * 0.4], [cx + R0 * 0.45, cy + R0], [cx - R0 * 0.45, cy + R0], [cx - R0 * 0.9, cy + R0 * 0.4]], code);
     else if (shape === 'long') r.ell(cx, cy + R0 * 0.1, R0 * 0.8, R0 * 1.1, code);
     else r.ell(cx, cy, R0 * 0.92, R0, code);
@@ -4475,11 +4617,11 @@ var ENGINE_RENDER = (function () {
   HUMANOID['head.shape'] = function (r, J, p) {
     headShape(r, J, p.shape, SKN);
     var cy = J.headCy + J.headR * 0.18, R0 = J.headR;
-    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.42, cy, M_OUT, true); r.dot(J.cx + R0 * 0.42 - 0.01, cy, M_OUT, true); }
-    else if (J.dir === 'right') { r.dot(J.cx + R0 * 0.55, cy, M_OUT, true); r.dot(J.cx + R0 * 1.12, cy + R0 * 0.25, SKN); }
+    if (J.dir === 'down') { r.dot(J.hx - R0 * 0.42, cy, M_OUT, true); r.dot(J.hx + R0 * 0.42 - 0.01, cy, M_OUT, true); }
+    else if (J.dir === 'right') { r.dot(J.hx + R0 * 0.55, cy, M_OUT, true); r.dot(J.hx + R0 * 1.12, cy + R0 * 0.25, SKN); }
   };
   HUMANOID['hair.style'] = function (r, J, p) {
-    var st = p.style || 'short', cx = J.cx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR, code = st === 'covered' ? CLB : HAI;
+    var st = p.style || 'short', cx = J.hx + (J.side ? 0.3 : 0), cy = J.headCy, R0 = J.headR, code = st === 'covered' ? CLB : HAI;
     if (st === 'none') return;
     if (J.dir === 'up') {
       if (st === 'cropped') { r.clip = [-99, -99, 99, cy + R0 * 0.2]; r.ell(cx, cy, R0 * 0.95, R0 * 1.02, code); r.clip = null; }
@@ -4511,11 +4653,11 @@ var ENGINE_RENDER = (function () {
   };
   // A hood leaves the face open: redraw it in its own layer so the shading reads.
   function headFace(r, J) {
-    var cx = J.cx + (J.side ? 0.45 : 0), R0 = J.headR;
+    var cx = J.hx + (J.side ? 0.45 : 0), R0 = J.headR;
     r.ell(cx, J.headCy + R0 * 0.2, R0 * 0.62, R0 * 0.7, SKN);
     var cy = J.headCy + J.headR * 0.18;
-    if (J.dir === 'down') { r.dot(J.cx - R0 * 0.32, cy, M_OUT); r.dot(J.cx + R0 * 0.32 - 0.01, cy, M_OUT); }
-    else if (J.dir === 'right') r.dot(J.cx + R0 * 0.62, cy, M_OUT);
+    if (J.dir === 'down') { r.dot(J.hx - R0 * 0.32, cy, M_OUT); r.dot(J.hx + R0 * 0.32 - 0.01, cy, M_OUT); }
+    else if (J.dir === 'right') r.dot(J.hx + R0 * 0.62, cy, M_OUT);
   }
   function sleeves(r, J, len, code) {
     J.arms.forEach(function (a) {
@@ -4525,7 +4667,7 @@ var ENGINE_RENDER = (function () {
   }
   function chest(r, J, wid, bottom, flare, code) {
     var s = J.sh * wid, hb = J.hip * flare;
-    r.poly([[J.cx - s, J.neckY + 0.3], [J.cx + s, J.neckY + 0.3], [J.cx + hb, bottom], [J.cx - hb, bottom]], code);
+    r.poly([[J.ux - s, J.neckY + 0.3], [J.ux + s, J.neckY + 0.3], [J.cx + hb, bottom], [J.cx - hb, bottom]], code);
   }
   HUMANOID['torso.cloth'] = function (r, J, p) {
     var st = p.style || 'tunic', front = J.dir === 'down';
@@ -4535,7 +4677,7 @@ var ENGINE_RENDER = (function () {
     } else if (st === 'coat') {
       chest(r, J, 1.05, J.hipY + J.legLen * 0.55, 1.45, CLA); sleeves(r, J, 1, CLA);
       if (front) r.rect(J.cx - 0.35, J.neckY + 1.2, J.cx + 0.35, J.hipY + J.legLen * 0.5, CLB);
-      if (J.dir !== 'up') r.rect(J.cx - J.sh * 0.6, J.neckY + 0.2, J.cx + J.sh * 0.6, J.neckY + 1.0, ACC);
+      if (J.dir !== 'up') r.rect(J.ux - J.sh * 0.6, J.neckY + 0.2, J.ux + J.sh * 0.6, J.neckY + 1.0, ACC);
     } else if (st === 'plate') {
       sleeves(r, J, 1, CLA);
       chest(r, J, 1.0, J.hipY + 0.6, 1.1, MET);
@@ -4563,41 +4705,47 @@ var ENGINE_RENDER = (function () {
       r.poly([[J.cx - J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.05, J.hipY - 0.5], [J.cx + J.hip * 1.45, J.footY - 0.5], [J.cx - J.hip * 1.45, J.footY - 0.5]], CLA);
       shoes();
     } else {
-      J.legs.forEach(function (g) { r.line(g.hx, J.hipY - 0.3, g.x, g.y - 0.6, J.legW * 1.12, farc(CLB, g.far)); });
+      J.legs.forEach(function (g) { limb(r, g, J.hipY - 0.3, J.legW * 1.12, farc(CLB, g.far), 0.6); });
       r.rect(J.cx - J.hip * 1.02, J.hipY - 0.5, J.cx + J.hip * 1.02, J.hipY + 0.6, CLB);
-      if (st === 'boots') J.legs.forEach(function (g) { r.line(g.x, g.y - J.legLen * 0.38, g.x + (J.side ? 0.4 : 0), g.y - 0.2, J.legW * 1.25, farc(ACC, g.far)); });
+      if (st === 'boots') J.legs.forEach(function (g) { var bx = g.kx == null ? g.x : g.kx + (g.x - g.kx) * 0.3, by = g.kx == null ? g.y - J.legLen * 0.38 : g.ky + (g.y - g.ky) * 0.3; r.line(bx, by, g.x + (J.side ? 0.4 : 0), g.y - 0.2, J.legW * 1.25, farc(ACC, g.far)); });
       else shoes();
     }
   };
   HUMANOID['back.gear'] = function (r, J, p) {
     var st = p.style || 'cape', s = J.sh, dx = J.side ? -1.2 : 0;
     if (st === 'cape') {
-      if (J.side) r.poly([[J.cx + 0.3, J.neckY + 0.2], [J.cx - 0.8, J.neckY + 0.2], [J.cx - s * 1.3 - 1.8, J.hipY + J.legLen * 0.75], [J.cx - 0.4, J.hipY + J.legLen * 0.75]], CLB);
+      if (J.side) r.poly([[J.ux + 0.3, J.neckY + 0.2], [J.ux - 0.8, J.neckY + 0.2], [J.cx - s * 1.3 - 1.8, J.hipY + J.legLen * 0.75], [J.cx - 0.4, J.hipY + J.legLen * 0.75]], CLB);
       else r.poly([[J.cx - s, J.neckY + 0.2], [J.cx + s, J.neckY + 0.2], [J.cx + s * 1.35, J.hipY + J.legLen * 0.75], [J.cx - s * 1.35, J.hipY + J.legLen * 0.75]], CLB);
     }
-    else if (st === 'pack') r.rect(J.cx - s * 0.75 + dx * 1.3, J.neckY + 0.4 - (J.dir === 'down' ? 1 : 0), J.cx + s * 0.75 + dx * 0.4, J.hipY - 0.2, CLB);
-    else r.line(J.cx - s - 0.5 + dx, J.hipY + 1.5, J.cx + s + 1 + dx, J.neckY - J.headR * 1.2, 1.1, MET);
+    else if (st === 'pack') r.rect(J.ux - s * 0.75 + dx * 1.3, J.neckY + 0.4 - (J.dir === 'down' ? 1 : 0), J.ux + s * 0.75 + dx * 0.4, J.hipY - 0.2, CLB);
+    else r.line(J.cx - s - 0.5 + dx, J.hipY + 1.5, J.ux + s + 1 + dx, J.neckY - J.headR * 1.2, 1.1, MET);
   };
   HUMANOID['front.gear'] = function (r, J, p) {
     var st = p.style || 'bare';
     if (st === 'bare') return;
     var hi = J.side ? 1 : J.dir === 'up' ? 1 : 0, off = 1 - hi, h = J.arms[hi], o = J.arms[off], hx = h.hx, hy = h.hy + 0.2;
-    var up = J.ready, dir = J.dir;
+    var up = J.ready, dir = J.dir, w = J.wpn, ca = w == null ? 0 : Math.cos(w * Math.PI / 180), sa = w == null ? 0 : Math.sin(w * Math.PI / 180);
     if (st === 'blade') {
-      var tx = up ? hx + 4.6 : hx + (dir === 'right' ? 1.4 : dir === 'up' ? 1.2 : -1.4), ty = up ? hy - 4.8 : hy + 5.2;
-      r.line(hx, hy, tx, ty, 1.05, MET);
-      r.line(hx - (up ? 0.8 : 1), hy + (up ? 0.8 : 0), hx + (up ? 0.8 : 1), hy - (up ? 0.8 : 0), 0.9, ACC);
+      if (w != null) {
+        r.line(hx, hy, hx + ca * 6.4, hy + sa * 6.4, 1.05, MET);
+        r.line(hx - sa * 0.95, hy + ca * 0.95, hx + sa * 0.95, hy - ca * 0.95, 0.9, ACC);
+      } else {
+        var tx = up ? hx + 4.6 : hx + (dir === 'right' ? 1.4 : dir === 'up' ? 1.2 : -1.4), ty = up ? hy - 4.8 : hy + 5.2;
+        r.line(hx, hy, tx, ty, 1.05, MET);
+        r.line(hx - (up ? 0.8 : 1), hy + (up ? 0.8 : 0), hx + (up ? 0.8 : 1), hy - (up ? 0.8 : 0), 0.9, ACC);
+      }
     } else if (st === 'staff') {
-      r.line(hx, hy + 3, hx + (up ? 1.5 : 0), hy - 8.5, 1.05, ACC);
-      r.ell(hx + (up ? 1.5 : 0), hy - 8.8, 1.1, 1.1, MET);
+      var ex0 = w != null ? hx - ca * 3 : hx, ey0 = w != null ? hy - sa * 3 : hy + 3, ex1 = w != null ? hx + ca * 8.5 : hx + (up ? 1.5 : 0), ey1 = w != null ? hy + sa * 8.5 : hy - 8.5;
+      r.line(ex0, ey0, ex1, ey1, 1.05, ACC);
+      r.ell(ex1 + (w != null ? ca * 0.3 : 0), ey1 + (w != null ? sa * 0.3 : -0.3), 1.1, 1.1, MET);
     } else if (st === 'shield') {
-      var sx = J.side ? J.cx + J.sh + 1.2 : o.hx + (off ? 0.4 : -0.4), sy = J.side ? J.neckY + J.plan.torso * 0.55 : o.hy - 1.4;
+      var sx = J.side ? J.ux + J.sh + 1.2 : o.hx + (off ? 0.4 : -0.4), sy = J.side ? J.neckY + J.plan.torso * 0.55 : o.hy - 1.4;
       r.ell(sx, sy, J.side ? 1.1 : 1.9, 2.3, MET);
       r.dot(sx, sy, ACC);
     } else if (st === 'tool') {
-      var ex = up ? hx + 3 : hx, ey = up ? hy - 3.6 : hy + 3.6;
+      var ex = w != null ? hx + ca * 3.6 : up ? hx + 3 : hx, ey = w != null ? hy + sa * 3.6 : up ? hy - 3.6 : hy + 3.6;
       r.line(hx, hy, ex, ey, 0.9, ACC);
-      r.line(ex - 1.3, ey, ex + 1.3, ey, 1.6, MET);
+      if (w != null) r.line(ex - sa * 1.3, ey + ca * 1.3, ex + sa * 1.3, ey - ca * 1.3, 1.6, MET); else r.line(ex - 1.3, ey, ex + 1.3, ey, 1.6, MET);
     } else if (st === 'device') {
       var bx = hx + (J.side ? 0.6 : 0);
       for (var t = 0; t < 6; t++) {
@@ -4839,7 +4987,8 @@ var ENGINE_RENDER = (function () {
   // poseKey is a POSES key; dir is down, up, right, or left (left mirrors right). Returns {w, h, ax, ay, idx}.
   function compose(spec, poseKey, dir) {
     if (dir === 'left') { var f = compose(spec, poseKey, 'right'); return { w: f.w, h: f.h, ax: f.w - 1 - f.ax, ay: f.ay, idx: mirror(f.idx, f.w, f.h) }; }
-    var T = clamp(Math.round(spec.size || 16), 4, 128), layers = spec.layers || [], pose = POSES[poseKey] || POSES.stand;
+    var T = clamp(Math.round(spec.size || 16), 4, 128), layers = spec.layers || [], pose = poseOf(spec, poseKey);
+    if (pose.lie && spec.layout !== 'enemy') return lieDown(spec, pose, dir);
     if (spec.layout === 'enemy') {
       var N = T * 2, r = new Ras(N, N, N / 32), rnd = rng(spec.seed || 1);
       layers.forEach(function (L) {
@@ -4849,7 +4998,7 @@ var ENGINE_RENDER = (function () {
       });
       return { w: N, h: N, ax: N >> 1, ay: N - 2, idx: resolve(r, shadeAndOutline(r, true), 'clothB') };
     }
-    var fp = framePx(T, spec.proportions), s = T / 16, Wu = fp.w / s, Hu = fp.h / s;
+    var fp = framePx(T, spec.proportions, spec.wide), s = T / 16, Wu = fp.w / s, Hu = fp.h / s;
     var byLayer = {};
     layers.forEach(function (L) { byLayer[L.layer] = L; });
     var body = byLayer.body && byLayer.body.gen && byLayer.body.gen.params ? byLayer.body.gen.params.plan : 'average';
@@ -4865,6 +5014,38 @@ var ENGINE_RENDER = (function () {
     });
     return { w: fp.w, h: fp.h, ax: Math.round(J.cx * s), ay: Math.min(fp.h - 1, Math.round(J.footY * s)), idx: resolve(r2, shadeAndOutline(r2, true), spec.accent) };
   }
+  // A pose key resolves through the spec's own pose table (sprite and project overrides) over the engine defaults; a
+  // pose may also be passed as an object. Unknown keys fall back to stand.
+  function poseOf(spec, key) {
+    if (key && typeof key === 'object') return Object.assign({ legs: [0, 0], arms: [0, 0] }, key);
+    var own = spec && spec.poses && spec.poses[key], base = POSES[key] || (own && own.base && POSES[own.base]) || POSES.stand;
+    if (!own) return base;
+    var out = Object.assign({}, base, own);
+    out.legs = own.legs || base.legs || [0, 0]; out.arms = own.arms || base.arms || [0, 0];
+    return out;
+  }
+  // Lying down: compose the figure standing with limp limbs and no ground shadow, turn it a quarter turn so the head
+  // points behind, and rest it on the bottom row. Rotation is exact, so outlines and shading survive.
+  function lieDown(spec, pose, dir) {
+    var flat = Object.assign({}, pose, { lie: false, crouch: 0, bob: 0, kneel: false, sit: false, ready: false, wpn: 160, reach: [[0.05, 0.95], [0.1, 0.95]] });
+    var d = dir === 'up' || dir === 'down' ? 'right' : dir;
+    // Composed one tile wide even for battle sprites: rotating a two tile battle frame would make a tall frame.
+    var f = compose(Object.assign({}, spec, { shadow: false, poses: null, wide: false }), flat, d === 'left' ? 'right' : d);
+    var W = f.h, H = f.w, out = new Uint8Array(W * H), last = 0;
+    for (var y = 0; y < f.h; y++) for (var x = 0; x < f.w; x++) {
+      var v = f.idx[y * f.w + x];
+      if (!v) continue;
+      var X = y, Y = f.w - 1 - x;
+      out[Y * W + X] = v;
+      if (Y > last) last = Y;
+    }
+    // Drop the figure so its lowest pixel sits on the frame's bottom row (the ground line).
+    var drop = H - 1 - last;
+    if (drop > 0) { var sh = new Uint8Array(W * H); for (var i = 0; i < W * (H - drop); i++) sh[i + W * drop] = out[i]; out = sh; }
+    var res = { w: W, h: H, ax: W >> 1, ay: H - 1, idx: out };
+    if (dir === 'left') res.idx = mirror(res.idx, W, H);
+    return res;
+  }
   // A hand drawn part: variants keyed "<pose>.<dir>" (or "<dir>", or "*"), each {w, h, d} in local slots at the part's
   // base size. Variants at another size are resampled with nearest neighbor, which the editor warns about.
   function pickVariant(px, poseKey, dir) {
@@ -4876,7 +5057,7 @@ var ENGINE_RENDER = (function () {
     if (!v) return;
     var a;
     try { a = decodePx(v.d, v.w, v.h); } catch (e) { return; }
-    if (v.w !== r.w || v.h !== r.h) a = resample(a, v.w, v.h, r.w, r.h);
+    a = fit(a, v.w, v.h, r.w, r.h);
     for (var i = 0; i < a.length; i++) if (a[i]) { r.c[i] = slotCell(a[i]); r.l[i] = r.layer; }
   }
   // Just one layer rasterized alone and resolved to slots: what "draw a part by hand" starts from.
@@ -4899,6 +5080,13 @@ var ENGINE_RENDER = (function () {
     while (s && s.shares && !seen[s.id]) { seen[s.id] = 1; s = rec(art, s.shares); }
     return s || spr;
   }
+  // Optional poses a project adds to its taxonomy: entries {key, label, required: false, pose: {base, ...params}}.
+  function artPoses(art) {
+    var out = {}, tax = art && art.poseTaxonomy;
+    if (!tax || typeof tax !== 'object') return out;
+    Object.keys(tax).forEach(function (g) { (Array.isArray(tax[g]) ? tax[g] : []).forEach(function (e) { if (e && e.key && e.pose && typeof e.pose === 'object') out[e.key] = e.pose; }); });
+    return out;
+  }
   function spriteSpec(art, spr, size) {
     var b = baseSprite(art, spr), rc = b && b.recipe || {}, parts = rc.parts || {}, layers = [];
     Object.keys(parts).forEach(function (layer) {
@@ -4910,7 +5098,8 @@ var ENGINE_RENDER = (function () {
       else if (p.gen) layers.push({ layer: layer, gen: { shape: p.gen.shape, params: Object.assign({}, p.gen.params || {}, (rc.params && rc.params[layer]) || {}) } });
     });
     var cw = rc.colorway || {};
-    return { layout: spr.kind === 'enemy' ? 'enemy' : 'humanoid', rig: rc.rig || 'humanoid', size: size, proportions: rc.proportions || {}, accent: rc.accent || cw.accent || 'clothB', seed: b.seed, layers: layers, shadow: spr.mode !== 'battle' };
+    var poses = Object.assign({}, artPoses(art), b && b.poses || {}, spr !== b && spr.poses || {});
+    return { poses: poses, layout: spr.kind === 'enemy' ? 'enemy' : 'humanoid', rig: rc.rig || 'humanoid', size: size, proportions: rc.proportions || {}, accent: rc.accent || cw.accent || 'clothB', seed: b.seed, layers: layers, shadow: spr.mode !== 'battle', wide: spr.mode === 'battle' && spr.kind !== 'enemy' };
   }
   // The frame with any hand edited override applied. Overrides are keyed "<pose>.<dir>" and stored at the size they
   // were drawn; left falls back to mirroring right.
@@ -4925,8 +5114,8 @@ var ENGINE_RENDER = (function () {
     if (o) {
       try {
         var a = decodePx(o.d, o.w, o.h);
-        if (o.w !== g.w || o.h !== g.h) a = resample(a, o.w, o.h, g.w, g.h);
-        return { w: g.w, h: g.h, ax: g.ax, ay: g.ay, idx: a, override: true, resampled: o.w !== g.w || o.h !== g.h };
+        a = fit(a, o.w, o.h, g.w, g.h);
+        return { w: g.w, h: g.h, ax: g.ax, ay: g.ay, idx: a, override: true, resampled: o.h !== g.h || o.w > g.w };
       } catch (e) { g.badOverride = e.message; }
     }
     return g;
@@ -4963,6 +5152,7 @@ var ENGINE_RENDER = (function () {
   // ---------------------------------------------------------------- bake cache
   // createCache(art, {size, entries, makeCanvas(w, h), budget}) bakes frames once and keeps them in an LRU capped by an
   // estimate of their memory (index plus RGBA plus canvas). makeCanvas is the host's; without it frames carry RGBA only.
+  function lightest(list) { var bi = null, bl = -1; (list || []).forEach(function (h) { var l = hexToLab(h); if (l && l[0] > bl) { bl = l[0]; bi = h; } }); return bi || '#ffffff'; }
   function createCache(art, opts) {
     opts = opts || {};
     var map = new Map(), bytes = 0, cap = opts.budget || 8e6, st = { hits: 0, misses: 0, evictions: 0 };
@@ -4987,11 +5177,16 @@ var ENGINE_RENDER = (function () {
     var T = opts.size || 16, entries = opts.entries || [];
     function finish(f, slots) { if (!f) return null; f.rgba = rgba(f.idx, slots, entries); return f; }
     return {
-      sprite: function (sprId, poseKey, dir, palId) {
+      // flags 'flash' bakes the frame's silhouette in the palette's lightest color (the hurt flash).
+      sprite: function (sprId, poseKey, dir, palId, flags) {
         var spr = rec(art, sprId);
         if (!spr) return null;
         var pal = palId || spr.pal;
-        return get('s|' + sprId + '|' + poseKey + '|' + dir + '|' + pal, function () { return finish(spriteFrame(art, spr, poseKey, dir, T), slotsFor(art, pal)); });
+        return get('s|' + sprId + '|' + poseKey + '|' + dir + '|' + pal + (flags ? '|' + flags : ''), function () {
+          var f = finish(spriteFrame(art, spr, poseKey, dir, T), slotsFor(art, pal));
+          if (f && flags === 'flash') { var c = hexToRgb(lightest(entries)) || [255, 255, 255]; for (var i = 0; i < f.idx.length; i++) if (f.idx[i]) { f.rgba[i * 4] = c[0]; f.rgba[i * 4 + 1] = c[1]; f.rgba[i * 4 + 2] = c[2]; } }
+          return f;
+        });
       },
       portrait: function (porId, expr) {
         var por = rec(art, porId);
@@ -5004,6 +5199,7 @@ var ENGINE_RENDER = (function () {
         return get('i|' + icoId, function () { return finish(iconFrame(art, ico, T), slotsFor(art, ico.pal, ico.tintRamp)); });
       },
       invalidate: function (id) { var tag = '|' + id + '|', tail = '|' + id; Array.from(map.keys()).forEach(function (k) { if (k.indexOf(tag) >= 0 || k.slice(-tail.length) === tail) { bytes -= map.get(k).bytes; map.delete(k); } }); },
+      size: T, entries: entries, art: art,
       stats: function () { return { entries: map.size, bytes: bytes, budget: cap, hits: st.hits, misses: st.misses, evictions: st.evictions }; },
       clear: function () { map.clear(); bytes = 0; },
       budget: function (n) { if (n > 0) { cap = n; var it = map.keys(); while (bytes > cap && map.size > 1) { var k = it.next().value; bytes -= map.get(k).bytes; map.delete(k); st.evictions++; } } return cap; }
@@ -5013,13 +5209,456 @@ var ENGINE_RENDER = (function () {
   R.sprite = {
     LAYERS: LAYERS, ORDER: ORDER, POSES: POSES, BODY_PLANS: BODY_PLANS, LIBRARY: LIBRARY, RIGS: RIGS, RIG_PARAMS: RIG_PARAMS,
     GENERATORS: Object.keys(HUMANOID).concat(RIGS.map(function (k) { return 'enemy.' + k; })),
-    DIRS: ['down', 'up', 'right', 'left'], FIELD_POSES: ['stand', 'stepA', 'stepB'], BATTLE_POSES: ['idle'],
+    DIRS: ['down', 'up', 'right', 'left'], FIELD_POSES: ['stand', 'stepA', 'stepB'],
+    BATTLE_POSES: ['idle', 'ready', 'step', 'windup', 'attack', 'cast', 'item', 'hurt', 'kneel', 'ko', 'revive', 'victory', 'limit'],
+    EMOTE_POSES: ['nod', 'shakeL', 'shakeR', 'crouch', 'jump', 'sit', 'kneel', 'ko', 'laugh', 'laughB'],
+    ENEMY_POSES: ['idle', 'attack', 'hurt'], poseOf: poseOf, artPoses: artPoses,
+    handPoses: function () {
+      var out = [], seen = {};
+      function add(p, d) { if (POSES[p] && POSES[p].lie) return; var k = p + '.' + d; if (!seen[k]) { seen[k] = 1; out.push([p, d]); } }
+      ['stand', 'stepA', 'stepB'].forEach(function (p) { ['down', 'up', 'right'].forEach(function (d) { add(p, d); }); });
+      ['idle', 'ready', 'step', 'windup', 'attack', 'cast', 'item', 'hurt', 'kneel', 'revive', 'victory', 'limit'].forEach(function (p) { add(p, 'right'); });
+      ['nod', 'shakeL', 'shakeR', 'crouch', 'jump', 'sit', 'kneel', 'laugh', 'laughB'].forEach(function (p) { add(p, 'down'); });
+      return out;
+    },
     framePx: framePx, compose: compose, partFrame: partFrame, mirror: mirror, resample: resample, slotCell: slotCell,
     spec: spriteSpec, frame: spriteFrame, base: baseSprite, slotsFor: slotsFor, rgba: rgba
   };
   R.portrait = { EXPRESSIONS: EXPRESSIONS, size: portraitSize, compose: portrait, frame: portraitFrame };
   R.icon = { GLYPHS: GLYPHS, STATUS_SHAPES: STATUS_SHAPES, size: iconSize, compose: icon, frame: iconFrame };
   R.createCache = createCache;
+
+  // ================================================================ PHASE 3: MOTION
+  // build.js splices this file into ENGINE:RENDER after the composer. It reads no host global: records, palettes, and
+  // drawing contexts arrive as arguments. Drawing uses fillRect and drawImage only, at logical resolution.
+
+  // ---------------------------------------------------------------- animation records
+  // anm_ kinds:
+  //   sprite  {frames: [{pose, ms, off: [dx, dy], flash}], loop, markers: [{f, type, arg}]}
+  //           off is in logical pixels at a 16 pixel tile (scaled by tile size); dx is forward, so it flips facing left.
+  //   death   {method: scatter|fade|melt, ms}: generated at runtime from the sprite's own pixels.
+  //   ability {caster: attack|cast|item|limit, travel: {type: none|projectile|beam|rise|fall, ms},
+  //            impact: {fx: efx_ id or null, ms, flash, shake}, hits, markers: [{ms, type, arg}]}
+  var MARKER_TYPES = ['hit', 'sfx', 'particle', 'flash', 'shake'];
+  var DEATH_METHODS = ['scatter', 'fade', 'melt'];
+  var CASTERS = ['attack', 'cast', 'item', 'limit'];
+  var TRAVELS = ['none', 'projectile', 'beam', 'rise', 'fall'];
+  function frames(anm) { return anm && Array.isArray(anm.frames) ? anm.frames.filter(function (f) { return f && typeof f === 'object'; }) : []; }
+  function frameMs(f) { var m = Number(f && f.ms); return m > 0 ? Math.min(m, 10000) : 100; }
+  function duration(anm) {
+    if (!anm) return 0;
+    if (anm.kind === 'death') return Math.max(1, Number(anm.ms) || 700);
+    if (anm.kind === 'ability') { var tl = abilityTimeline(anm, null); return tl.duration; }
+    return frames(anm).reduce(function (s, f) { return s + frameMs(f); }, 0);
+  }
+  function frameStart(anm, i) { var fr = frames(anm), t = 0; for (var k = 0; k < i && k < fr.length; k++) t += frameMs(fr[k]); return t; }
+  // frameAt(anm, t) -> {index, pose, off, flash, ms, done, cycle}. A looping animation wraps; a one shot holds its last
+  // frame and reports done.
+  function frameAt(anm, t) {
+    var fr = frames(anm), D = duration(anm);
+    if (!fr.length || !(D > 0)) return { index: 0, pose: 'stand', off: [0, 0], flash: false, ms: 0, done: true, cycle: 0 };
+    t = Math.max(0, Number(t) || 0);
+    var cycle = 0, done = false;
+    if (anm.loop) { cycle = Math.floor(t / D); t = t - cycle * D; } else if (t >= D) { done = true; t = D - 0.0001; }
+    var acc = 0;
+    for (var i = 0; i < fr.length; i++) {
+      var m = frameMs(fr[i]);
+      if (t < acc + m) {
+        var f = fr[i], off = Array.isArray(f.off) ? [Number(f.off[0]) || 0, Number(f.off[1]) || 0] : [0, 0];
+        return { index: i, pose: f.pose || 'stand', off: off, flash: !!f.flash, ms: m, done: done, cycle: cycle, local: t - acc };
+      }
+      acc += m;
+    }
+    var L = fr[fr.length - 1];
+    return { index: fr.length - 1, pose: L.pose || 'stand', off: L.off || [0, 0], flash: !!L.flash, ms: frameMs(L), done: true, cycle: cycle };
+  }
+  // Markers whose frame starts in (t0, t1], across loops. Pass t0 = -1 at the start so frame zero markers fire.
+  function markersBetween(anm, t0, t1) {
+    var mk = anm && Array.isArray(anm.markers) ? anm.markers : [], out = [], D = duration(anm);
+    if (!mk.length || !(D > 0) || !(t1 > t0)) return out;
+    var times = mk.map(function (m) { return anm.kind === 'ability' ? Number(m.ms) || 0 : frameStart(anm, m.f | 0); });
+    var c0 = anm.loop ? Math.max(0, Math.floor(Math.max(0, t0) / D)) : 0, c1 = anm.loop ? Math.floor(t1 / D) : 0;
+    for (var c = c0; c <= c1; c++) {
+      mk.forEach(function (m, i) {
+        var at = c * D + times[i];
+        if (at > t0 && at <= t1) out.push({ type: m.type, arg: m.arg == null ? null : m.arg, f: m.f, t: at });
+      });
+    }
+    return out.sort(function (a, b) { return a.t - b.t; });
+  }
+  function firstMarker(anm, type) {
+    var mk = anm && Array.isArray(anm.markers) ? anm.markers : [];
+    for (var i = 0; i < mk.length; i++) if (mk[i] && mk[i].type === type) return anm.kind === 'ability' ? Number(mk[i].ms) || 0 : frameStart(anm, mk[i].f | 0);
+    return null;
+  }
+  // The animation a sprite plays for a taxonomy key: the sprite's own map, then its shared base's, then the library
+  // record whose subject is role anim:<key>.
+  function animFor(art, spr, key) {
+    var b = spr ? baseSprite(art, spr) : null, id = (spr && spr.anims && spr.anims[key]) || (b && b.anims && b.anims[key]);
+    var r = id ? rec(art, id) : null;
+    if (r) return r;
+    var all = recs(art, 'anm_'), ks = Object.keys(all);
+    for (var i = 0; i < ks.length; i++) { var a = all[ks[i]]; if (a && a.subject && a.subject.kind === 'role' && a.subject.ref === 'anim:' + key) return a; }
+    return null;
+  }
+
+  // ---------------------------------------------------------------- small pixel helpers
+  function rgbStr(hex) { return normHex(hex) || '#ffffff'; }
+  function px(ctx, x, y, s) { ctx.fillRect(Math.round(x), Math.round(y), s || 1, s || 1); }
+  function pxLine(ctx, x0, y0, x1, y1, s) {
+    x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+    var dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, e = dx + dy, n = 0;
+    while (n++ < 4000) {
+      ctx.fillRect(x0, y0, s || 1, s || 1);
+      if (x0 === x1 && y0 === y1) break;
+      var e2 = 2 * e;
+      if (e2 >= dy) { e += dy; x0 += sx; }
+      if (e2 <= dx) { e += dx; y0 += sy; }
+    }
+  }
+  function unitOf(size) { return Math.max(1, Math.round((Number(size) || 16) / 16)); }
+
+  // ---------------------------------------------------------------- death (scatter, fade, melt)
+  // deathPixels(frame, method, p, seed) -> [{x, y, i, a}]: the visible pixels at progress p (0 to 1), in frame
+  // coordinates, with i the pixel's index in the frame and a its alpha. Pure, so the presenter and tests share it.
+  function deathPixels(frame, method, p, seed) {
+    var out = [], w = frame.w, h = frame.h, idx = frame.idx, r = rng(seed || 7), cx = w / 2, cy = h / 2;
+    p = clamp(Number(p) || 0, 0, 1);
+    var cols = [];
+    for (var c = 0; c < w; c++) cols.push(0.45 + r() * 0.55);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var i = y * w + x;
+      if (!idx[i]) continue;
+      var hh = hash32(seed + ':' + i) / 4294967296;
+      if (method === 'fade') { if (hh >= 1 - p) continue; out.push({ x: x, y: y, i: i, a: 1 }); continue; }
+      if (method === 'melt') {
+        var dy = p * h * 1.15 * cols[x], ny = y + dy;
+        if (ny > h - 1) continue;
+        out.push({ x: x, y: ny, i: i, a: 1 - p * 0.5 });
+        continue;
+      }
+      // scatter: every pixel flies out from the center, faster the farther out it starts, and fades.
+      var ax = x - cx + (hh - 0.5) * 2, ay = y - cy + (hash32(i + ':' + seed) / 4294967296 - 0.5) * 2, d = Math.sqrt(ax * ax + ay * ay) || 1;
+      var k = p * p * (w * 0.9) * (0.6 + hh * 0.8);
+      out.push({ x: x + ax / d * k, y: y + ay / d * k - p * h * 0.15, i: i, a: 1 - p });
+    }
+    return out;
+  }
+  function drawDeath(ctx, frame, method, p, x0, y0, seed) {
+    var pts = deathPixels(frame, method, p, seed), rgba = frame.rgba, last = '', la = -1;
+    for (var k = 0; k < pts.length; k++) {
+      var q = pts[k], o = q.i * 4;
+      if (!rgba || !rgba[o + 3]) continue;
+      var st = 'rgb(' + rgba[o] + ',' + rgba[o + 1] + ',' + rgba[o + 2] + ')';
+      if (st !== last) { ctx.fillStyle = st; last = st; }
+      var a = clamp(q.a, 0, 1);
+      if (a !== la) { ctx.globalAlpha = a; la = a; }
+      ctx.fillRect(Math.round(x0 + q.x), Math.round(y0 + q.y), 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    return pts.length;
+  }
+
+  // ---------------------------------------------------------------- drawing sprites with animation
+  function blitFrame(ctx, f, x, y) {
+    if (!f) return;
+    if (f.canvas) { ctx.drawImage(f.canvas, x, y); return; }
+    // No host canvas (tests, workers): draw the pixels one by one.
+    var last = '';
+    for (var i = 0; i < f.w * f.h; i++) {
+      var o = i * 4;
+      if (!f.rgba[o + 3]) continue;
+      var st = 'rgb(' + f.rgba[o] + ',' + f.rgba[o + 1] + ',' + f.rgba[o + 2] + ')';
+      if (st !== last) { ctx.fillStyle = st; last = st; }
+      ctx.fillRect(x + i % f.w, y + Math.floor(i / f.w), 1, 1);
+    }
+  }
+  // draw.sprite(ctx, cache, sprId, anm, tMs, x, y, opts) draws the sprite's anchor (feet) at x, y.
+  // anm is an anm_ record (or null for opts.pose held still). opts: {dir, pal, flash, alpha, pose, seed}.
+  // Returns the frame info used, or null.
+  function drawSprite(ctx, cache, sprId, anm, tMs, x, y, opts) {
+    opts = opts || {};
+    var dir = opts.dir || 'down', u = unitOf(cache.size), fi;
+    if (anm && anm.kind === 'death') {
+      var base = cache.sprite(sprId, opts.pose || 'idle', dir, opts.pal);
+      if (!base) return null;
+      var p = clamp((Number(tMs) || 0) / duration(anm), 0, 1);
+      if (opts.alpha != null) ctx.globalAlpha = opts.alpha;
+      drawDeath(ctx, base, anm.method || 'scatter', p, Math.round(x - base.ax), Math.round(y - base.ay), opts.seed || 7);
+      ctx.globalAlpha = 1;
+      return { pose: opts.pose || 'idle', death: true, p: p, done: p >= 1 };
+    }
+    fi = anm ? frameAt(anm, tMs) : { pose: opts.pose || 'stand', off: [0, 0], flash: false, done: true };
+    var f = cache.sprite(sprId, fi.pose, dir, opts.pal, fi.flash || opts.flash ? 'flash' : null);
+    if (!f) return null;
+    var fdx = (fi.off[0] || 0) * u * (dir === 'left' ? -1 : 1), fdy = (fi.off[1] || 0) * u;
+    if (opts.alpha != null) ctx.globalAlpha = opts.alpha;
+    blitFrame(ctx, f, Math.round(x - f.ax + fdx), Math.round(y - f.ay + fdy));
+    if (opts.alpha != null) ctx.globalAlpha = 1;
+    fi.w = f.w; fi.h = f.h; fi.ax = f.ax; fi.ay = f.ay;
+    return fi;
+  }
+
+  // ---------------------------------------------------------------- particle systems
+  // spec: {x, y, colors: [hex x 4 (dark, base, light, hot)], particle: {shape, count, life, gravity, spread, speed},
+  //        mode: burst|rise|fall|stream, to: {x, y} (bolts aim here), unit, radius}
+  // create(spec, seed) -> sys; step(sys, dtMs) -> live count; draw(ctx, sys).
+  var SHAPES = ['spark', 'flake', 'bubble', 'shard', 'ring', 'wisp', 'bolt'];
+  function spawn(sys, r) {
+    var pt = sys.pt, u = sys.unit, shape = sys.shape, sp = (Number(pt.speed) || 1) * 46 * u, spread = clamp(Number(pt.spread) || 1, 0.1, 3);
+    var a, v = sp * (0.45 + r() * 0.75), q = { age: 0, life: (Number(pt.life) || 420) * (0.6 + r() * 0.6), seed: (r() * 1e9) >>> 0, c: r() < 0.3 ? 3 : r() < 0.6 ? 2 : 1 };
+    var R = (sys.radius || 6 * u);
+    if (sys.mode === 'rise') { q.x = sys.x + (r() - 0.5) * R * 2 * spread; q.y = sys.y + r() * R * 0.5; a = -Math.PI / 2 + (r() - 0.5) * 0.6 * spread; }
+    else if (sys.mode === 'fall') { q.x = sys.x + (r() - 0.5) * R * 2 * spread; q.y = sys.y - R * 3 - r() * R * 2; a = Math.PI / 2 + (r() - 0.5) * 0.4 * spread; v *= 1.6; }
+    else { q.x = sys.x + (r() - 0.5) * u * 2; q.y = sys.y + (r() - 0.5) * u * 2; a = r() * Math.PI * 2; if (spread < 1) a = -Math.PI / 2 + (a - Math.PI) * spread; }
+    q.vx = Math.cos(a) * v; q.vy = Math.sin(a) * v;
+    if (shape === 'bubble') q.vy -= sp * 0.4;
+    if (shape === 'ring') { q.vx *= 0.15; q.vy *= 0.15; q.r0 = 1 + r() * 2; }
+    return q;
+  }
+  function fxCreate(spec, seed) {
+    spec = spec || {};
+    var pt = spec.particle || {}, r = rng(seed || 1), shape = SHAPES.indexOf(pt.shape) >= 0 ? pt.shape : 'spark';
+    var cols = (spec.colors || []).map(rgbStr);
+    while (cols.length < 4) cols.push(cols[cols.length - 1] || '#ffffff');
+    var sys = { x: Number(spec.x) || 0, y: Number(spec.y) || 0, to: spec.to || null, unit: Math.max(1, Math.round(spec.unit || 1)), shape: shape, pt: pt, colors: cols,
+      mode: spec.mode || 'burst', radius: spec.radius || 0, gravity: Number(pt.gravity) || 0, parts: [], t: 0, rnd: r, seed: seed || 1 };
+    var n = clamp(Math.round(Number(pt.count) || 12), 1, 120);
+    if (shape === 'ring') n = Math.max(1, Math.min(4, Math.round(n / 5)));
+    if (shape === 'bolt') n = Math.max(1, Math.min(3, Math.round(n / 6)));
+    for (var i = 0; i < n; i++) sys.parts.push(spawn(sys, r));
+    return sys;
+  }
+  function fxStep(sys, dt) {
+    dt = Math.max(0, Math.min(100, Number(dt) || 0));
+    sys.t += dt;
+    var s = dt / 1000, g = sys.gravity * 220 * sys.unit, live = 0;
+    sys.parts.forEach(function (q) {
+      if (q.age >= q.life) return;
+      q.age += dt;
+      if (sys.shape === 'wisp') q.vx += Math.sin((q.age + q.seed) / 90) * 20 * s * sys.unit;
+      q.vy += g * s;
+      var drag = sys.shape === 'flake' || sys.shape === 'wisp' ? 0.985 : 0.995;
+      q.vx *= drag; q.vy *= drag;
+      q.x += q.vx * s; q.y += q.vy * s;
+      if (q.age < q.life) live++;
+    });
+    return live;
+  }
+  function fxDone(sys) { return sys.parts.every(function (q) { return q.age >= q.life; }); }
+  function fxDraw(ctx, sys) {
+    var u = sys.unit;
+    sys.parts.forEach(function (q) {
+      if (q.age >= q.life) return;
+      var k = q.age / q.life, ci = k < 0.25 ? 3 : k < 0.6 ? q.c : k < 0.85 ? 1 : 0;
+      ctx.fillStyle = sys.colors[ci];
+      ctx.globalAlpha = k > 0.75 ? clamp((1 - k) * 4, 0, 1) : 1;
+      var x = q.x, y = q.y;
+      switch (sys.shape) {
+        case 'flake': px(ctx, x, y, u); px(ctx, x - u, y, u); px(ctx, x + u, y, u); px(ctx, x, y - u, u); px(ctx, x, y + u, u); break;
+        case 'bubble': [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]].forEach(function (d) { if (d[0] && d[1]) return; px(ctx, x + d[0] * u, y + d[1] * u, u); }); ctx.fillStyle = sys.colors[3]; px(ctx, x - u, y - u, u); break;
+        case 'shard': var m = Math.sqrt(q.vx * q.vx + q.vy * q.vy) || 1; px(ctx, x, y, u); px(ctx, x - q.vx / m * u * 1.5, y - q.vy / m * u * 1.5, u); px(ctx, x - q.vx / m * u * 3, y - q.vy / m * u * 3, u); break;
+        case 'ring': var rr = (q.r0 + k * 9) * u, n = Math.max(8, Math.round(rr * 1.6)); for (var j = 0; j < n; j++) px(ctx, x + Math.cos(j / n * 6.283) * rr, y + Math.sin(j / n * 6.283) * rr * 0.75, u); break;
+        case 'wisp': px(ctx, x, y, u * 2); ctx.globalAlpha *= 0.5; px(ctx, x - q.vx * 0.04, y - q.vy * 0.04, u * 2); break;
+        case 'bolt':
+          var tx = sys.to ? sys.to.x : sys.x + (q.vx > 0 ? 1 : -1) * 20 * u, ty = sys.to ? sys.to.y : sys.y - 30 * u, br = rng(q.seed + Math.floor(q.age / 60)), segs = 6, px0 = sys.x, py0 = sys.y;
+          for (var g2 = 1; g2 <= segs; g2++) { var f2 = g2 / segs, nx = sys.x + (tx - sys.x) * f2 + (g2 < segs ? (br() - 0.5) * 8 * u : 0), ny = sys.y + (ty - sys.y) * f2 + (g2 < segs ? (br() - 0.5) * 4 * u : 0); pxLine(ctx, px0, py0, nx, ny, u); px0 = nx; py0 = ny; }
+          break;
+        default: px(ctx, x, y, u); ctx.globalAlpha *= 0.6; px(ctx, x - q.vx * 0.03, y - q.vy * 0.03, u);
+      }
+    });
+    ctx.globalAlpha = 1;
+  }
+  // Screen behavior of an effect at progress p (0 to 1): shake offsets, a darkening alpha, and a wave amplitude.
+  function screenAt(kind, p, unit, seed) {
+    var e = Math.max(0, 1 - p), u = unit || 1, r = rng(((seed || 1) + Math.floor(p * 40)) >>> 0);
+    return {
+      shake: kind === 'shake' ? [Math.round((r() - 0.5) * 4 * u * e), Math.round((r() - 0.5) * 3 * u * e)] : [0, 0],
+      darken: kind === 'darken' ? 0.45 * Math.sin(Math.min(1, p) * Math.PI) : 0,
+      wave: kind === 'wave' ? Math.round(2 * u * e) : 0
+    };
+  }
+  // Applies a wave to rows already drawn on ctx (drawImage of the canvas onto itself, one row strip at a time).
+  function applyWave(ctx, amp, tMs, w, h) {
+    if (!amp || !ctx.canvas) return;
+    for (var y = 0; y < h; y += 2) { var dx = Math.round(Math.sin(y / 6 + tMs / 70) * amp); if (dx) ctx.drawImage(ctx.canvas, 0, y, w, 2, dx, y, w, 2); }
+  }
+
+  // ---------------------------------------------------------------- weather overlays
+  // wov: {layers: [{type, density, angle, speed, depth, m}], tint: {m, alpha}, lightning: {every: [min, max], flashMs, m}}
+  // create(wov, w, h, seed, {entries, unit}) -> state; step(state, dtMs); draw(ctx, state).
+  // Particle counts scale with the logical area (a 256 by 224 screen is the reference), never with screen pixels.
+  var WEATHER_TYPES = ['streak', 'flake', 'mote', 'band', 'bolt', 'leaf', 'none'];
+  var WEATHER_BASE = { streak: 140, flake: 90, mote: 70, leaf: 16, band: 5, bolt: 0, none: 0 };
+  function wParticle(L, st, r, fresh) {
+    var q = { x: r() * st.w, y: fresh ? r() * st.h : -r() * 20, z: 0.45 + r() * 0.55 * (L.depth == null ? 1 : clamp(L.depth, 0, 1)) + 0.0001, ph: r() * 6.283 };
+    if (L.type === 'band') { q.y = r() * st.h; q.hh = Math.round((0.05 + r() * 0.1) * st.h); q.z = 0.3 + r() * 0.7; }
+    return q;
+  }
+  function weatherCreate(wov, w, h, seed, opts) {
+    opts = opts || {};
+    var r = rng(seed || 3), ent = opts.entries || [], u = Math.max(1, Math.round(opts.unit || 1)), area = (w * h) / (256 * 224);
+    var st = { w: w, h: h, t: 0, unit: u, rnd: r, layers: [], tint: null, lightning: null, flash: 0, bolt: null, nextBolt: 0, strikes: 0 };
+    function col(m, fb) { return typeof m === 'number' && ent[m] ? ent[m] : fb; }
+    ((wov && wov.layers) || []).forEach(function (L) {
+      if (!L || WEATHER_TYPES.indexOf(L.type) < 0 || L.type === 'none' || L.type === 'bolt') return;
+      var dens = clamp(L.density == null ? 0.5 : Number(L.density) || 0, 0, 1), n = Math.min(900, Math.round(dens * WEATHER_BASE[L.type] * area));
+      var lay = { type: L.type, angle: Number(L.angle) || 0, speed: L.speed == null ? 1 : clamp(Number(L.speed), 0, 4), color: col(L.m, L.type === 'flake' ? '#f4f6fa' : L.type === 'leaf' ? '#8a9a3a' : '#c8d8f0'),
+        alpha: L.type === 'band' ? clamp(0.12 + 0.3 * dens, 0, 0.6) : 1, parts: [] };
+      for (var i = 0; i < n; i++) lay.parts.push(wParticle(L, st, r, true));
+      st.layers.push(lay);
+    });
+    if (wov && wov.tint && typeof wov.tint.m === 'number' && ent[wov.tint.m]) st.tint = { color: ent[wov.tint.m], alpha: clamp(Number(wov.tint.alpha) || 0, 0, 0.8) };
+    var hasBoltLayer = ((wov && wov.layers) || []).some(function (L) { return L && L.type === 'bolt'; });
+    if (wov && (wov.lightning || hasBoltLayer)) {
+      var lg = wov.lightning || {}, ev = Array.isArray(lg.every) && lg.every.length === 2 ? lg.every : [2500, 7000];
+      st.lightning = { min: Math.max(200, Number(ev[0]) || 2500), max: Math.max(Number(ev[0]) || 2500, Number(ev[1]) || 7000), flashMs: clamp(Number(lg.flashMs) || 160, 40, 1200), color: col(lg.m, '#ffffff') };
+      st.nextBolt = st.lightning.min + r() * (st.lightning.max - st.lightning.min);
+    }
+    return st;
+  }
+  function weatherStep(st, dt) {
+    dt = Math.max(0, Math.min(100, Number(dt) || 0));
+    st.t += dt;
+    var s = dt / 1000, u = st.unit, r = st.rnd;
+    st.layers.forEach(function (L) {
+      var a = L.angle * Math.PI / 180;
+      L.parts.forEach(function (q) {
+        var v;
+        if (L.type === 'streak') { v = 260 * L.speed * q.z * u; q.x += Math.sin(a) * v * s; q.y += Math.cos(a) * v * s; }
+        else if (L.type === 'flake') { v = 26 * L.speed * q.z * u; q.y += v * s; q.x += (Math.sin(a) * v + Math.sin(st.t / 700 + q.ph) * 8 * u) * s; }
+        else if (L.type === 'mote') { v = 18 * L.speed * q.z * u; q.x += Math.sin(a) * v * s + Math.sin(st.t / 900 + q.ph) * 3 * u * s; q.y += Math.cos(a) * v * s * 0.6; }
+        else if (L.type === 'leaf') { v = 48 * L.speed * q.z * u; q.x += (Math.sin(a) * v + 14 * u) * s; q.y += (12 * u + Math.sin(st.t / 300 + q.ph) * 20 * u) * s; }
+        else if (L.type === 'band') { q.x += 6 * L.speed * q.z * u * s; }
+        if (L.type === 'band') { if (q.x > st.w) q.x -= st.w * 2; return; }
+        if (q.y > st.h + 4) { q.y -= st.h + 8; q.x = r() * st.w; }
+        if (q.y < -10) q.y += st.h + 8;
+        if (q.x > st.w + 4) q.x -= st.w + 8; else if (q.x < -4) q.x += st.w + 8;
+      });
+    });
+    if (st.lightning) {
+      st.flash = Math.max(0, st.flash - dt / st.lightning.flashMs);
+      if (st.t >= st.nextBolt) {
+        st.flash = 1; st.strikes++;
+        var x0 = r() * st.w, pts = [[x0, 0]], y = 0;
+        while (y < st.h * 0.62) { y += (6 + r() * 10) * u; pts.push([pts[pts.length - 1][0] + (r() - 0.5) * 14 * u, y]); }
+        st.bolt = pts;
+        st.nextBolt = st.t + st.lightning.min + r() * (st.lightning.max - st.lightning.min);
+      }
+    }
+    return st;
+  }
+  function weatherDraw(ctx, st) {
+    var u = st.unit;
+    st.layers.forEach(function (L) {
+      ctx.fillStyle = L.color;
+      if (L.type === 'band') {
+        L.parts.forEach(function (q) { ctx.globalAlpha = L.alpha * q.z; ctx.fillRect(Math.round(q.x), Math.round(q.y), st.w, q.hh); ctx.fillRect(Math.round(q.x - st.w), Math.round(q.y), st.w, q.hh); });
+        ctx.globalAlpha = 1;
+        return;
+      }
+      var a = L.angle * Math.PI / 180;
+      L.parts.forEach(function (q) {
+        ctx.globalAlpha = 0.45 + 0.55 * q.z;
+        if (L.type === 'streak') { var len = Math.max(2, Math.round((2 + q.z * 5) * u * Math.max(0.5, L.speed))); pxLine(ctx, q.x, q.y, q.x - Math.sin(a) * len, q.y - Math.cos(a) * len, 1); }
+        else if (L.type === 'flake') { var sz = q.z > 0.8 ? 2 * u : u; ctx.fillRect(Math.round(q.x), Math.round(q.y), sz, sz); }
+        else if (L.type === 'mote') { ctx.globalAlpha *= 0.6 + 0.4 * Math.sin(st.t / 300 + q.ph); ctx.fillRect(Math.round(q.x), Math.round(q.y), u, u); }
+        else if (L.type === 'leaf') { var flip = Math.sin(st.t / 160 + q.ph) > 0; ctx.fillRect(Math.round(q.x), Math.round(q.y), flip ? 2 * u : u, flip ? u : 2 * u); }
+      });
+      ctx.globalAlpha = 1;
+    });
+    if (st.tint && st.tint.alpha > 0) { ctx.globalAlpha = st.tint.alpha; ctx.fillStyle = st.tint.color; ctx.fillRect(0, 0, st.w, st.h); ctx.globalAlpha = 1; }
+    if (st.lightning && st.flash > 0) {
+      if (st.bolt && st.flash > 0.35) { ctx.fillStyle = st.lightning.color; for (var i = 1; i < st.bolt.length; i++) pxLine(ctx, st.bolt[i - 1][0], st.bolt[i - 1][1], st.bolt[i][0], st.bolt[i][1], u); }
+      ctx.globalAlpha = 0.55 * st.flash; ctx.fillStyle = st.lightning.color; ctx.fillRect(0, 0, st.w, st.h); ctx.globalAlpha = 1;
+    }
+  }
+
+  // ---------------------------------------------------------------- ability playback
+  // timeline(anm, casterAnm) -> {release, travelEnd, impactStart, impactEnd, duration, hits: [ms]}. The caster's own
+  // animation fires its first hit marker at the release; projectiles travel after it; hits land through the impact.
+  function abilityTimeline(anm, casterAnm) {
+    anm = anm || {};
+    var cd = casterAnm ? duration(casterAnm) : 480, rel = casterAnm ? firstMarker(casterAnm, 'hit') : null;
+    var release = rel == null ? Math.round(cd * 0.6) : rel;
+    var tr = anm.travel || {}, travel = tr.type && tr.type !== 'none' ? clamp(Number(tr.ms) || 260, 0, 4000) : 0;
+    var imp = anm.impact || {}, ims = clamp(Number(imp.ms) || 450, 60, 4000);
+    var n = clamp(Math.round(Number(anm.hits) || 1), 1, 16), gap = Math.min(160, ims / (n + 1));
+    var hits = [];
+    for (var i = 0; i < n; i++) hits.push(Math.round(release + travel + i * gap));
+    var end = release + travel + ims;
+    return { release: release, travelEnd: release + travel, impactStart: release + travel, impactEnd: end, duration: Math.max(end, cd), casterMs: cd, hits: hits, melee: anm.caster === 'attack' && !travel };
+  }
+  // create(cfg) -> playback. cfg: {anm, caster (anm_ record), from: {x, y}, to: {x, y}, efx (record), entries, unit, seed}.
+  // step(dtMs) returns the markers that fired; draw(ctx) draws travel and impact effects; screen() reports shake,
+  // flash, darkening, and wave; casterAt() gives the time into the caster's animation and its forward offset.
+  function abilityCreate(cfg) {
+    var anm = cfg.anm || {}, tl = abilityTimeline(anm, cfg.caster), u = Math.max(1, Math.round(cfg.unit || 1)), ent = cfg.entries || [], fx = cfg.efx || null;
+    var cols = fx && Array.isArray(fx.palette) ? fx.palette.map(function (m) { return ent[m] || '#ffffff'; }) : ['#6a6a6a', '#b8b8b8', '#e8e8e8', '#ffffff'];
+    var flashCol = fx && ent[fx.flash] ? ent[fx.flash] : '#ffffff', from = cfg.from || { x: 0, y: 0 }, to = cfg.to || { x: 0, y: 0 };
+    var pt = Object.assign({ shape: 'spark', count: 12, life: 420, gravity: 0, spread: 1, speed: 1 }, fx && fx.particle || {});
+    var imp = anm.impact || {}, tr = anm.travel || {}, seed = cfg.seed || 11;
+    var screenKind = imp.shake ? 'shake' : fx && fx.screen || 'none';
+    var pb = { t: 0, timeline: tl, systems: [], fired: [], next: 0 };
+    var extra = (Array.isArray(anm.markers) ? anm.markers : []).map(function (m) { return { ms: Number(m.ms) || 0, type: m.type, arg: m.arg == null ? null : m.arg }; });
+    var sched = [{ ms: 0, type: 'sfx', arg: anm.sfx || 'cast' }, { ms: tl.release, type: 'sfx', arg: anm.sfx || 'release' }]
+      .concat(tl.hits.map(function (h, i) { return { ms: h, type: 'hit', arg: i }; }), [{ ms: tl.impactStart, type: 'particle', arg: fx ? fx.id || null : null }])
+      .concat(imp.flash ? [{ ms: tl.impactStart, type: 'flash', arg: null }] : [], imp.shake ? [{ ms: tl.impactStart, type: 'shake', arg: imp.shake }] : [], extra)
+      .sort(function (a, b) { return a.ms - b.ms; });
+    pb.step = function (dt) {
+      var t0 = pb.t, t1 = pb.t + Math.max(0, Number(dt) || 0), out = [];
+      while (pb.next < sched.length && sched[pb.next].ms <= t1) { var m = sched[pb.next++]; out.push({ type: m.type, arg: m.arg, t: m.ms }); }
+      if (t0 < tl.release && t1 >= tl.release && tr.type && tr.type !== 'none') {
+        var mode = tr.type === 'rise' ? 'rise' : tr.type === 'fall' ? 'fall' : 'stream';
+        if (tr.type === 'rise' || tr.type === 'fall') pb.systems.push(fxCreate({ x: to.x, y: to.y, colors: cols, particle: Object.assign({}, pt, { count: Math.round(pt.count * 1.4), life: tl.travelEnd - tl.release + 200 }), mode: mode, unit: u, radius: 8 * u }, seed + 1));
+      }
+      if (t0 < tl.impactStart && t1 >= tl.impactStart) pb.systems.push(fxCreate({ x: to.x, y: to.y, to: { x: to.x + 6 * u, y: to.y - 30 * u }, colors: cols, particle: pt, mode: 'burst', unit: u }, seed + 2));
+      pb.t = t1;
+      pb.systems.forEach(function (s) { fxStep(s, Math.min(100, t1 - t0)); });
+      pb.fired = pb.fired.concat(out);
+      return out;
+    };
+    pb.done = function () { return pb.t >= tl.duration && pb.systems.every(fxDone); };
+    pb.casterAt = function () {
+      var off = 0;
+      if (tl.melee) {
+        var D = Math.max(0, Math.abs(to.x - from.x) - 18 * u), go = tl.release * 0.45, back = tl.impactEnd;
+        off = pb.t < go ? D * (pb.t / Math.max(1, go)) : pb.t < back ? D : Math.max(0, D * (1 - (pb.t - back) / 220));
+      }
+      return { t: Math.min(pb.t, tl.casterMs), off: [Math.round(off), 0] };
+    };
+    pb.screen = function () {
+      var p = clamp((pb.t - tl.impactStart) / Math.max(1, tl.impactEnd - tl.impactStart), 0, 1), on = pb.t >= tl.impactStart && pb.t <= tl.impactEnd;
+      var sc = on ? screenAt(screenKind, p, u * (imp.shake || 1), seed) : { shake: [0, 0], darken: 0, wave: 0 };
+      var fl = imp.flash && pb.t >= tl.impactStart && pb.t < tl.impactStart + 140 ? 1 - (pb.t - tl.impactStart) / 140 : 0;
+      return { shake: sc.shake, darken: sc.darken, wave: sc.wave, flash: fl * 0.7, flashColor: flashCol };
+    };
+    pb.draw = function (ctx) {
+      if (tr.type === 'projectile' && pb.t >= tl.release && pb.t < tl.travelEnd) {
+        var k = (pb.t - tl.release) / Math.max(1, tl.travelEnd - tl.release), x = from.x + (to.x - from.x) * k, y = from.y + (to.y - from.y) * k - Math.sin(k * Math.PI) * 6 * u;
+        ctx.fillStyle = cols[2]; ctx.fillRect(Math.round(x - u), Math.round(y - u), 3 * u, 3 * u);
+        ctx.fillStyle = cols[3]; ctx.fillRect(Math.round(x), Math.round(y), u, u);
+        ctx.fillStyle = cols[1]; ctx.globalAlpha = 0.6; ctx.fillRect(Math.round(x - (to.x - from.x) * 0.06), Math.round(y), 2 * u, u); ctx.globalAlpha = 1;
+      }
+      if (tr.type === 'beam' && pb.t >= tl.release && pb.t < tl.impactEnd) {
+        var kb = clamp((pb.t - tl.release) / Math.max(1, tl.travelEnd - tl.release), 0, 1), bx = from.x + (to.x - from.x) * kb, by = from.y + (to.y - from.y) * kb;
+        ctx.fillStyle = cols[1]; pxLine(ctx, from.x, from.y, bx, by, 3 * u);
+        ctx.fillStyle = cols[3]; pxLine(ctx, from.x, from.y, bx, by, u);
+      }
+      pb.systems.forEach(function (s) { fxDraw(ctx, s); });
+    };
+    return pb;
+  }
+
+  R.anim = {
+    MARKER_TYPES: MARKER_TYPES, DEATH_METHODS: DEATH_METHODS, CASTERS: CASTERS, TRAVELS: TRAVELS,
+    duration: duration, frameAt: frameAt, frameStart: frameStart, markersBetween: markersBetween, firstMarker: firstMarker,
+    forSprite: animFor, deathPixels: deathPixels, drawDeath: drawDeath, unit: unitOf
+  };
+  R.draw = { sprite: drawSprite, frame: blitFrame, line: pxLine };
+  R.fx = { SHAPES: SHAPES, SCREENS: ['none', 'wave', 'shake', 'darken'], create: fxCreate, step: fxStep, draw: fxDraw, done: fxDone, screen: screenAt, wave: applyWave };
+  R.weather = { TYPES: WEATHER_TYPES, BASE: WEATHER_BASE, create: weatherCreate, step: weatherStep, draw: weatherDraw };
+  R.ability = { timeline: abilityTimeline, create: abilityCreate };
 
   // ---------------------------------------------------------------- later phases insert sections above this line
   Object.keys(R).forEach(function (k) { if (R[k] && typeof R[k] === 'object') Object.freeze(R[k]); });
@@ -5741,7 +6380,7 @@ var ENGINE_RENDER = (function () {
     ui.sub = Kit.ids.prefixOf(rid) === 'efx_' ? 'elements' : r.kind === 'tier' ? 'tiers' : r.kind === 'local' ? 'colorways' : 'master';
     Kit.rerender();
   }
-  ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor };
+  ART.WS.palette = { render: render, focus: focus, ui: ui, views: VIEWS, openEditor: openEditor, pickMaster: pickMaster, swatch: swatch };
 })();
 // === WS:PALETTE END ===
 // === ART:SPRITES BEGIN ===
@@ -6395,7 +7034,7 @@ var ENGINE_RENDER = (function () {
   var ui = { sub: 'characters', focus: null };
   var ENEMY_LABELS = ['Clear', 'Outline', 'Body dark', 'Body', 'Body light', 'Shade dark', 'Shade', 'Shade light', 'Accent dark', 'Accent', 'Accent light', 'Eye dark', 'Eye', 'Eye light', 'Metal dark', 'Metal light'];
   var LAYER_LABELS = { shadow: 'Shadow', back: 'Back gear', body: 'Body', legs: 'Legs', torso: 'Torso', head: 'Head', hair: 'Hair', front: 'Front gear' };
-  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Battle idle' };
+  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Idle', ready: 'Ready', step: 'Step', windup: 'Wind up', attack: 'Attack', cast: 'Cast', item: 'Item', hurt: 'Hurt', kneel: 'Kneel', ko: 'KO', revive: 'Revive', victory: 'Victory', limit: 'Limit', nod: 'Nod', shakeL: 'Shake left', shakeR: 'Shake right', crouch: 'Crouch', jump: 'Jump', sit: 'Sit', laugh: 'Laugh', laughB: 'Laugh B' };
   function cur() { return Kit.bundle.current(); }
   function touch(reason) { Kit.bundle.touch(reason || 'sprites'); Kit.refreshValidation(); }
   // Shared small widgets (WS:INTERFACE uses them too).
@@ -6536,8 +7175,8 @@ var ENGINE_RENDER = (function () {
           body.appendChild(el('h3', 'section-h', 'Frames'));
           body.appendChild(el('p', 'muted a7-small', 'Tap a frame to draw on it. A hand edited frame is stored as an override; the rest keep following the recipe. Left facing frames mirror right facing ones unless you edit them.'));
           var grid = el('div', 'a7-frames');
-          var set = spr.mode === 'battle' ? ES.BATTLE_POSES.map(function (p) { return [p, spr.kind === 'enemy' ? 'right' : 'left']; }) : [];
-          if (spr.mode !== 'battle') ES.FIELD_POSES.forEach(function (p) { ES.DIRS.forEach(function (d) { set.push([p, d]); }); });
+          var set = spr.mode === 'battle' ? (spr.kind === 'enemy' ? ES.ENEMY_POSES : ES.BATTLE_POSES).map(function (p) { return [p, spr.kind === 'enemy' ? 'right' : 'left']; }) : [];
+          if (spr.mode !== 'battle') { ES.FIELD_POSES.forEach(function (p) { ES.DIRS.forEach(function (d) { set.push([p, d]); }); }); ES.EMOTE_POSES.forEach(function (p) { set.push([p, 'down']); }); }
           var ov = Object.assign({}, base.overrides || {}, spr.overrides || {});
           set.forEach(function (pd) {
             var f = frameOf(spr, pd[0], pd[1]), k = pd[0] + '.' + pd[1];
@@ -6810,12 +7449,11 @@ var ENGINE_RENDER = (function () {
     } else {
       var body = S.partByLib(b, 'body.average');
       var spec = { layout: 'humanoid', size: T, layers: (part.layer === 'body' ? [] : body ? [{ layer: 'body', gen: body.gen }] : []).concat([{ layer: part.layer, gen: part.gen }]) };
-      ES.FIELD_POSES.concat(ES.BATTLE_POSES).forEach(function (pose) {
-        ['down', 'up', 'right'].forEach(function (dir) {
-          if (pose === 'idle' && dir !== 'right') return;
-          var fr = ES.partFrame(spec, part.layer, pose, dir);
-          variants[pose + '.' + dir] = { w: fr.w, h: fr.h, d: EC.encode(fr.idx) };
-        });
+      // Field poses in three directions (left mirrors right), battle poses facing right, emotes facing down. Lying
+      // poses are composed from the standing frames, so they need no variant of their own.
+      ES.handPoses().forEach(function (pd) {
+        var fr = ES.partFrame(spec, part.layer, pd[0], pd[1]);
+        variants[pd[0] + '.' + pd[1]] = { w: fr.w, h: fr.h, d: EC.encode(fr.idx) };
       });
     }
     return { base: T, variants: variants };
@@ -7095,6 +7733,957 @@ var ENGINE_RENDER = (function () {
   ART.WS.interface = { render: render, focus: focus, ui: ui, views: VIEWS, openIcon: openIcon };
 })();
 // === WS:INTERFACE END ===
+// === ART:MOTION BEGIN ===
+(function () {
+  'use strict';
+  // Motion as records. The player, particles, weather, and ability playback live in ENGINE_RENDER.anim, .fx, .weather,
+  // and .ability; this fence decides what each subject gets and keeps the records in step with the bundle.
+  //   anm_  library animations (role anim:<key>, origin default), one ability animation per abl_ (procedural), and the
+  //         three default ability animations (role ability:attack, ability:cast, ability:item)
+  //   wov_  one weather overlay per wth_ (procedural), inferred from its real world description
+  //   spr_  gains anims {key: anm_} where a sprite plays something other than the library (enemy deaths by rig)
+  var U = Kit.util, EA = ENGINE_RENDER.anim, EW = ENGINE_RENDER.weather, ES = ENGINE_RENDER.sprite, PE = ENGINE_RENDER.palette;
+  var C = ENGINE_RENDER.color, H = ENGINE_RENDER.util.hash32;
+  var P = ART.palette, S = ART.sprites, M = ART.motion = {};
+  function cur() { return Kit.bundle.current(); }
+  function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(U.isObj); }
+  function bump(report, k) { report[k] = (report[k] || 0) + 1; }
+  var KEEP = { user: 1, claude: 1 };
+  function kept(r) { return !!(r && KEEP[r.origin]); }
+  M.isKept = kept;
+
+  // ---------------------------------------------------------------- the animation library
+  // Each taxonomy group maps its keys to animation keys: field poses all walk; emotes, battle party, and battle enemy
+  // poses each get their own animation. Optional poses a user adds follow the same pattern.
+  M.GROUPS = [
+    { key: 'field', label: 'Field', prefix: null, dir: 'down' },
+    { key: 'emote', label: 'Emotes', prefix: 'emote.', dir: 'down' },
+    { key: 'battleParty', label: 'Battle, party', prefix: 'battle.', dir: 'left' },
+    { key: 'battleEnemy', label: 'Battle, enemy', prefix: 'enemy.', dir: 'right' }
+  ];
+  M.animKey = function (group, poseKey) {
+    if (group === 'field') return 'walk';
+    var g = M.GROUPS.filter(function (x) { return x.key === group; })[0];
+    return g ? g.prefix + poseKey : poseKey;
+  };
+  function fr(pose, ms, off, flash) { var f = { pose: pose, ms: ms }; if (off) f.off = off; if (flash) f.flash = true; return f; }
+  function mk(f, type, arg) { return { f: f, type: type, arg: arg == null ? null : arg }; }
+  // The pose each taxonomy entry shows in the pose library (field entries are written pose.dir).
+  M.POSE_OF = {
+    emote: { nod: 'nod', shake: 'shakeL', jump: 'jump', sit: 'sit', kneel: 'kneel', faint: 'ko', laugh: 'laugh' },
+    battleParty: { idle: 'idle', ready: 'ready', step: 'step', attack: 'attack', cast: 'cast', item: 'item', hurt: 'hurt', kneel: 'kneel', ko: 'ko', revive: 'revive', victory: 'victory', limit: 'limit' },
+    battleEnemy: { idle: 'idle', attack: 'attack', hurt: 'hurt', death: 'idle' }
+  };
+  M.LIBRARY = [
+    { key: 'walk', label: 'Walk', group: 'field', body: { kind: 'sprite', loop: true, frames: [fr('stand', 150), fr('stepA', 150), fr('stand', 150), fr('stepB', 150)], markers: [mk(1, 'sfx', 'step'), mk(3, 'sfx', 'step')] } },
+    { key: 'emote.nod', label: 'Nod', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('stand', 120), fr('nod', 160), fr('stand', 120), fr('nod', 160), fr('stand', 200)], markers: [] } },
+    { key: 'emote.shake', label: 'Shake head', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('stand', 100), fr('shakeL', 110), fr('shakeR', 110), fr('shakeL', 110), fr('shakeR', 110), fr('stand', 150)], markers: [] } },
+    { key: 'emote.jump', label: 'Jump', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('crouch', 110), fr('jump', 80, [0, -3]), fr('jump', 120, [0, -6]), fr('jump', 80, [0, -3]), fr('crouch', 90), fr('stand', 150)], markers: [mk(1, 'sfx', 'jump')] } },
+    { key: 'emote.sit', label: 'Sit', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('stand', 120), fr('crouch', 120), fr('sit', 900)], markers: [] } },
+    { key: 'emote.kneel', label: 'Kneel', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('stand', 120), fr('crouch', 100), fr('kneel', 900)], markers: [] } },
+    { key: 'emote.faint', label: 'Faint', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('hurt', 160), fr('kneel', 260), fr('ko', 1200)], markers: [mk(2, 'sfx', 'thud'), mk(2, 'shake', 1)] } },
+    { key: 'emote.laugh', label: 'Laugh', group: 'emote', body: { kind: 'sprite', loop: false, frames: [fr('laugh', 140), fr('laughB', 140), fr('laugh', 140), fr('laughB', 140), fr('laugh', 140), fr('stand', 200)], markers: [] } },
+    { key: 'battle.idle', label: 'Idle', group: 'battleParty', body: { kind: 'sprite', loop: true, frames: [fr('idle', 480), fr('ready', 360)], markers: [] } },
+    { key: 'battle.ready', label: 'Ready', group: 'battleParty', body: { kind: 'sprite', loop: true, frames: [fr('ready', 260), fr('ready', 260, [0, -1])], markers: [] } },
+    { key: 'battle.step', label: 'Step forward', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('step', 100, [2, 0]), fr('step', 100, [5, 0]), fr('ready', 150, [6, 0])], markers: [mk(0, 'sfx', 'step')] } },
+    { key: 'battle.attack', label: 'Attack', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('ready', 80), fr('windup', 140), fr('attack', 60, [2, 0]), fr('attack', 160, [2, 0]), fr('ready', 120)], markers: [mk(1, 'sfx', 'swing'), mk(2, 'hit')] } },
+    { key: 'battle.cast', label: 'Cast', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('ready', 80), fr('cast', 160), fr('cast', 260, [0, -1]), fr('ready', 120)], markers: [mk(1, 'particle', 'gather'), mk(2, 'hit')] } },
+    { key: 'battle.item', label: 'Use item', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('ready', 80), fr('item', 200), fr('item', 160, [0, -1]), fr('ready', 120)], markers: [mk(2, 'hit')] } },
+    { key: 'battle.hurt', label: 'Hurt', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('hurt', 70, [-2, 0], true), fr('hurt', 70, [-3, 0]), fr('hurt', 140, [-2, 0]), fr('idle', 100)], markers: [mk(0, 'sfx', 'hurt')] } },
+    { key: 'battle.kneel', label: 'Kneel (low HP)', group: 'battleParty', body: { kind: 'sprite', loop: true, frames: [fr('kneel', 600), fr('kneel', 500, [0, 1])], markers: [] } },
+    { key: 'battle.ko', label: 'KO', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('kneel', 140), fr('ko', 500)], markers: [mk(1, 'sfx', 'ko')] } },
+    { key: 'battle.revive', label: 'Revive', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('ko', 160, null, true), fr('kneel', 220), fr('revive', 200), fr('ready', 200)], markers: [mk(0, 'particle', 'revive')] } },
+    { key: 'battle.victory', label: 'Victory', group: 'battleParty', body: { kind: 'sprite', loop: true, frames: [fr('victory', 500), fr('victory', 300, [0, -2]), fr('victory', 200)], markers: [] } },
+    { key: 'battle.limit', label: 'Limit', group: 'battleParty', body: { kind: 'sprite', loop: false, frames: [fr('limit', 200), fr('limit', 80, null, true), fr('attack', 80, [4, 0]), fr('attack', 200, [4, 0]), fr('ready', 160)], markers: [mk(1, 'flash'), mk(2, 'hit')] } },
+    { key: 'enemy.idle', label: 'Idle', group: 'battleEnemy', body: { kind: 'sprite', loop: true, frames: [fr('idle', 340), fr('idle', 340, [0, -1])], markers: [] } },
+    { key: 'enemy.attack', label: 'Attack', group: 'battleEnemy', body: { kind: 'sprite', loop: false, frames: [fr('idle', 120, [-2, 0]), fr('attack', 70, [3, 0]), fr('attack', 90, [6, 0]), fr('attack', 140, [4, 0]), fr('idle', 120)], markers: [mk(2, 'hit')] } },
+    { key: 'enemy.hurt', label: 'Hurt', group: 'battleEnemy', body: { kind: 'sprite', loop: false, frames: [fr('hurt', 60, [-2, 0], true), fr('hurt', 60, [-3, 0]), fr('hurt', 60, [-2, 0], true), fr('idle', 120)], markers: [mk(0, 'sfx', 'hit')] } },
+    { key: 'enemy.death', label: 'Death (scatter)', group: 'battleEnemy', body: { kind: 'death', method: 'scatter', ms: 700 } },
+    { key: 'enemy.death.fade', label: 'Death (fade)', group: 'extra', body: { kind: 'death', method: 'fade', ms: 900 } },
+    { key: 'enemy.death.melt', label: 'Death (melt)', group: 'extra', body: { kind: 'death', method: 'melt', ms: 900 } }
+  ];
+  M.DEFAULT_ABILITIES = [
+    { key: 'attack', label: 'Attack', body: { kind: 'ability', caster: 'attack', travel: { type: 'none', ms: 0 }, impact: { fx: null, ms: 360, flash: false, shake: 0 }, hits: 1, markers: [] } },
+    { key: 'cast', label: 'Cast', body: { kind: 'ability', caster: 'cast', travel: { type: 'projectile', ms: 260 }, impact: { fx: null, ms: 450, flash: true, shake: 0 }, hits: 1, markers: [] } },
+    { key: 'item', label: 'Use item', body: { kind: 'ability', caster: 'item', travel: { type: 'rise', ms: 300 }, impact: { fx: null, ms: 420, flash: false, shake: 0 }, hits: 1, markers: [] } }
+  ];
+  M.anims = function (b) { return ART.records.list('anm_', b || cur()); };
+  M.libAnim = function (b, key) { return ART.bySubject('anm_', 'role', 'anim:' + key, b || cur()); };
+  M.defaultAbility = function (b, key) { return ART.bySubject('anm_', 'role', 'ability:' + key, b || cur()); };
+  function retired(b) { ART.ensure(b); var st = b.art.settings; if (!Array.isArray(st.retired)) st.retired = []; return st.retired; }
+  M.buildLibrary = function (b, report) {
+    var ret = retired(b);
+    M.LIBRARY.forEach(function (d) {
+      if (ret.indexOf('anim:' + d.key) >= 0) return;
+      if (M.libAnim(b, d.key)) { bump(report, 'kept'); return; }
+      ART.records.put(ART.envelope('anm_', d.label, { kind: 'role', ref: 'anim:' + d.key }, 'default', H('anm|' + d.key), U.clone(d.body)), b);
+      bump(report, 'created');
+    });
+    M.DEFAULT_ABILITIES.forEach(function (d) {
+      if (ret.indexOf('ability:' + d.key) >= 0) return;
+      if (M.defaultAbility(b, d.key)) { bump(report, 'kept'); return; }
+      ART.records.put(ART.envelope('anm_', d.label + ' (default ability)', { kind: 'role', ref: 'ability:' + d.key }, 'default', H('anm|ability|' + d.key), U.clone(d.body)), b);
+      bump(report, 'created');
+    });
+  };
+  // The animation a sprite plays for a key, through the engine's lookup (sprite map, shared base, library).
+  M.animFor = function (spr, key, b) { b = b || cur(); return EA.forSprite(b.art, spr, key); };
+
+  // Enemy deaths vary by body: oozes and plants melt, floaters fade, everything else scatters.
+  var DEATH_BY_RIG = { ooze: 'melt', plant: 'melt', floater: 'fade' };
+  M.deathFor = function (rig) { return DEATH_BY_RIG[rig] || 'scatter'; };
+  M.buildEnemyAnims = function (b, report) {
+    S.sprites(b).filter(function (s) { return s.kind === 'enemy' && !s.shares; }).forEach(function (s) {
+      if (kept(s)) { bump(report, 'kept'); return; }
+      var m = M.deathFor(s.recipe && s.recipe.rig), lib = M.libAnim(b, m === 'scatter' ? 'enemy.death' : 'enemy.death.' + m) || M.libAnim(b, 'enemy.death');
+      var want = lib ? { 'enemy.death': lib.id } : {};
+      if (U.canonical(s.anims || {}) === U.canonical(want)) { bump(report, 'kept'); return; }
+      s.anims = want; bump(report, 'refreshed');
+    });
+  };
+
+  // ---------------------------------------------------------------- ability animations
+  // What an ability looks like, from its kind, targeting, and element. Genre neutral: a caster pose, how the effect
+  // travels, and the element's particles at the target.
+  M.abilityLook = function (abl, fx) {
+    var kind = abl.kind || 'attack', t = abl.targeting || {}, all = t.scope === 'all' || t.scope === 'row', shape = fx && fx.particle && fx.particle.shape;
+    var body = { kind: 'ability', caster: 'attack', travel: { type: 'none', ms: 0 }, impact: { fx: fx ? fx.id : null, ms: 420, flash: false, shake: 0 }, hits: 1, markers: [] };
+    if (kind === 'magic' || kind === 'status' || kind === 'summon') {
+      body.caster = 'cast'; body.impact.flash = kind !== 'status';
+      if (kind === 'summon') { body.travel = { type: 'beam', ms: 420 }; body.impact.ms = 700; body.impact.shake = 2; }
+      else if (all || shape === 'bolt' || shape === 'flake') body.travel = { type: 'fall', ms: 360 };
+      else if (shape === 'bubble' || shape === 'ring') body.travel = { type: 'rise', ms: 300 };
+      else body.travel = { type: 'projectile', ms: 260 };
+    } else if (kind === 'heal') { body.caster = 'cast'; body.travel = { type: 'rise', ms: 320 }; body.impact.ms = 520; }
+    else if (kind === 'limit') { body.caster = 'limit'; body.travel = { type: 'beam', ms: 300 }; body.impact = { fx: body.impact.fx, ms: 640, flash: true, shake: 2 }; body.hits = 3; }
+    else if (kind === 'enemy') { body.caster = 'attack'; body.impact.shake = 1; }
+    else if (kind === 'command') { body.caster = 'item'; body.travel = { type: 'projectile', ms: 220 }; }
+    if (kind === 'attack' && abl.element) body.impact.flash = true;
+    return body;
+  };
+  M.abilityAnim = function (b, ablId) { return ART.bySubject('anm_', 'abl', ablId, b || cur()); };
+  M.buildAbilities = function (b, report) {
+    rulesList(b, 'abl_').forEach(function (a) {
+      if (a.kind === 'passive') return;
+      var fx = a.element ? ART.bySubject('efx_', 'element', a.element, b) : null, look = M.abilityLook(a, fx), r = M.abilityAnim(b, a.id);
+      if (r) {
+        if (kept(r)) { if (r.impact && r.impact.fx && !ART.records.get(r.impact.fx, b)) r.impact.fx = fx ? fx.id : null; bump(report, 'kept'); return; }
+        var body = {}; ['kind', 'caster', 'travel', 'impact', 'hits', 'markers'].forEach(function (k) { body[k] = r[k]; });
+        if (U.canonical(body) === U.canonical(look)) { bump(report, 'kept'); return; }
+        Object.keys(look).forEach(function (k) { r[k] = look[k]; }); r.name = (a.name || a.id) + ' animation';
+        bump(report, 'refreshed');
+        return;
+      }
+      ART.records.put(ART.envelope('anm_', (a.name || a.id) + ' animation', { kind: 'abl', ref: a.id }, 'procedural', H('anm|' + a.id), look), b);
+      bump(report, 'created');
+    });
+  };
+
+  // ---------------------------------------------------------------- weather overlays
+  // Inferred from each weather state's real world description (a meteorology keyword) and its name. Rules run most
+  // specific first; anything unmatched gets a plainly generic overlay flagged for editing.
+  function L(type, density, angle, speed, depth, hex) { return { type: type, density: density, angle: angle, speed: speed, depth: depth, hex: hex }; }
+  M.WEATHER_RULES = [
+    { key: 'tornado', re: /tornado|waterspout|funnel/, make: function () { return { layers: [L('streak', 0.7, 25, 1.5, 1, '#9aa6b4'), L('leaf', 0.8, 60, 2, 1, '#6a7040')], tint: ['#2a2a26', 0.3], lightning: [3000, 8000, 150] }; } },
+    { key: 'thunderstorm', re: /thunder|supercell|lightning|squall line|derecho|t-?storm|cumulonimbus|mesoscale convective|electrical storm/, make: function () { return { layers: [L('streak', 0.8, 12, 1.3, 1, '#a8b8d0')], tint: ['#1c2030', 0.28], lightning: [1800, 5200, 170] }; } },
+    { key: 'blizzard', re: /blizzard|whiteout|snow ?squall|ground blizzard/, make: function () { return { layers: [L('flake', 0.95, 45, 2.2, 1, '#f4f6fa'), L('band', 0.6, 0, 1.5, 1, '#e8eef6')], tint: ['#c8d4e4', 0.18] }; } },
+    { key: 'freezing rain', re: /freezing rain|freezing drizzle|ice storm|glaze/, make: function () { return { layers: [L('streak', 0.55, 4, 1, 0.8, '#c8e0f0')], tint: ['#9ab0c8', 0.12] }; } },
+    { key: 'hail', re: /hail|sleet|ice pellet|graupel/, make: function () { return { layers: [L('streak', 0.6, 3, 1.6, 0.5, '#e8f0f8'), L('flake', 0.3, 3, 1.4, 0.6, '#f4f6fa')], tint: ['#8a98a8', 0.1] }; } },
+    { key: 'snow', re: /snow|flurr/, make: function (t) { return { layers: [L('flake', /heavy|squall|intense/.test(t) ? 0.85 : /light|flurr|dusting/.test(t) ? 0.35 : 0.55, 8, 0.9, 1, '#f4f6fa')], tint: ['#dfe6f0', 0.08] }; } },
+    { key: 'drizzle', re: /drizzle/, make: function () { return { layers: [L('streak', 0.35, 3, 0.6, 0.4, '#b0c0d4')], tint: ['#8090a0', 0.1] }; } },
+    { key: 'rain', re: /rain|shower|downpour|monsoon|torrential|stratiform|precip|deluge|cloudburst/, make: function (t) { var heavy = /heavy|downpour|torrential|monsoon|deluge|cloudburst|intense/.test(t), light = /light|spit|sprinkl/.test(t); return { layers: [L('streak', heavy ? 0.9 : light ? 0.4 : 0.6, 8, heavy ? 1.3 : 1, 1, '#a8bcd4')], tint: ['#404a5a', heavy ? 0.22 : 0.12] }; } },
+    { key: 'dust', re: /dust|sand|haboob|sirocco|simoom|harmattan|khamsin/, make: function () { return { layers: [L('mote', 0.9, 80, 3, 1, '#c8a060'), L('band', 0.6, 0, 2, 1, '#b88a50')], tint: ['#a07840', 0.3] }; } },
+    { key: 'ash', re: /ash|volcan|cinder|tephra|caldera/, make: function () { return { layers: [L('mote', 0.8, 10, 0.7, 1, '#5a5a5a'), L('mote', 0.2, 0, 0.5, 1, '#e07030')], tint: ['#3a3430', 0.3] }; } },
+    { key: 'aurora', re: /aurora|northern lights|southern lights/, make: function () { return { layers: [L('band', 0.45, 0, 0.6, 1, '#60e0a0'), L('mote', 0.3, 0, 0.3, 1, '#e0f0ff')], tint: ['#102030', 0.25] }; } },
+    { key: 'fog', re: /fog|mist|haze|smog|marine layer|low cloud|brume|murk/, make: function (t) { var haze = /haze|smog/.test(t), mist = /mist/.test(t) && !/fog/.test(t); return { layers: [L('band', haze ? 0.35 : mist ? 0.4 : 0.7, 0, 0.5, 1, haze ? (/smog/.test(t) ? '#9a9a7a' : '#c8b89a') : '#d8dce0')], tint: [haze ? '#b0a080' : '#c0c4c8', haze ? 0.15 : mist ? 0.14 : 0.25] }; } },
+    { key: 'wind', re: /wind|gale|gust|breez|blustery|chinook|foehn|mistral|bora|santa ana/, make: function () { return { layers: [L('leaf', 0.6, 70, 2, 1, '#8a9a3a'), L('mote', 0.3, 80, 3, 1, '#d8d0b0')], tint: null }; } },
+    { key: 'static', re: /static|electric|ioniz|magnetic|plasma|st\.? elmo/, make: function () { return { layers: [L('mote', 0.4, 0, 0.4, 1, '#c0e0ff'), L('bolt', 0, 0, 0, 0, '#e0f0ff')], tint: ['#182030', 0.15], lightning: [6000, 12000, 80] }; } },
+    { key: 'pollen', re: /pollen|spore|petal|blossom|firefl/, make: function () { return { layers: [L('mote', 0.5, 20, 0.5, 1, '#f0e080')], tint: null }; } },
+    { key: 'heat', re: /heat|hot|drought|scorch|swelter|mirage/, make: function () { return { layers: [L('band', 0.3, 0, 0.8, 1, '#f0d8a0')], tint: ['#f0c070', 0.12] }; } },
+    { key: 'overcast', re: /overcast|cloudy|gloom|grey|gray|stratus|nimbostratus/, make: function () { return { layers: [L('none', 0, 0, 0, 0, null)], tint: ['#707a88', 0.18] }; } },
+    { key: 'night', re: /night|dark|eclipse|starless/, make: function () { return { layers: [L('none', 0, 0, 0, 0, null)], tint: ['#101830', 0.35] }; } },
+    { key: 'clear', re: /clear|fair|sunny|calm|high pressure|cloudless|bright/, make: function () { return { layers: [L('none', 0, 0, 0, 0, null)], tint: null }; } }
+  ];
+  // inferWeather(text) -> {keyword, generic, layers [{type, density, angle, speed, depth, hex}], tint [hex, alpha], lightning}
+  M.inferWeather = function (text) {
+    var t = String(text || '').toLowerCase();
+    for (var i = 0; i < M.WEATHER_RULES.length; i++) {
+      var rl = M.WEATHER_RULES[i];
+      if (rl.re.test(t)) { var o = rl.make(t); o.keyword = rl.key; o.generic = false; return o; }
+    }
+    return { keyword: null, generic: true, layers: [L('mote', 0.25, 0, 0.6, 1, '#d0d0d0')], tint: null };
+  };
+  // Turns an inferred look into wov_ fields fitted to the master palette.
+  M.weatherBody = function (look, entries) {
+    function m(hex) { return hex && entries.length ? PE.nearest(entries, hex) : null; }
+    var body = {
+      layers: look.layers.map(function (x) { var o = { type: x.type, density: x.density, angle: x.angle, speed: x.speed, depth: x.depth }; if (x.hex) { o.hex = x.hex; o.m = m(x.hex); } return o; }),
+      tint: look.tint ? { hex: look.tint[0], m: m(look.tint[0]), alpha: look.tint[1] } : null,
+      lightning: look.lightning ? { every: [look.lightning[0], look.lightning[1]], flashMs: look.lightning[2], hex: '#ffffff', m: m('#ffffff') } : null,
+      ambient: null, keyword: look.keyword, generic: !!look.generic
+    };
+    return body;
+  };
+  M.weatherText = function (w) { return [w.name, w.realWorld].filter(Boolean).join(' '); };
+  M.overlays = function (b) { return ART.records.list('wov_', b || cur()); };
+  M.overlayFor = function (b, wthId) { return ART.bySubject('wov_', 'wth', wthId, b || cur()); };
+  M.buildWeather = function (b, report) {
+    var ent = P.entries(b);
+    rulesList(b, 'wth_').forEach(function (w) {
+      var r = M.overlayFor(b, w.id), body = M.weatherBody(M.inferWeather(M.weatherText(w)), ent);
+      if (r) {
+        if (kept(r)) { bump(report, 'kept'); return; }
+        var have = {}; Object.keys(body).forEach(function (k) { have[k] = r[k]; });
+        if (U.canonical(have) === U.canonical(body)) { bump(report, 'kept'); return; }
+        Object.keys(body).forEach(function (k) { r[k] = body[k]; }); r.name = (w.name || w.id) + ' overlay';
+        bump(report, 'refreshed');
+        return;
+      }
+      ART.records.put(ART.envelope('wov_', (w.name || w.id) + ' overlay', { kind: 'wth', ref: w.id }, 'procedural', H('wov|' + w.id), body), b);
+      bump(report, 'created');
+    });
+  };
+  // Master rebuild: generated overlays refit from their source colors; edited ones move to the nearest new color.
+  P.onRebuild(function (b, map) {
+    var ent = P.entries(b);
+    M.overlays(b).forEach(function (r) {
+      var parts = (r.layers || []).concat([r.tint, r.lightning]).filter(Boolean);
+      parts.forEach(function (o) { if (kept(r)) { if (typeof o.m === 'number' && map[o.m] !== undefined) o.m = map[o.m]; } else if (o.hex) o.m = PE.nearest(ent, o.hex); });
+    });
+  });
+
+  // ---------------------------------------------------------------- Quick Build
+  ART.quickBuild.register({ key: 'motion', label: 'Animations, abilities, and weather', order: 30, run: function (b, r) {
+    if (!P.master(b)) return;
+    M.buildLibrary(b, r);
+    M.buildEnemyAnims(b, r);
+    M.buildAbilities(b, r);
+    M.buildWeather(b, r);
+  } });
+
+  // ---------------------------------------------------------------- validation
+  Kit.validate.register('art.motion', function (b, ctx) {
+    var recs = b.art && U.isObj(b.art.records) ? b.art.records : {};
+    function list(p) { return U.isObj(recs[p]) ? Object.keys(recs[p]).map(function (k) { return recs[p][k]; }).filter(U.isObj) : []; }
+    function has(p, id) { return typeof id === 'string' && U.isObj(recs[p]) && !!recs[p][id]; }
+    function add(id, path, msg, level) { ctx.add({ recordId: id, fieldPath: path, message: msg, level: level || 'error' }); }
+    var n = P.entries(b).length, poses = Object.assign({}, ES.POSES, ES.artPoses(b.art));
+    function idxOk(v) { return typeof v === 'number' && v === Math.floor(v) && v >= 0 && v < n; }
+    list('anm_').forEach(function (r) {
+      var kind = r.kind || 'sprite';
+      if (['sprite', 'death', 'ability'].indexOf(kind) < 0) { add(r.id, 'kind', 'Animation kind must be sprite, death, or ability.'); return; }
+      if (kind === 'sprite') {
+        var fs = Array.isArray(r.frames) ? r.frames : null;
+        if (!fs || !fs.length) { add(r.id, 'frames', 'An animation needs at least one frame.'); return; }
+        fs.forEach(function (f, i) {
+          if (!U.isObj(f)) { add(r.id, 'frames.' + i, 'Frame ' + (i + 1) + ' is not an object.'); return; }
+          if (!poses[f.pose]) add(r.id, 'frames.' + i + '.pose', 'Frame ' + (i + 1) + ' uses an unknown pose ' + f.pose + '.', 'warning');
+          if (!(Number(f.ms) > 0 && Number(f.ms) <= 10000)) add(r.id, 'frames.' + i + '.ms', 'Frame ' + (i + 1) + ' needs a duration from 1 to 10000 ms.');
+          if (f.off != null && !(Array.isArray(f.off) && f.off.length === 2 && f.off.every(function (v) { return typeof v === 'number' && Math.abs(v) <= 64; }))) add(r.id, 'frames.' + i + '.off', 'An offset is two numbers within 64 pixels.');
+        });
+        (Array.isArray(r.markers) ? r.markers : []).forEach(function (m, i) {
+          if (!U.isObj(m) || EA.MARKER_TYPES.indexOf(m.type) < 0) add(r.id, 'markers.' + i, 'Marker type must be ' + EA.MARKER_TYPES.join(', ') + '.');
+          else if (!(m.f >= 0 && m.f < fs.length && m.f === Math.floor(m.f))) add(r.id, 'markers.' + i + '.f', 'Marker ' + (i + 1) + ' points at a frame that does not exist.');
+        });
+      } else if (kind === 'death') {
+        if (EA.DEATH_METHODS.indexOf(r.method) < 0) add(r.id, 'method', 'Death method must be scatter, fade, or melt.');
+        if (!(Number(r.ms) > 0 && Number(r.ms) <= 10000)) add(r.id, 'ms', 'A death needs a duration from 1 to 10000 ms.');
+      } else {
+        if (EA.CASTERS.indexOf(r.caster) < 0) add(r.id, 'caster', 'Caster must be attack, cast, item, or limit.');
+        if (!U.isObj(r.travel) || EA.TRAVELS.indexOf(r.travel.type) < 0) add(r.id, 'travel.type', 'Travel must be none, projectile, beam, rise, or fall.');
+        var fx = r.impact && r.impact.fx;
+        if (fx && !has('efx_', fx)) add(r.id, 'impact.fx', 'Effect ' + fx + ' does not exist.');
+        if (r.hits != null && !(r.hits >= 1 && r.hits <= 16)) add(r.id, 'hits', 'Hits run from 1 to 16.');
+        (Array.isArray(r.markers) ? r.markers : []).forEach(function (m, i) { if (!U.isObj(m) || EA.MARKER_TYPES.indexOf(m.type) < 0 || !(Number(m.ms) >= 0)) add(r.id, 'markers.' + i, 'An ability marker is {ms, type} with a known type.'); });
+      }
+      var sj = r.subject;
+      if (sj && sj.kind === 'abl' && !(b.rules && U.isObj(b.rules.abl_) && b.rules.abl_[sj.ref])) add(r.id, 'subject.ref', 'This animation belongs to ' + sj.ref + ', which no longer exists.', 'warning');
+    });
+    list('spr_').forEach(function (s) {
+      Object.keys(U.isObj(s.anims) ? s.anims : {}).forEach(function (k) {
+        if (!has('anm_', s.anims[k])) add(s.id, 'anims.' + k, 'Animation ' + s.anims[k] + ' does not exist.');
+      });
+    });
+    list('wov_').forEach(function (r) {
+      if (!Array.isArray(r.layers)) { add(r.id, 'layers', 'An overlay needs a list of layers (use type none for clear weather).'); return; }
+      r.layers.forEach(function (x, i) {
+        if (!U.isObj(x) || EW.TYPES.indexOf(x.type) < 0) { add(r.id, 'layers.' + i + '.type', 'Layer type must be ' + EW.TYPES.join(', ') + '.'); return; }
+        if (x.type !== 'none' && x.type !== 'bolt' && !(x.density >= 0 && x.density <= 1)) add(r.id, 'layers.' + i + '.density', 'Density runs from 0 to 1.');
+        if (x.m != null && n && !idxOk(x.m)) add(r.id, 'layers.' + i + '.m', 'The layer color must be a master palette index.');
+      });
+      if (r.tint && (!idxOk(r.tint.m) && n || !(r.tint.alpha >= 0 && r.tint.alpha <= 0.8))) add(r.id, 'tint', 'A tint is a master index and an alpha from 0 to 0.8.');
+      if (r.lightning && !(Array.isArray(r.lightning.every) && r.lightning.every.length === 2 && r.lightning.every[0] > 0 && r.lightning.every[0] <= r.lightning.every[1])) add(r.id, 'lightning.every', 'Lightning needs a range [min, max] in ms with min no larger than max.');
+      if (r.generic) add(r.id, 'layers', 'This overlay is a generic guess because the weather description had no known keyword. Edit it on the Motion tab.', 'warning');
+      var sj = r.subject;
+      if (sj && sj.kind === 'wth' && !(b.rules && U.isObj(b.rules.wth_) && b.rules.wth_[sj.ref])) add(r.id, 'subject.ref', 'This overlay belongs to ' + sj.ref + ', which no longer exists.', 'warning');
+    });
+  });
+  function goMotion(rid) { if (!Kit.go('motion')) return false; if (ART.WS.motion && ART.WS.motion.focus) ART.WS.motion.focus(rid); return true; }
+  Kit.jump.register({
+    test: function (rid) { var p = Kit.ids.prefixOf(rid); return p === 'anm_' || p === 'wov_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: goMotion
+  });
+})();
+// === ART:MOTION END ===
+// === WS:MOTION BEGIN ===
+(function () {
+  'use strict';
+  // The Motion tab: Poses, Animations, Ability animations, Effects, and Weather. Every preview plays at true speed on a
+  // logical canvas at the Charter's own pixel size, scaled up by a whole number with smoothing off, the way the game
+  // will draw it. One animation loop drives every visible stage and stops when none is on screen.
+  var U = Kit.util, el = U.el, esc = U.esc, ER = ENGINE_RENDER, ES = ER.sprite, EA = ER.anim;
+  var S = ART.sprites, P = ART.palette, M = ART.motion, W = ART.ui;
+  ART.WS = ART.WS || {};
+  var SUBS = [['poses', 'Poses'], ['anims', 'Animations'], ['abilities', 'Ability animations'], ['effects', 'Effects'], ['weather', 'Weather']];
+  var ui = { sub: 'poses', focus: null, sample: null, enemy: null, paused: false };
+  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Idle', ready: 'Ready', step: 'Step', windup: 'Wind up', attack: 'Attack', cast: 'Cast', item: 'Item', hurt: 'Hurt', kneel: 'Kneel', ko: 'KO', revive: 'Revive', victory: 'Victory', limit: 'Limit', nod: 'Nod', shakeL: 'Shake left', shakeR: 'Shake right', crouch: 'Crouch', jump: 'Jump', sit: 'Sit', laugh: 'Laugh', laughB: 'Laugh B' };
+  function cur() { return Kit.bundle.current(); }
+  function touch(reason) { Kit.bundle.touch(reason || 'motion'); Kit.refreshValidation(); }
+  function rowFor(r) { var d = el('div', 'a7-row'); d.dataset.rid = r.id; if (ui.focus === r.id) d.classList.add('a7-hit'); return d; }
+  function poseLabel(k) { return POSE_LABELS[k] || k; }
+  // Taxonomy entries are stored with label equal to key until someone renames them; show those in plain words.
+  var DIR_LABELS = { down: 'down', up: 'up', right: 'right', left: 'left' };
+  var TAX_LABELS = { shake: 'Shake head', faint: 'Faint', death: 'Death', ko: 'KO' };
+  function taxLabel(e) {
+    if (e.label && e.label !== e.key) return e.label;
+    var p = String(e.key).split('.');
+    if (p.length === 2 && DIR_LABELS[p[1]]) return poseLabel(p[0]) + ', ' + DIR_LABELS[p[1]];
+    return TAX_LABELS[e.key] || poseLabel(e.key).charAt(0).toUpperCase() + poseLabel(e.key).slice(1);
+  }
+  M.taxLabel = taxLabel;
+  function T() { return S.tileSize(cur()); }
+  function res() { var r = (cur().charter.specs || {}).resolution || {}; return { w: Number(r.w) || 256, h: Number(r.h) || 224 }; }
+  // The Charter scale: the whole number factor a 720 pixel wide screen would use for this resolution.
+  function charterScale() { return Math.max(2, Math.min(6, Math.floor(720 / res().w))); }
+  function num(label, value, min, max, step, onChange) {
+    var id = 'a7n' + U.rand36(6), w = el('label', 'a7-num'); w.htmlFor = id;
+    w.innerHTML = '<span>' + esc(label) + '</span>';
+    var i = el('input', 'inp'); i.type = 'number'; i.id = id; i.min = min; i.max = max; i.step = step; i.value = value;
+    i.addEventListener('change', function () { var v = Number(i.value); if (!isFinite(v)) return; onChange(Math.max(min, Math.min(max, v))); });
+    w.appendChild(i); return w;
+  }
+  function text(label, value, onChange) {
+    var id = 'a7x' + U.rand36(6), w = el('label', 'a7-num'); w.htmlFor = id;
+    w.innerHTML = '<span>' + esc(label) + '</span>';
+    var i = el('input', 'inp'); i.type = 'text'; i.id = id; i.value = value == null ? '' : value; i.maxLength = 40;
+    i.addEventListener('change', function () { onChange(i.value.trim() || null); });
+    w.appendChild(i); return w;
+  }
+  function needMaster(host) {
+    var p = el('section', 'panel');
+    p.innerHTML = '<h3 class="section-h">Nothing to animate yet</h3><p class="muted">Animations play on sprites drawn from the master palette. Quick Build makes the palettes, the sprites, the animation library, an animation for every ability, and an overlay for every weather state, all without an API key.</p>';
+    p.appendChild(W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+    host.appendChild(p);
+  }
+
+  // ---------------------------------------------------------------- the stage loop
+  var stages = [], raf = 0, last = 0;
+  function loop(ts) {
+    raf = 0;
+    var dt = last ? Math.min(100, ts - last) : 16;
+    last = ts;
+    stages = stages.filter(function (s) { return s.cv.isConnected; });
+    if (!stages.length) { last = 0; return; }
+    if (!ui.paused && !document.hidden) stages.forEach(function (s) { s.t += dt; try { s.paint(dt); } catch (e) { s.cv.dataset.err = e.message; } });
+    raf = requestAnimationFrame(loop);
+  }
+  // stage(w, h, k, tick(ctx, t, dt), label) -> canvas. w and h are logical pixels; k is the whole number scale.
+  function stage(w, h, k, tick, label) {
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h; cv.className = 'a7-stage';
+    cv.style.width = w * k + 'px'; cv.style.aspectRatio = w + ' / ' + h;
+    cv.setAttribute('role', 'img');
+    if (label) cv.setAttribute('aria-label', label);
+    var ctx = cv.getContext && cv.getContext('2d');
+    var st = { cv: cv, t: 0, paint: function (dt) { if (!ctx) return; ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 1; tick(ctx, st.t, dt); } };
+    stages.push(st);
+    st.paint(0);
+    if (!raf && typeof requestAnimationFrame === 'function') raf = requestAnimationFrame(loop);
+    cv.restart = function () { st.t = 0; };
+    return cv;
+  }
+  M.stage = stage;
+  M.stageCount = function () { return stages.filter(function (s) { return s.cv.isConnected; }).length; };
+  // A backdrop from the master palette: sky above, ground below, a horizon line.
+  function backdrop(ctx, w, h, horizon) {
+    var e = P.entries(), sky = e.length ? e[ER.palette.nearest(e, '#4a6a9a')] : '#4a6a9a', gr = e.length ? e[ER.palette.nearest(e, '#4a6a3a')] : '#4a6a3a', ln = e.length ? e[ER.palette.nearest(e, '#2a3a24')] : '#2a3a24';
+    var hy = Math.round(h * (horizon == null ? 0.66 : horizon));
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, hy);
+    ctx.fillStyle = gr; ctx.fillRect(0, hy, w, h - hy);
+    ctx.fillStyle = ln; ctx.fillRect(0, hy, w, 1);
+    return hy;
+  }
+
+  // ---------------------------------------------------------------- samples
+  function partySprites(b) { return S.sprites(b).filter(function (s) { return s.mode === 'field' && s.kind !== 'enemy'; }); }
+  function enemySprites(b) { return S.sprites(b).filter(function (s) { return s.kind === 'enemy'; }); }
+  function sample(b) {
+    var list = partySprites(b), s = ui.sample && ART.records.get(ui.sample, b);
+    return s && s.mode === 'field' ? s : list.filter(function (x) { return x.kind === 'character'; })[0] || list[0] || null;
+  }
+  function battleOf(b, field) { return field ? S.spriteFor(b, field.subject.kind, field.subject.ref, 'battle') || field : null; }
+  function sampleEnemy(b) { var s = ui.enemy && ART.records.get(ui.enemy, b); return s || enemySprites(b)[0] || null; }
+  function samplePicker(b, after) {
+    var row = el('div', 'a7-ctl');
+    var ps = partySprites(b), es = enemySprites(b);
+    if (ps.length) row.appendChild(W.select('Preview on', (sample(b) || {}).id, ps.map(function (s) { return [s.id, s.name.replace(/ \(field\)$/, '')]; }), function (v) { ui.sample = v; after(); }));
+    if (es.length) row.appendChild(W.select('Enemy', (sampleEnemy(b) || {}).id, es.map(function (s) { return [s.id, s.name.replace(/ \(battle\)$/, '')]; }), function (v) { ui.enemy = v; after(); }));
+    row.appendChild(W.toggle('Pause previews', ui.paused, function (on) { ui.paused = on; }));
+    return row;
+  }
+  // A stage playing one sprite animation on one sprite. The sprite stands on the stage's ground line.
+  function animStage(spr, anm, dir, label) {
+    var t = T(), wide = spr && spr.mode === 'battle' && spr.kind !== 'enemy', enemy = spr && spr.kind === 'enemy';
+    var w = (wide ? 4 : enemy ? 4 : 3) * t, h = Math.round((enemy ? 3 : 2.5) * t), k = charterScale(), seed = 7;
+    var hold = anm && !anm.loop ? 700 : 0, D = anm ? EA.duration(anm) : 0;
+    return stage(w, h, k, function (ctx, tm) {
+      var gy = backdrop(ctx, w, h, 0.84);
+      if (!spr) return;
+      var tt = D ? tm % (D + hold) : 0;
+      ER.draw.sprite(ctx, S.cache(), spr.id, anm, tt, Math.round(w / 2 + (enemy ? -4 : 0)), gy, { dir: dir, seed: seed });
+    }, label);
+  }
+
+  // ---------------------------------------------------------------- Poses
+  function taxonomy(b) { ART.ensure(b); return b.art.poseTaxonomy; }
+  function poseDir(group, key) {
+    if (group === 'field') { var p = key.split('.'); return { pose: p[0], dir: p[1] || 'down' }; }
+    var known = M.POSE_OF[group] && M.POSE_OF[group][key];
+    return { pose: known || key, dir: group === 'battleParty' ? 'left' : group === 'battleEnemy' ? 'right' : 'down' };
+  }
+  function viewPoses(host, repaint) {
+    var b = cur(), f = sample(b), en = sampleEnemy(b), tax = taxonomy(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Pose library</h3><p class="muted">The poses every sprite can strike, grouped the way the game uses them. Required poses can be relabeled but not removed, because coverage counts them; optional poses you add are yours to change or delete. Tap a pose to adjust it for the sprite you are previewing; only the changes are stored on that sprite.</p>';
+    intro.appendChild(samplePicker(b, repaint));
+    host.appendChild(intro);
+    if (!f && !en) { needMaster(host); return; }
+    M.GROUPS.forEach(function (g) {
+      var p = el('section', 'panel');
+      var head = el('div', 'a7-name');
+      head.innerHTML = '<h3 class="section-h">' + esc(g.label) + '</h3>';
+      p.appendChild(head);
+      var spr = g.key === 'battleEnemy' ? en : g.key === 'battleParty' ? battleOf(b, f) : f;
+      if (!spr) { p.appendChild(el('div', 'empty-line', 'No sprite to preview this group on.')); host.appendChild(p); return; }
+      var grid = el('div', 'a7-frames');
+      (tax[g.key] || []).forEach(function (e, i) {
+        var pd = poseDir(g.key, e.key), fr = S.cache().sprite(spr.id, pd.pose, pd.dir);
+        var t = el('button', 'a7-frame'); t.type = 'button';
+        t.setAttribute('aria-label', 'Pose ' + taxLabel(e) + (e.required ? ', required' : ', optional'));
+        // Battle party frames are two tiles wide, so they get a larger box to show at the same pixel scale.
+        t.appendChild(W.figure(fr, g.key === 'battleParty' ? 72 : 48));
+        t.appendChild(el('span', 'a7-frame-l', esc(taxLabel(e)) + (e.required ? '' : ' ' + W.chip('optional', 'accent'))));
+        t.addEventListener('click', function () { openPose(g, i, spr.id, repaint); });
+        grid.appendChild(t);
+      });
+      p.appendChild(grid);
+      if (g.key !== 'field') p.appendChild(W.button('Add an optional pose', 'spark', 'btn-ghost', function () { addPose(g, repaint); }));
+      host.appendChild(p);
+    });
+  }
+  var PARAMS = [['lean', 'Lean', -1, 1, 0.05], ['crouch', 'Crouch', 0, 2.5, 0.1], ['bob', 'Bob', 0, 1, 0.1], ['hdx', 'Head forward', -1, 1, 0.05], ['hdy', 'Head down', -1, 1, 0.05], ['wpn', 'Weapon angle', -180, 180, 5]];
+  function openPose(g, i, sprId, repaintList) {
+    Kit.ui.drawer({
+      title: 'Pose',
+      body: function (body, h) {
+        function paint() {
+          var b = cur(), tax = taxonomy(b), e = (tax[g.key] || [])[i], spr = ART.records.get(sprId, b);
+          U.clear(body);
+          if (!e || !spr) { body.appendChild(el('div', 'empty-line', 'This pose no longer exists.')); return; }
+          h.setTitle(taxLabel(e) + ' (' + g.label + ')');
+          var pd = poseDir(g.key, e.key), base = ES.base(b.art, spr);
+          var head = el('div', 'a7-edhead');
+          head.appendChild(W.figure(S.cache().sprite(spr.id, pd.pose, pd.dir), 128, taxLabel(e) + ' on ' + spr.name));
+          var meta = el('div', 'a7-grow');
+          meta.innerHTML = '<dl class="kv"><dt>Key</dt><dd><code>' + esc(e.key) + '</code></dd><dt>Pose</dt><dd>' + esc(poseLabel(pd.pose)) + '</dd><dt>Status</dt><dd>' + (e.required ? W.chip('required', 'muted') : W.chip('optional', 'accent')) + '</dd><dt>Sprite</dt><dd>' + esc(spr.name) + '</dd></dl>';
+          head.appendChild(meta);
+          body.appendChild(head);
+          var ctl = el('div', 'a7-ctl');
+          ctl.appendChild(text('Label', taxLabel(e), function (v) { e.label = v || e.key; touch('pose-label'); paint(); if (repaintList) repaintList(); }));
+          body.appendChild(ctl);
+          if (g.key === 'battleEnemy') {
+            body.appendChild(el('p', 'muted', 'Enemy poses move the whole body (offsets, flashes, and the generated death) rather than redrawing it. To give an enemy a distinct attack or hurt frame, draw it from the Bestiary.'));
+            body.appendChild(W.button('Open in the Bestiary', 'edit', '', function () { h.close(); ART.WS.sprites.openSprite(base.id); }));
+          } else {
+            body.appendChild(el('h3', 'section-h', 'Adjust for this sprite'));
+            body.appendChild(el('p', 'muted a7-small', 'Changes apply to ' + esc(base.name) + (base !== spr ? ' and every sprite that shares its look' : '') + '. Other sprites keep the library pose.'));
+            var own = (base.poses = U.isObj(base.poses) ? base.poses : {}), cur0 = Object.assign({}, ES.poseOf({ poses: Object.assign({}, ES.artPoses(b.art), own) }, pd.pose));
+            var ctl2 = el('div', 'a7-ctl');
+            PARAMS.forEach(function (pp) {
+              var v = cur0[pp[0]];
+              ctl2.appendChild(W.slider(pp[1], v == null ? 0 : v, pp[2], pp[3], pp[4], function (n) {
+                own[pd.pose] = Object.assign({}, own[pd.pose] || {}, (function () { var o = {}; o[pp[0]] = n; return o; })());
+                base.origin = 'user'; touch('pose-adjust'); paint();
+              }));
+            });
+            body.appendChild(ctl2);
+            var row = el('div', 'btn-row');
+            if (own[pd.pose]) row.appendChild(W.button('Back to the library pose', 'check', 'btn-ghost', function () { delete own[pd.pose]; touch('pose-reset'); paint(); }));
+            row.appendChild(W.button('Draw this frame by hand', 'edit', '', function () { ART.editSpriteFrame(spr, pd.pose, pd.dir, paint); }));
+            body.appendChild(row);
+          }
+          if (!e.required) {
+            body.appendChild(W.button('Delete this optional pose', 'x', 'btn-ghost', function () {
+              Kit.ui.confirm({ title: 'Delete this pose?', message: 'The pose leaves the library. Its animation stays until you delete it on the Animations tab.', okLabel: 'Delete', danger: true }).then(function (ok) {
+                if (!ok) return;
+                tax[g.key].splice(i, 1); touch('pose-delete'); h.close(); if (repaintList) repaintList();
+              });
+            }));
+          }
+        }
+        paint();
+      }
+    });
+  }
+  function addPose(g, repaint) {
+    var b = cur(), tax = taxonomy(b), bases = Object.keys(ES.POSES).filter(function (k) { return !ES.POSES[k].lie; });
+    var state = { key: '', base: g.key === 'battleEnemy' ? 'idle' : g.key === 'emote' ? 'stand' : 'attack' };
+    Kit.ui.dialog({
+      title: 'Add an optional pose to ' + g.label,
+      body: function (body) {
+        body.appendChild(el('p', 'muted', 'An optional pose starts from a library pose and gets its own animation. Coverage ignores optional poses.'));
+        var c = el('div', 'a7-ctl');
+        c.appendChild(text('Name', '', function (v) { state.key = v || ''; }));
+        c.appendChild(W.select('Starts from', state.base, bases.map(function (k) { return [k, poseLabel(k)]; }), function (v) { state.base = v; }));
+        body.appendChild(c);
+      },
+      actions: [{ label: 'Cancel', kind: 'ghost', value: null }, { label: 'Add pose', kind: 'primary', onClick: function () {
+        var key = U.slug(state.key || '').replace(/-/g, '_');
+        if (!key) { Kit.ui.toast('Give the pose a name.', 'warn'); return false; }
+        if ((tax[g.key] || []).some(function (e) { return e.key === key; }) || ES.POSES[key]) { Kit.ui.toast('That name is taken.', 'warn'); return false; }
+        tax[g.key] = tax[g.key] || [];
+        tax[g.key].push({ key: key, label: state.key, required: false, pose: { base: state.base } });
+        var ak = M.animKey(g.key, key);
+        ART.records.put(ART.envelope('anm_', state.key, { kind: 'role', ref: 'anim:' + ak }, 'user', null, { kind: 'sprite', loop: g.key !== 'emote', frames: [{ pose: key, ms: 400 }], markers: [] }));
+        touch('pose-add'); repaint();
+        Kit.ui.toast('Added the pose ' + state.key + ' and its animation.', 'ok');
+      } }]
+    });
+  }
+
+  // ---------------------------------------------------------------- Animations
+  function libKeyOf(a) { return a.subject && a.subject.kind === 'role' && /^anim:/.test(a.subject.ref) ? a.subject.ref.slice(5) : null; }
+  function groupOf(key) { if (!key) return 'other'; if (key === 'walk') return 'field'; if (/^emote\./.test(key)) return 'emote'; if (/^battle\./.test(key)) return 'battleParty'; if (/^enemy\./.test(key)) return 'battleEnemy'; return 'other'; }
+  function previewFor(b, a) {
+    var key = libKeyOf(a), g = groupOf(key), f = sample(b);
+    if (g === 'battleEnemy' || a.kind === 'death') return { spr: sampleEnemy(b), dir: 'right' };
+    if (g === 'battleParty') return { spr: battleOf(b, f), dir: 'left' };
+    return { spr: f, dir: g === 'field' ? 'right' : 'down' };
+  }
+  function animSummary(a) {
+    if (a.kind === 'death') return 'Death, ' + a.method + ', ' + a.ms + ' ms';
+    var fs = Array.isArray(a.frames) ? a.frames.length : 0;
+    return fs + ' frame' + (fs === 1 ? '' : 's') + ', ' + EA.duration(a) + ' ms' + (a.loop ? ', loops' : '') + ((a.markers || []).length ? ', ' + a.markers.length + ' marker' + (a.markers.length === 1 ? '' : 's') : '');
+  }
+  function viewAnims(host, repaint) {
+    var b = cur(), all = M.anims(b).filter(function (a) { return a.kind !== 'ability'; });
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Animations</h3><p class="muted">Each animation is a list of poses with durations, offsets, and flashes, plus markers that tell the battle presenter when a hit lands and the sound engine when to play. Sprites play the library animation unless one is mapped to them.</p>';
+    intro.appendChild(samplePicker(b, repaint));
+    host.appendChild(intro);
+    if (!all.length) { needMaster(host); return; }
+    M.GROUPS.concat([{ key: 'other', label: 'Other and extra' }]).forEach(function (g) {
+      var list = all.filter(function (a) { var k = groupOf(libKeyOf(a)); return k === g.key || (g.key === 'battleEnemy' && a.kind === 'death' && k === 'other'); });
+      if (g.key === 'other') list = all.filter(function (a) { return groupOf(libKeyOf(a)) === 'other' && a.kind !== 'death'; });
+      if (!list.length) return;
+      var p = el('section', 'panel');
+      p.appendChild(el('h3', 'section-h', esc(g.label)));
+      list.forEach(function (a) {
+        var row = rowFor(a), pv = previewFor(b, a);
+        row.appendChild(animStage(pv.spr, a, pv.dir, a.name + ' preview'));
+        var mid = el('div', 'a7-grow');
+        mid.innerHTML = '<div class="a7-name"><strong>' + esc(a.name) + '</strong> ' + W.origin(a) + '</div><div class="muted a7-small">' + esc(animSummary(a)) + '</div>';
+        row.appendChild(mid);
+        var acts = el('div', 'a7-acts');
+        acts.appendChild(W.button('Edit', 'edit', '', function () { openAnim(a.id, repaint); }));
+        row.appendChild(acts);
+        p.appendChild(row);
+      });
+      host.appendChild(p);
+    });
+  }
+  function poseOptions(b) {
+    var keys = Object.keys(ES.POSES).concat(Object.keys(ES.artPoses(b.art)));
+    return keys.filter(function (k, i) { return keys.indexOf(k) === i; }).map(function (k) { return [k, poseLabel(k)]; });
+  }
+  function openAnim(id, repaintList) {
+    Kit.ui.drawer({
+      title: 'Animation',
+      body: function (body, h) {
+        function done(reason) { var a = ART.records.get(id); if (a && a.origin === 'default') a.origin = 'user'; touch(reason); paint(); if (repaintList) repaintList(); }
+        function paint() {
+          var b = cur(), a = ART.records.get(id);
+          U.clear(body);
+          if (!a) { body.appendChild(el('div', 'empty-line', 'This animation no longer exists.')); return; }
+          h.setTitle(a.name);
+          var pv = previewFor(b, a), key = libKeyOf(a), libDef = M.LIBRARY.filter(function (d) { return d.key === key; })[0];
+          var head = el('div', 'a7-edhead');
+          head.appendChild(animStage(pv.spr, a, pv.dir, a.name + ' preview'));
+          var meta = el('div', 'a7-grow');
+          meta.innerHTML = '<dl class="kv"><dt>Record</dt><dd><code class="id">' + esc(a.id) + '</code></dd><dt>Plays as</dt><dd>' + esc(key || 'unmapped') + '</dd><dt>Origin</dt><dd>' + W.origin(a) + '</dd><dt>Length</dt><dd>' + esc(animSummary(a)) + '</dd></dl>';
+          head.appendChild(meta);
+          body.appendChild(head);
+          body.appendChild(samplePicker(b, paint));
+          if (a.kind === 'death') {
+            var dc = el('div', 'a7-ctl');
+            dc.appendChild(W.select('Method', a.method, EA.DEATH_METHODS.map(function (m) { return [m, m.charAt(0).toUpperCase() + m.slice(1)]; }), function (v) { a.method = v; done('anim-death'); }));
+            dc.appendChild(num('Length (ms)', a.ms, 100, 5000, 50, function (v) { a.ms = v; done('anim-death'); }));
+            body.appendChild(dc);
+            body.appendChild(el('p', 'muted a7-small', 'Deaths are generated from the enemy\'s own pixels each time they play, so they cost nothing to store.'));
+          } else {
+            var tc = el('div', 'a7-ctl');
+            tc.appendChild(W.toggle('Loops', !!a.loop, function (on) { a.loop = on; done('anim-loop'); }));
+            body.appendChild(tc);
+            body.appendChild(el('h3', 'section-h', 'Frames'));
+            var tbl = el('div', 'a7-ftable');
+            var opts = poseOptions(b);
+            (a.frames || []).forEach(function (f, i) {
+              var r = el('div', 'a7-frow');
+              r.appendChild(el('span', 'a7-fnum', String(i + 1)));
+              r.appendChild(W.select('Pose', f.pose, opts, function (v) { f.pose = v; done('anim-frame'); }));
+              r.appendChild(num('ms', f.ms, 10, 10000, 10, function (v) { f.ms = v; done('anim-frame'); }));
+              var off = Array.isArray(f.off) ? f.off : [0, 0];
+              r.appendChild(num('Forward', off[0], -32, 32, 1, function (v) { f.off = [v, off[1]]; done('anim-frame'); }));
+              r.appendChild(num('Down', off[1], -32, 32, 1, function (v) { f.off = [off[0], v]; done('anim-frame'); }));
+              r.appendChild(W.toggle('Flash', !!f.flash, function (on) { if (on) f.flash = true; else delete f.flash; done('anim-frame'); }));
+              var mv = el('div', 'a7-acts');
+              if (i) mv.appendChild(W.button('Up', null, 'btn-ghost', function () { a.frames.splice(i - 1, 0, a.frames.splice(i, 1)[0]); (a.markers || []).forEach(function (m) { if (m.f === i) m.f = i - 1; else if (m.f === i - 1) m.f = i; }); done('anim-order'); }));
+              if (a.frames.length > 1) mv.appendChild(W.button('Remove', 'x', 'btn-ghost', function () { a.frames.splice(i, 1); a.markers = (a.markers || []).filter(function (m) { return m.f !== i; }).map(function (m) { if (m.f > i) m.f--; return m; }); done('anim-frame'); }));
+              r.appendChild(mv);
+              tbl.appendChild(r);
+            });
+            body.appendChild(tbl);
+            body.appendChild(W.button('Add a frame', 'spark', 'btn-ghost', function () { var lastF = a.frames[a.frames.length - 1] || { pose: 'stand', ms: 150 }; a.frames.push({ pose: lastF.pose, ms: lastF.ms }); done('anim-frame'); }));
+            body.appendChild(el('h3', 'section-h', 'Markers'));
+            body.appendChild(el('p', 'muted a7-small', 'A hit marker is when damage numbers pop and the target reacts. Sound markers name a cue the Sound tab plays in Phase 6. Particle, flash, and shake markers trigger effects.'));
+            var mt = el('div', 'a7-ftable');
+            (a.markers = Array.isArray(a.markers) ? a.markers : []).forEach(function (m, i) {
+              var r = el('div', 'a7-frow');
+              r.appendChild(W.select('Frame', String(m.f), a.frames.map(function (_, j) { return [String(j), String(j + 1)]; }), function (v) { m.f = Number(v); done('anim-marker'); }));
+              r.appendChild(W.select('Type', m.type, EA.MARKER_TYPES.map(function (t) { return [t, t]; }), function (v) { m.type = v; done('anim-marker'); }));
+              r.appendChild(text('Cue', m.arg, function (v) { m.arg = v; done('anim-marker'); }));
+              r.appendChild(W.button('Remove', 'x', 'btn-ghost', function () { a.markers.splice(i, 1); done('anim-marker'); }));
+              mt.appendChild(r);
+            });
+            body.appendChild(mt);
+            body.appendChild(W.button('Add a marker', 'spark', 'btn-ghost', function () { a.markers.push({ f: 0, type: 'hit', arg: null }); done('anim-marker'); }));
+          }
+          var row = el('div', 'btn-row');
+          row.appendChild(W.button('Duplicate', 'slots', '', function () {
+            var copy = ART.envelope('anm_', a.name + ' copy', null, 'user', null, U.clone({ kind: a.kind, loop: a.loop, frames: a.frames, markers: a.markers, method: a.method, ms: a.ms }));
+            Object.keys(copy).forEach(function (k) { if (copy[k] === undefined) delete copy[k]; });
+            ART.records.put(copy); touch('anim-duplicate'); h.close(); if (repaintList) repaintList(); openAnim(copy.id, repaintList);
+          }));
+          if (libDef) row.appendChild(W.button('Reset to the library default', 'check', 'btn-ghost', function () {
+            Kit.ui.confirm({ title: 'Reset this animation?', message: 'Frames and markers go back to the library default.', okLabel: 'Reset' }).then(function (ok) {
+              if (!ok) return;
+              ['frames', 'markers', 'loop', 'method', 'ms'].forEach(function (k) { delete a[k]; });
+              Object.keys(libDef.body).forEach(function (k) { a[k] = U.clone(libDef.body[k]); });
+              a.origin = 'default'; touch('anim-reset'); paint(); if (repaintList) repaintList();
+            });
+          }));
+          if (!key || !libDef) row.appendChild(W.button('Delete', 'x', 'btn-ghost', function () {
+            Kit.ui.confirm({ title: 'Delete this animation?', message: 'Sprites mapped to it fall back to the library animation.', okLabel: 'Delete', danger: true }).then(function (ok) {
+              if (!ok) return;
+              S.sprites().forEach(function (s) { Object.keys(s.anims || {}).forEach(function (k) { if (s.anims[k] === a.id) delete s.anims[k]; }); });
+              ART.records.del(a.id); touch('anim-delete'); h.close(); if (repaintList) repaintList();
+            });
+          }));
+          body.appendChild(row);
+        }
+        paint();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- Ability animations
+  // A small battle: the enemy on the left facing right, the caster on the right facing left (the party side).
+  function abilityStage(b, anm, label) {
+    var t = T(), w = 10 * t, h = Math.round(4 * t), k = charterScale(), u = EA.unit(t);
+    var caster = battleOf(b, sample(b)), foe = sampleEnemy(b), fx = anm.impact && anm.impact.fx ? ART.records.get(anm.impact.fx, b) : null;
+    var cAnm = caster ? M.animFor(caster, 'battle.' + (anm.caster || 'attack'), b) : null, idle = caster ? M.animFor(caster, 'battle.idle', b) : null;
+    var fIdle = foe ? M.animFor(foe, 'enemy.idle', b) : null, fHurt = foe ? M.animFor(foe, 'enemy.hurt', b) : null;
+    var gy = Math.round(h * 0.84), from = { x: Math.round(w * 0.74) - 3 * u, y: gy - Math.round(t * 0.9) }, to = { x: Math.round(w * 0.26), y: gy - t };
+    var pb = null, hurtAt = -1, gap = 600, t0 = 0;
+    function reset(tm) { pb = ER.ability.create({ anm: anm, caster: cAnm, from: from, to: to, efx: fx, entries: P.entries(b), unit: u, seed: 13 }); hurtAt = -1; t0 = tm; }
+    return stage(w, h, k, function (ctx, tm, dt) {
+      if (!pb || (pb.done() && tm - t0 > pb.timeline.duration + gap)) reset(tm);
+      var fired = pb.step(dt);
+      fired.forEach(function (m) { if (m.type === 'hit') hurtAt = tm; });
+      var sc = pb.screen();
+      var shook = (sc.shake[0] || sc.shake[1]) && ctx.translate;
+      if (shook) { ctx.save(); ctx.translate(sc.shake[0], sc.shake[1]); }
+      backdrop(ctx, w, h, 0.84);
+      if (foe) ER.draw.sprite(ctx, S.cache(), foe.id, hurtAt >= 0 && tm - hurtAt < EA.duration(fHurt) ? fHurt : fIdle, hurtAt >= 0 && tm - hurtAt < EA.duration(fHurt) ? tm - hurtAt : tm, to.x, gy, { dir: 'right' });
+      if (caster) { var ca = pb.casterAt(), playing = pb.t < pb.timeline.casterMs; ER.draw.sprite(ctx, S.cache(), caster.id, playing ? cAnm : idle, playing ? ca.t : tm, Math.round(w * 0.74) - ca.off[0], gy, { dir: 'left' }); }
+      pb.draw(ctx);
+      if (sc.darken) { ctx.globalAlpha = sc.darken; ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; }
+      if (sc.flash) { ctx.globalAlpha = sc.flash; ctx.fillStyle = sc.flashColor; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; }
+      if (shook) ctx.restore();
+      if (sc.wave) ER.fx.wave(ctx, sc.wave, tm, w, h);
+    }, label);
+  }
+  function abilityRows(b) {
+    var rows = [], abls = b.rules && U.isObj(b.rules.abl_) ? b.rules.abl_ : {};
+    M.DEFAULT_ABILITIES.forEach(function (d) { var r = M.defaultAbility(b, d.key); if (r) rows.push({ anm: r, label: d.label + ' (default)', note: 'Used when an ability has no animation of its own.' }); });
+    Object.keys(abls).forEach(function (id) { var r = M.abilityAnim(b, id); if (r) rows.push({ anm: r, label: abls[id].name || id, note: (abls[id].kind || '') + (abls[id].element ? ', ' + abls[id].element : '') }); });
+    M.anims(b).filter(function (a) { return a.kind === 'ability' && rows.every(function (x) { return x.anm !== a; }); }).forEach(function (a) { rows.push({ anm: a, label: a.name, note: 'Not linked to an ability' }); });
+    return rows;
+  }
+  function abilitySummary(a) { return (a.caster || 'attack') + ' pose, ' + ((a.travel || {}).type || 'none') + (a.travel && a.travel.type !== 'none' ? ' ' + a.travel.ms + ' ms' : '') + ', ' + (a.hits || 1) + ' hit' + ((a.hits || 1) > 1 ? 's' : '') + (a.impact && a.impact.shake ? ', shake' : '') + (a.impact && a.impact.flash ? ', flash' : ''); }
+  function viewAbilities(host, repaint) {
+    var b = cur(), rows = abilityRows(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Ability animations</h3><p class="muted">The caster strikes its battle pose, the effect travels (thrown, beamed, rising, or falling), and the element\'s particles burst on the target, with hits timed to the markers. Each ability\'s look comes from its kind, targeting, and element.</p>';
+    intro.appendChild(samplePicker(b, repaint));
+    host.appendChild(intro);
+    if (!rows.length) { needMaster(host); return; }
+    var p = el('section', 'panel');
+    rows.forEach(function (x) {
+      var row = rowFor(x.anm);
+      row.appendChild(abilityStage(b, x.anm, x.label + ' preview'));
+      var mid = el('div', 'a7-grow');
+      mid.innerHTML = '<div class="a7-name"><strong>' + esc(x.label) + '</strong> ' + W.origin(x.anm) + '</div><div class="muted a7-small">' + esc(x.note) + '</div><div class="muted a7-small">' + esc(abilitySummary(x.anm)) + '</div>';
+      row.appendChild(mid);
+      var acts = el('div', 'a7-acts');
+      acts.appendChild(W.button('Edit', 'edit', '', function () { openAbility(x.anm.id, repaint); }));
+      row.appendChild(acts);
+      p.appendChild(row);
+    });
+    host.appendChild(p);
+  }
+  function openAbility(id, repaintList) {
+    Kit.ui.drawer({
+      title: 'Ability animation',
+      body: function (body, h) {
+        function done(reason) { var a = ART.records.get(id); if (a) a.origin = 'user'; touch(reason); paint(); if (repaintList) repaintList(); }
+        function paint() {
+          var b = cur(), a = ART.records.get(id);
+          U.clear(body);
+          if (!a) { body.appendChild(el('div', 'empty-line', 'This animation no longer exists.')); return; }
+          h.setTitle(a.name);
+          body.appendChild(abilityStage(b, a, a.name + ' preview'));
+          body.appendChild(samplePicker(b, paint));
+          a.travel = U.isObj(a.travel) ? a.travel : { type: 'none', ms: 0 };
+          a.impact = U.isObj(a.impact) ? a.impact : { fx: null, ms: 420 };
+          var c1 = el('div', 'a7-ctl');
+          c1.appendChild(W.select('Caster pose', a.caster, EA.CASTERS.map(function (k) { return [k, poseLabel(k)]; }), function (v) { a.caster = v; done('ability-caster'); }));
+          c1.appendChild(W.select('Travel', a.travel.type, EA.TRAVELS.map(function (k) { return [k, k === 'none' ? 'None (melee)' : k.charAt(0).toUpperCase() + k.slice(1)]; }), function (v) { a.travel.type = v; if (v !== 'none' && !a.travel.ms) a.travel.ms = 260; done('ability-travel'); }));
+          if (a.travel.type !== 'none') c1.appendChild(num('Travel (ms)', a.travel.ms || 260, 40, 3000, 20, function (v) { a.travel.ms = v; done('ability-travel'); }));
+          body.appendChild(c1);
+          var fxs = P.effects(b), c2 = el('div', 'a7-ctl');
+          c2.appendChild(W.select('Effect', a.impact.fx || '', [['', 'Plain sparks']].concat(fxs.map(function (f) { return [f.id, f.name]; })), function (v) { a.impact.fx = v || null; done('ability-fx'); }));
+          c2.appendChild(num('Impact (ms)', a.impact.ms || 420, 60, 3000, 20, function (v) { a.impact.ms = v; done('ability-impact'); }));
+          c2.appendChild(W.toggle('Flash', !!a.impact.flash, function (on) { a.impact.flash = on; done('ability-flash'); }));
+          c2.appendChild(W.slider('Shake', a.impact.shake || 0, 0, 3, 1, function (v) { a.impact.shake = v; done('ability-shake'); }));
+          c2.appendChild(W.slider('Hits', a.hits || 1, 1, 8, 1, function (v) { a.hits = v; done('ability-hits'); }));
+          body.appendChild(c2);
+          var tl = ER.ability.timeline(a, M.animFor(battleOf(b, sample(b)), 'battle.' + (a.caster || 'attack'), b));
+          body.appendChild(el('p', 'muted a7-small', esc('Release at ' + tl.release + ' ms, hits at ' + tl.hits.join(', ') + ' ms, done at ' + tl.duration + ' ms. The release is the caster animation\'s first hit marker.')));
+          var row = el('div', 'btn-row');
+          var abl = a.subject && a.subject.kind === 'abl' && b.rules && b.rules.abl_ ? b.rules.abl_[a.subject.ref] : null;
+          if (abl) row.appendChild(W.button('Reset to generated', 'check', 'btn-ghost', function () {
+            var look = M.abilityLook(abl, abl.element ? ART.bySubject('efx_', 'element', abl.element, b) : null);
+            Object.keys(look).forEach(function (k) { a[k] = look[k]; }); a.origin = 'procedural'; touch('ability-reset'); paint(); if (repaintList) repaintList();
+          }));
+          body.appendChild(row);
+        }
+        paint();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- Effects
+  function effectStage(b, r, label) {
+    var t = T(), w = 4 * t, h = 3 * t, k = charterScale(), u = EA.unit(t), sys = null, t0 = 0, ent = P.entries(b);
+    var cols = (r.palette || []).map(function (m) { return ent[m] || '#ffffff'; });
+    return stage(w, h, k, function (ctx, tm, dt) {
+      if (!sys || tm - t0 > Math.max(900, (r.particle && r.particle.life || 420) * 1.5)) { sys = ER.fx.create({ x: w / 2, y: h * 0.6, to: { x: w / 2 + 2 * u, y: 2 * u }, colors: cols, particle: r.particle || {}, unit: u }, ((tm / 100) | 0) + 3); t0 = tm; }
+      ER.fx.step(sys, dt);
+      var p = Math.min(1, (tm - t0) / 600), sc = ER.fx.screen(r.screen || 'none', p, u, 5);
+      var shook = (sc.shake[0] || sc.shake[1]) && ctx.translate;
+      if (shook) { ctx.save(); ctx.translate(sc.shake[0], sc.shake[1]); }
+      backdrop(ctx, w, h, 0.8);
+      ER.fx.draw(ctx, sys);
+      if (sc.darken) { ctx.globalAlpha = sc.darken; ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; }
+      if (shook) ctx.restore();
+      if (sc.wave) ER.fx.wave(ctx, sc.wave, tm, w, h);
+    }, label);
+  }
+  function viewEffects(host, repaint) {
+    var b = cur(), fx = P.effects(b);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Element effects</h3><p class="muted">Each element bursts in its own particle shape and moves the screen its own way, so elements stay distinct even in a two color palette. Colors come from the element palette on the Palette tab.</p>';
+    host.appendChild(intro);
+    if (!fx.length) { needMaster(host); return; }
+    var p = el('section', 'panel');
+    fx.forEach(function (r) {
+      var row = rowFor(r);
+      row.appendChild(effectStage(b, r, r.name + ' preview'));
+      var pt = r.particle || {};
+      var mid = el('div', 'a7-grow');
+      mid.innerHTML = '<div class="a7-name"><strong>' + esc(r.name) + '</strong> ' + W.origin(r) + '</div><div class="muted a7-small">' + esc((pt.shape || 'spark') + ', ' + (pt.count || 12) + ' particles, screen ' + (r.screen || 'none')) + '</div>';
+      row.appendChild(mid);
+      var acts = el('div', 'a7-acts');
+      acts.appendChild(W.button('Edit', 'edit', '', function () { openEffect(r.id, repaint); }));
+      row.appendChild(acts);
+      p.appendChild(row);
+    });
+    host.appendChild(p);
+  }
+  function openEffect(id, repaintList) {
+    Kit.ui.drawer({
+      title: 'Effect',
+      body: function (body, h) {
+        function done(reason) { var r = ART.records.get(id); if (r) r.origin = 'user'; touch(reason); paint(); if (repaintList) repaintList(); }
+        function paint() {
+          var b = cur(), r = ART.records.get(id);
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This effect no longer exists.')); return; }
+          h.setTitle(r.name);
+          body.appendChild(effectStage(b, r, r.name + ' preview'));
+          var pt = r.particle = U.isObj(r.particle) ? r.particle : { shape: 'spark', count: 12, life: 420, gravity: 0, spread: 1, speed: 1 };
+          var c = el('div', 'a7-ctl');
+          c.appendChild(W.select('Particle', pt.shape || 'spark', ER.fx.SHAPES.map(function (s) { return [s, s]; }), function (v) { pt.shape = v; done('fx-shape'); }));
+          c.appendChild(W.select('Screen', r.screen || 'none', ER.fx.SCREENS.map(function (s) { return [s, s]; }), function (v) { r.screen = v; done('fx-screen'); }));
+          body.appendChild(c);
+          var c2 = el('div', 'a7-ctl');
+          c2.appendChild(W.slider('Count', pt.count || 12, 1, 60, 1, function (v) { pt.count = v; done('fx-count'); }));
+          c2.appendChild(W.slider('Life (ms)', pt.life || 420, 120, 2000, 20, function (v) { pt.life = v; done('fx-life'); }));
+          c2.appendChild(W.slider('Gravity', pt.gravity || 0, -1, 1, 0.05, function (v) { pt.gravity = v; done('fx-gravity'); }));
+          c2.appendChild(W.slider('Spread', pt.spread == null ? 1 : pt.spread, 0.2, 2, 0.05, function (v) { pt.spread = v; done('fx-spread'); }));
+          c2.appendChild(W.slider('Speed', pt.speed == null ? 1 : pt.speed, 0.2, 3, 0.05, function (v) { pt.speed = v; done('fx-speed'); }));
+          body.appendChild(c2);
+          body.appendChild(W.button('Edit colors on the Palette tab', 'chart', 'btn-ghost', function () { h.close(); Kit.jump(r.id); }));
+        }
+        paint();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- Weather
+  // The overlay plays over the full Charter resolution, so densities read the way the game will show them.
+  // Rows show it at 1x, the drawer at the Charter scale; either way a whole number, so one pixel streaks survive.
+  function weatherStage(b, r, label, big) {
+    var R = res(), u = EA.unit(T()), k = big ? charterScale() : 1, st = null, ent = P.entries(b);
+    var cv = stage(R.w, R.h, k, function (ctx, tm, dt) {
+      if (!st) st = ER.weather.create(r, R.w, R.h, 9, { entries: ent, unit: u });
+      ER.weather.step(st, dt);
+      backdrop(ctx, R.w, R.h, 0.62);
+      ER.weather.draw(ctx, st);
+    }, label);
+    return cv;
+  }
+  function viewWeather(host, repaint) {
+    var b = cur(), wths = b.rules && U.isObj(b.rules.wth_) ? b.rules.wth_ : {}, ids = Object.keys(wths);
+    var intro = el('section', 'panel');
+    intro.innerHTML = '<h3 class="section-h">Weather overlays</h3><p class="muted">Each weather state gets an overlay inferred from its real world description: rain streaks, snowflakes, motes of dust or ash, fog bands, blowing leaves, and lightning, with a tint. Clear weather is an overlay of type none, which still counts as covered. A description with no known keyword gets a plainly generic overlay to edit.</p>';
+    host.appendChild(intro);
+    if (!ids.length) { intro.appendChild(el('div', 'empty-line', 'The bundle has no weather states.')); return; }
+    var p = el('section', 'panel');
+    var any = false;
+    ids.forEach(function (id) {
+      var w = wths[id], r = M.overlayFor(b, id);
+      if (!r) return;
+      any = true;
+      var row = rowFor(r);
+      row.appendChild(weatherStage(b, r, (w.name || id) + ' overlay preview', false));
+      var mid = el('div', 'a7-grow');
+      mid.innerHTML = '<div class="a7-name"><strong>' + esc(w.name || id) + '</strong> ' + W.origin(r) + (r.generic ? ' ' + W.chip('generic, edit me', 'warning') : r.keyword ? ' ' + W.chip(r.keyword, 'muted') : '') + '</div><div class="muted a7-small">' + esc(w.realWorld || 'No real world description') + '</div><div class="muted a7-small">' + esc((r.layers || []).map(function (x) { return x.type; }).join(', ') + (r.lightning ? ', lightning' : '') + (r.tint ? ', tint' : '')) + '</div>';
+      row.appendChild(mid);
+      var acts = el('div', 'a7-acts');
+      acts.appendChild(W.button('Edit', 'edit', '', function () { openWeather(r.id, repaint); }));
+      row.appendChild(acts);
+      p.appendChild(row);
+    });
+    if (!any) { host.appendChild(p); needMaster(host); return; }
+    host.appendChild(p);
+  }
+  function colorBtn(label, m, onPick) {
+    var ent = P.entries(), hex = typeof m === 'number' ? ent[m] : null;
+    var sw = ART.WS.palette.swatch(hex || '#000000', m, { label: label, onClick: function () { ART.WS.palette.pickMaster(label, m).then(function (v) { if (v !== null) onPick(v); }); } });
+    var w = el('span', 'a7-colorbtn'); w.appendChild(sw); w.appendChild(el('span', null, esc(label))); return w;
+  }
+  function openWeather(id, repaintList) {
+    Kit.ui.drawer({
+      title: 'Weather overlay',
+      body: function (body, h) {
+        function done(reason) { var r = ART.records.get(id); if (r) { r.origin = 'user'; r.generic = false; } touch(reason); paint(); if (repaintList) repaintList(); }
+        function paint() {
+          var b = cur(), r = ART.records.get(id);
+          U.clear(body);
+          if (!r) { body.appendChild(el('div', 'empty-line', 'This overlay no longer exists.')); return; }
+          h.setTitle(r.name);
+          var w = r.subject && b.rules && b.rules.wth_ ? b.rules.wth_[r.subject.ref] : null;
+          body.appendChild(weatherStage(b, r, r.name + ' preview', true));
+          body.appendChild(el('p', 'muted a7-small', esc((w && w.realWorld ? 'Described as: ' + w.realWorld + '. ' : '') + (r.generic ? 'No keyword matched, so this is a generic overlay.' : r.keyword ? 'Matched the keyword ' + r.keyword + '.' : ''))));
+          r.layers = Array.isArray(r.layers) ? r.layers : [];
+          body.appendChild(el('h3', 'section-h', 'Layers'));
+          r.layers.forEach(function (x, i) {
+            var box = el('div', 'a7-layer');
+            var c = el('div', 'a7-ctl');
+            c.appendChild(W.select('Type', x.type, ER.weather.TYPES.map(function (t) { return [t, t]; }), function (v) { x.type = v; if (x.density == null) x.density = 0.5; done('wov-type'); }));
+            if (x.type !== 'none' && x.type !== 'bolt') {
+              c.appendChild(colorBtn('Color', x.m, function (v) { x.m = v; delete x.hex; done('wov-color'); }));
+              c.appendChild(W.slider('Density', x.density == null ? 0.5 : x.density, 0, 1, 0.05, function (v) { x.density = v; done('wov-density'); }));
+              c.appendChild(W.slider('Angle', x.angle || 0, -80, 80, 1, function (v) { x.angle = v; done('wov-angle'); }));
+              c.appendChild(W.slider('Speed', x.speed == null ? 1 : x.speed, 0, 4, 0.1, function (v) { x.speed = v; done('wov-speed'); }));
+              c.appendChild(W.slider('Depth', x.depth == null ? 1 : x.depth, 0, 1, 0.05, function (v) { x.depth = v; done('wov-depth'); }));
+            }
+            c.appendChild(W.button('Remove layer', 'x', 'btn-ghost', function () { r.layers.splice(i, 1); if (!r.layers.length) r.layers.push({ type: 'none' }); done('wov-layer'); }));
+            box.appendChild(c);
+            body.appendChild(box);
+          });
+          body.appendChild(W.button('Add a layer', 'spark', 'btn-ghost', function () { r.layers = r.layers.filter(function (x) { return x.type !== 'none'; }); r.layers.push({ type: 'mote', density: 0.4, angle: 0, speed: 1, depth: 1, m: P.entries().length - 1 }); done('wov-layer'); }));
+          body.appendChild(el('h3', 'section-h', 'Tint and lightning'));
+          var c2 = el('div', 'a7-ctl');
+          c2.appendChild(W.toggle('Tint', !!r.tint, function (on) { r.tint = on ? { m: ER.palette.outline(P.entries()), alpha: 0.15 } : null; done('wov-tint'); }));
+          if (r.tint) {
+            c2.appendChild(colorBtn('Tint color', r.tint.m, function (v) { r.tint.m = v; delete r.tint.hex; done('wov-tint'); }));
+            c2.appendChild(W.slider('Strength', r.tint.alpha || 0, 0, 0.8, 0.02, function (v) { r.tint.alpha = v; done('wov-tint'); }));
+          }
+          body.appendChild(c2);
+          var c3 = el('div', 'a7-ctl');
+          c3.appendChild(W.toggle('Lightning', !!r.lightning, function (on) { r.lightning = on ? { every: [2000, 6000], flashMs: 160, m: ER.palette.nearest(P.entries(), '#ffffff') } : null; done('wov-lightning'); }));
+          if (r.lightning) {
+            var ev = r.lightning.every;
+            c3.appendChild(num('Every, from (ms)', ev[0], 300, 30000, 100, function (v) { ev[0] = v; if (ev[1] < v) ev[1] = v; done('wov-lightning'); }));
+            c3.appendChild(num('to (ms)', ev[1], 300, 60000, 100, function (v) { ev[1] = Math.max(v, ev[0]); done('wov-lightning'); }));
+            c3.appendChild(num('Flash (ms)', r.lightning.flashMs || 160, 40, 1200, 10, function (v) { r.lightning.flashMs = v; done('wov-lightning'); }));
+          }
+          body.appendChild(c3);
+          var row = el('div', 'btn-row');
+          if (w) row.appendChild(W.button('Infer again from the description', 'spark', 'btn-ghost', function () {
+            var nb = M.weatherBody(M.inferWeather(M.weatherText(w)), P.entries(b));
+            Object.keys(nb).forEach(function (k) { r[k] = nb[k]; }); r.origin = 'procedural'; touch('wov-infer'); paint(); if (repaintList) repaintList();
+          }));
+          body.appendChild(row);
+        }
+        paint();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- mount
+  var VIEWS = { poses: viewPoses, anims: viewAnims, abilities: viewAbilities, effects: viewEffects, weather: viewWeather };
+  function render(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Motion</h2><p class="muted">Poses, animations, ability effects, element particles, and weather. Previews play at true speed and at the Charter\'s pixel scale (' + res().w + ' by ' + res().h + ', shown ' + charterScale() + 'x).</p>';
+    host.appendChild(head);
+    W.subtabs(host, SUBS, ui, VIEWS);
+  }
+  function focus(rid) {
+    var r = ART.records.get(rid);
+    if (!r) return;
+    ui.focus = rid;
+    var p = Kit.ids.prefixOf(rid);
+    ui.sub = p === 'wov_' ? 'weather' : p === 'efx_' ? 'effects' : r.kind === 'ability' ? 'abilities' : 'anims';
+    Kit.rerender();
+  }
+  ART.WS.motion = { render: render, focus: focus, ui: ui, views: VIEWS, openAnim: openAnim, openAbility: openAbility, openEffect: openEffect, openWeather: openWeather, openPose: openPose };
+})();
+// === WS:MOTION END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -7362,8 +8951,8 @@ var ENGINE_RENDER = (function () {
       var rows = ART_DEMO.selfTest();
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
-      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
+      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);

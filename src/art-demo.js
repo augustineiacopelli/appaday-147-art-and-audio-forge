@@ -106,7 +106,7 @@
     { key: 'F1b', purpose: 'Tiny, four colors', spec: { title: 'F1 Tiny (4 colors)', tileSize: 8, paletteSize: 4, controls: 'tap', res: { w: 160, h: 144 }, chars: 1, elements: 1, families: 1, tiers: 1, chapters: ['Isle'], endings: 1, weather: [] } },
     { key: 'F2', purpose: 'Large', spec: { title: 'F2 Large', tileSize: 32, paletteSize: 256, controls: 'stick', res: { w: 512, h: 448 }, chars: 8, elements: 12, families: 20, tiers: 5, chapters: ['North', 'South', 'East', 'West', 'Isles', 'Sky'], endings: 3, weather: [{ name: 'Clear', realWorld: 'clear sky' }, { name: 'Rain', realWorld: 'steady rain' }, { name: 'Snow', realWorld: 'light snow' }, { name: 'Storm', realWorld: 'supercell thunderstorm' }, { name: 'Fog', realWorld: 'radiation fog' }] } },
     { key: 'F3', purpose: 'Budget stress', spec: { title: 'F3 Budget stress', tileSize: 64, paletteSize: 256, controls: 'stick', res: { w: 1024, h: 896 }, chars: 8, elements: 12, families: 20, tiers: 5, chapters: ['North', 'South', 'East', 'West', 'Isles', 'Sky'], endings: 3, weather: [{ name: 'Clear', realWorld: 'clear sky' }, { name: 'Rain', realWorld: 'steady rain' }] } },
-    { key: 'F4', purpose: 'Optional fields missing', spec: { title: 'F4 Sparse optionals', tileSize: 16, paletteSize: 64, controls: 'hybrid', chars: 3, elements: 4, families: 3, tiers: 2, chapters: ['', ''], endings: 0, weather: [{ name: 'Ashfall', realWorld: 'ashfall from a distant caldera' }, { name: 'Static', realWorld: 'aurora static' }] } }
+    { key: 'F4', purpose: 'Optional fields missing', spec: { title: 'F4 Sparse optionals', tileSize: 16, paletteSize: 64, controls: 'hybrid', chars: 3, elements: 4, families: 3, tiers: 2, chapters: ['', ''], endings: 0, weather: [{ name: 'Ashfall', realWorld: 'ashfall from a distant caldera' }, { name: 'Static', realWorld: 'aurora static' }, { name: 'Mana Tide', realWorld: 'the seventh moon rises' }] } }
   ].concat(SCHEMES.map(function (sc) {
     return { key: 'F5' + sc.charAt(0), purpose: 'Typical, ' + sc + ' controls', demo: true, scheme: sc };
   }));
@@ -139,24 +139,41 @@
           collapsed: tiers.filter(function (t) { return t.collapsed; }).length, offset: tiers.filter(function (t) { return t.derivedFrom && (t.derivedFrom.rampOffset || t.derivedFrom.inverted); }).length,
           effects: ART.palette.effects(copy).length };
       }
-      // Phase 2: bake every frame the forge owns (field poses in four directions, battle idle, every portrait
-      // expression, every icon) through the engine cache, without canvases, and report time and cache memory.
+      // Bake every frame the forge owns (field poses in four directions and emotes facing down, every battle pose for
+      // the party, idle, attack, and hurt for enemies, every portrait expression, every icon) through the engine
+      // cache, without canvases, and report time and cache memory.
       var bake = null;
       if (ART.sprites && ART.palette.master(copy)) {
         var tb = performance.now(), ER = ENGINE_RENDER, n = 0;
         var k = ER.createCache(copy.art, { size: ART.sprites.tileSize(copy), entries: ART.palette.entries(copy), budget: 64e6 });
         ART.sprites.sprites(copy).forEach(function (s) {
-          if (s.mode === 'battle') { k.sprite(s.id, 'idle', s.kind === 'enemy' ? 'right' : 'left'); n++; }
-          else ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+          if (s.mode === 'battle') (s.kind === 'enemy' ? ER.sprite.ENEMY_POSES : ER.sprite.BATTLE_POSES).forEach(function (pz) { k.sprite(s.id, pz, s.kind === 'enemy' ? 'right' : 'left'); n++; });
+          else {
+            ER.sprite.FIELD_POSES.forEach(function (pz) { ER.sprite.DIRS.forEach(function (d) { k.sprite(s.id, pz, d); n++; }); });
+            ER.sprite.EMOTE_POSES.forEach(function (pz) { k.sprite(s.id, pz, 'down'); n++; });
+          }
         });
         ART.sprites.portraits(copy).forEach(function (p) { Object.keys(ER.portrait.EXPRESSIONS).forEach(function (e) { k.portrait(p.id, e); n++; }); });
         ART.sprites.icons(copy).forEach(function (i) { k.icon(i.id); n++; });
         bake = { ms: Math.round(performance.now() - tb), frames: n, bytes: k.stats().bytes };
       }
+      // Phase 3: animation library, ability animations, and weather overlays, plus a full play through of every
+      // animation and overlay (frames, markers, particles) without drawing.
+      var motion = null;
+      if (ART.motion && ART.palette.master(copy)) {
+        var tm = performance.now(), anms = ART.motion.anims(copy), ER2 = ENGINE_RENDER, steps = 0;
+        anms.forEach(function (a) {
+          if (a.kind === 'ability') { var pb = ER2.ability.create({ anm: a, entries: ART.palette.entries(copy), unit: 1, seed: 3 }); for (var i = 0; i < 80 && !pb.done(); i++) { pb.step(33); steps++; } }
+          else { var D = ER2.anim.duration(a); for (var t2 = 0; t2 <= D; t2 += 50) { ER2.anim.frameAt(a, t2); steps++; } }
+        });
+        ART.motion.overlays(copy).forEach(function (o) { var st = ER2.weather.create(o, 256, 224, 5, { entries: ART.palette.entries(copy) }); for (var j = 0; j < 30; j++) { ER2.weather.step(st, 33); steps++; } });
+        motion = { anims: anms.filter(function (a) { return a.kind !== 'ability'; }).length, abilities: anms.filter(function (a) { return a.kind === 'ability'; }).length,
+          overlays: ART.motion.overlays(copy).length, generic: ART.motion.overlays(copy).filter(function (o) { return o.generic; }).length, steps: steps, ms: Math.round(performance.now() - tm) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake

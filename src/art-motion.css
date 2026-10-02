@@ -1,0 +1,17 @@
+/* === ART:MOTION CSS BEGIN === */
+.a7-stage { flex: none; display: block; max-width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; border-radius: 8px; border: 1px solid var(--line2); background: var(--bg2); }
+.a7-edhead .a7-stage { max-width: 100%; }
+.dlg-body > .a7-stage { margin: 0 auto 10px; }
+.a7-num { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); min-height: 44px; }
+.a7-num input { width: 7.5ch; min-height: 44px; font-family: var(--font-mono); }
+.a7-num input[type="text"] { width: 14ch; font-family: inherit; }
+.a7-ftable { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+.a7-frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-fnum { min-width: 2ch; font: 700 .9rem/1 var(--font-mono); color: var(--accent); }
+.a7-layer { padding: 4px 8px 8px; margin-bottom: 8px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-colorbtn { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink2); }
+@media (max-width: 520px) {
+  .a7-row > .a7-stage { width: 100% !important; }
+  .a7-num input { width: 6.5ch; }
+}
+/* === ART:MOTION CSS END === */

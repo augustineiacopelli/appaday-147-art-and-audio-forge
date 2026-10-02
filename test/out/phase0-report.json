@@ -38,9 +38,9 @@
       "name": "art records indexed",
       "ok": true,
       "detail": [
-        "por_courier_portrait_ccs9",
-        "til_forest_c6gq",
-        "efx_fire_effect_2j6d"
+        "por_courier_portrait_ag0t",
+        "til_forest_6puc",
+        "efx_fire_effect_uz8k"
       ]
     },
     {
@@ -112,7 +112,7 @@
         },
         "pageErrors": [],
         "forward": [
-          "por_courier_portrait_ccs9",
+          "por_courier_portrait_ag0t",
           "spr_missing_zz99"
         ],
         "opened": [
@@ -132,7 +132,7 @@
         },
         "147": {
           "status": "final",
-          "exportedAt": "2026-10-01T20:41:10.106Z",
+          "exportedAt": "2026-10-02T00:04:13.162Z",
           "artVersion": "1.0.0",
           "charterVersion": 1
         }
@@ -143,18 +143,18 @@
       "ok": true,
       "detail": {
         "forge": 147,
-        "bundleHash": "a4786b8fbd3b88dfc0174c1649b9c20cf611126648cbb43b5235127584dcd5e8",
+        "bundleHash": "59f182b5f08f5a32de262a4a3ee8a23cb3baec4ee7a4167899f81073becbe697",
         "artVersion": "1.0.0",
         "charterVersion": 1,
         "created": [
-          "efx_fire_effect_2j6d",
-          "por_courier_portrait_ccs9",
-          "spr_slime_sprite_0lnd",
-          "til_forest_c6gq"
+          "efx_fire_effect_uz8k",
+          "por_courier_portrait_ag0t",
+          "spr_slime_sprite_mkdf",
+          "til_forest_6puc"
         ],
         "referenced": [
-          "por_courier_portrait_ccs9",
-          "spr_slime_sprite_0lnd"
+          "por_courier_portrait_ag0t",
+          "spr_slime_sprite_mkdf"
         ],
         "unresolved": [],
         "artOpened": true,
@@ -228,10 +228,10 @@
     {
       "key": "F0",
       "purpose": "Empty and sparse",
-      "buildMs": 3,
+      "buildMs": 2,
       "hashOk": true,
-      "quickBuild": "72 new in 35 ms",
-      "quickBuildMs": 35,
+      "quickBuild": "101 new in 25 ms",
+      "quickBuildMs": 25,
       "palette": {
         "master": 64,
         "want": 64,
@@ -241,6 +241,14 @@
         "offset": 0,
         "effects": 4
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 3,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 497,
+        "ms": 4
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -249,23 +257,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 37259,
+      "size": 47300,
       "records": 0,
-      "bakeMs": "139 frames in 75 ms",
-      "cacheBytes": 324480,
+      "bakeMs": "261 frames in 92 ms",
+      "cacheBytes": 581760,
       "bake": {
-        "ms": 75,
-        "frames": 139,
-        "bytes": 324480
+        "ms": 92,
+        "frames": 261,
+        "bytes": 581760
       }
     },
     {
       "key": "F1a",
       "purpose": "Tiny, two colors",
-      "buildMs": 5,
+      "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "86 new in 13 ms",
-      "quickBuildMs": 13,
+      "quickBuild": "118 new in 11 ms",
+      "quickBuildMs": 11,
       "palette": {
         "master": 2,
         "want": 2,
@@ -275,6 +283,14 @@
         "offset": 0,
         "effects": 1
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 6,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 588,
+        "ms": 2
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -283,23 +299,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 70995,
+      "size": 82133,
       "records": 17,
-      "bakeMs": "170 frames in 43 ms",
-      "cacheBytes": 109440,
+      "bakeMs": "316 frames in 73 ms",
+      "cacheBytes": 192640,
       "bake": {
-        "ms": 43,
-        "frames": 170,
-        "bytes": 109440
+        "ms": 73,
+        "frames": 316,
+        "bytes": 192640
       }
     },
     {
       "key": "F1b",
       "purpose": "Tiny, four colors",
-      "buildMs": 8,
+      "buildMs": 3,
       "hashOk": true,
-      "quickBuild": "86 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "118 new in 7 ms",
+      "quickBuildMs": 7,
       "palette": {
         "master": 4,
         "want": 4,
@@ -309,6 +325,14 @@
         "offset": 0,
         "effects": 1
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 6,
+        "overlays": 0,
+        "generic": 0,
+        "steps": 588,
+        "ms": 2
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -317,23 +341,23 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 71009,
+      "size": 82146,
       "records": 17,
-      "bakeMs": "170 frames in 26 ms",
-      "cacheBytes": 109440,
+      "bakeMs": "316 frames in 46 ms",
+      "cacheBytes": 192640,
       "bake": {
-        "ms": 26,
-        "frames": 170,
-        "bytes": 109440
+        "ms": 46,
+        "frames": 316,
+        "bytes": 192640
       }
     },
     {
       "key": "F2",
       "purpose": "Large",
-      "buildMs": 9,
+      "buildMs": 10,
       "hashOk": true,
-      "quickBuild": "334 new in 144 ms",
-      "quickBuildMs": 144,
+      "quickBuild": "382 new in 135 ms",
+      "quickBuildMs": 135,
       "palette": {
         "master": 256,
         "want": 256,
@@ -343,6 +367,14 @@
         "offset": 0,
         "effects": 12
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 17,
+        "overlays": 5,
+        "generic": 0,
+        "steps": 1100,
+        "ms": 8
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -351,23 +383,23 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 238435,
+      "size": 256619,
       "records": 262,
-      "bakeMs": "413 frames in 292 ms",
-      "cacheBytes": 6384640,
+      "bakeMs": "911 frames in 548 ms",
+      "cacheBytes": 13598720,
       "bake": {
-        "ms": 292,
-        "frames": 413,
-        "bytes": 6384640
+        "ms": 548,
+        "frames": 911,
+        "bytes": 13598720
       }
     },
     {
       "key": "F3",
       "purpose": "Budget stress",
-      "buildMs": 8,
+      "buildMs": 12,
       "hashOk": true,
-      "quickBuild": "334 new in 129 ms",
-      "quickBuildMs": 129,
+      "quickBuild": "379 new in 132 ms",
+      "quickBuildMs": 132,
       "palette": {
         "master": 256,
         "want": 256,
@@ -377,6 +409,14 @@
         "offset": 0,
         "effects": 12
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 17,
+        "overlays": 2,
+        "generic": 0,
+        "steps": 1010,
+        "ms": 5
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -385,22 +425,64 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 237630,
+      "size": 254576,
       "records": 259,
-      "bakeMs": "413 frames in 761 ms",
-      "cacheBytes": 18073600,
+      "bakeMs": "911 frames in 1677 ms",
+      "cacheBytes": 46929920,
       "bake": {
-        "ms": 761,
-        "frames": 413,
-        "bytes": 18073600
+        "ms": 1677,
+        "frames": 911,
+        "bytes": 46929920
       }
     },
     {
       "key": "F4",
       "purpose": "Optional fields missing",
-      "buildMs": 9,
+      "buildMs": 8,
       "hashOk": true,
-      "quickBuild": "110 new in 26 ms",
+      "quickBuild": "148 new in 21 ms",
+      "quickBuildMs": 21,
+      "palette": {
+        "master": 64,
+        "want": 64,
+        "locals": 14,
+        "tiers": 6,
+        "collapsed": 0,
+        "offset": 0,
+        "effects": 4
+      },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 1,
+        "steps": 775,
+        "ms": 4
+      },
+      "coverage": "pending (Phase 8)",
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      },
+      "roles": 9,
+      "size": 101552,
+      "records": 38,
+      "bakeMs": "416 frames in 99 ms",
+      "cacheBytes": 1169920,
+      "bake": {
+        "ms": 99,
+        "frames": 416,
+        "bytes": 1169920
+      }
+    },
+    {
+      "key": "F5d",
+      "purpose": "Typical, dpad controls",
+      "buildMs": 5,
+      "hashOk": true,
+      "quickBuild": "152 new in 26 ms",
       "quickBuildMs": 26,
       "palette": {
         "master": 64,
@@ -411,39 +493,13 @@
         "offset": 0,
         "effects": 4
       },
-      "coverage": "pending (Phase 8)",
-      "validation": {
-        "errors": 0,
-        "broken": 0,
-        "forward": 0,
-        "warnings": 0
-      },
-      "roles": 9,
-      "size": 87596,
-      "records": 37,
-      "bakeMs": "216 frames in 58 ms",
-      "cacheBytes": 655360,
-      "bake": {
-        "ms": 58,
-        "frames": 216,
-        "bytes": 655360
-      }
-    },
-    {
-      "key": "F5d",
-      "purpose": "Typical, dpad controls",
-      "buildMs": 4,
-      "hashOk": true,
-      "quickBuild": "114 new in 18 ms",
-      "quickBuildMs": 18,
-      "palette": {
-        "master": 64,
-        "want": 64,
-        "locals": 14,
-        "tiers": 6,
-        "collapsed": 0,
-        "offset": 0,
-        "effects": 4
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 4
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -453,23 +509,23 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 97905,
+      "size": 111335,
       "records": 46,
-      "bakeMs": "220 frames in 67 ms",
-      "cacheBytes": 660480,
+      "bakeMs": "420 frames in 144 ms",
+      "cacheBytes": 1175040,
       "bake": {
-        "ms": 67,
-        "frames": 220,
-        "bytes": 660480
+        "ms": 144,
+        "frames": 420,
+        "bytes": 1175040
       }
     },
     {
       "key": "F5s",
       "purpose": "Typical, stick controls",
-      "buildMs": 5,
+      "buildMs": 10,
       "hashOk": true,
-      "quickBuild": "114 new in 16 ms",
-      "quickBuildMs": 16,
+      "quickBuild": "152 new in 23 ms",
+      "quickBuildMs": 23,
       "palette": {
         "master": 64,
         "want": 64,
@@ -479,6 +535,14 @@
         "offset": 0,
         "effects": 4
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -487,23 +551,23 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 97956,
+      "size": 111386,
       "records": 46,
-      "bakeMs": "220 frames in 58 ms",
-      "cacheBytes": 660480,
+      "bakeMs": "420 frames in 96 ms",
+      "cacheBytes": 1175040,
       "bake": {
-        "ms": 58,
-        "frames": 220,
-        "bytes": 660480
+        "ms": 96,
+        "frames": 420,
+        "bytes": 1175040
       }
     },
     {
       "key": "F5t",
       "purpose": "Typical, tap controls",
-      "buildMs": 3,
+      "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "114 new in 18 ms",
-      "quickBuildMs": 18,
+      "quickBuild": "152 new in 15 ms",
+      "quickBuildMs": 15,
       "palette": {
         "master": 64,
         "want": 64,
@@ -513,6 +577,14 @@
         "offset": 0,
         "effects": 4
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -521,14 +593,14 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 97936,
+      "size": 111366,
       "records": 46,
-      "bakeMs": "220 frames in 69 ms",
-      "cacheBytes": 660480,
+      "bakeMs": "420 frames in 116 ms",
+      "cacheBytes": 1175040,
       "bake": {
-        "ms": 69,
-        "frames": 220,
-        "bytes": 660480
+        "ms": 116,
+        "frames": 420,
+        "bytes": 1175040
       }
     },
     {
@@ -536,8 +608,8 @@
       "purpose": "Typical, hybrid controls",
       "buildMs": 5,
       "hashOk": true,
-      "quickBuild": "114 new in 16 ms",
-      "quickBuildMs": 16,
+      "quickBuild": "152 new in 20 ms",
+      "quickBuildMs": 20,
       "palette": {
         "master": 64,
         "want": 64,
@@ -547,6 +619,14 @@
         "offset": 0,
         "effects": 4
       },
+      "motion": {
+        "anims": 26,
+        "abilities": 9,
+        "overlays": 3,
+        "generic": 0,
+        "steps": 784,
+        "ms": 2
+      },
       "coverage": "pending (Phase 8)",
       "validation": {
         "errors": 0,
@@ -555,14 +635,14 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 97978,
+      "size": 111408,
       "records": 46,
-      "bakeMs": "220 frames in 60 ms",
-      "cacheBytes": 660480,
+      "bakeMs": "420 frames in 100 ms",
+      "cacheBytes": 1175040,
       "bake": {
-        "ms": 60,
-        "frames": 220,
-        "bytes": 660480
+        "ms": 100,
+        "frames": 420,
+        "bytes": 1175040
       }
     }
   ]

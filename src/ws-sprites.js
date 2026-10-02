@@ -9,7 +9,7 @@
   var ui = { sub: 'characters', focus: null };
   var ENEMY_LABELS = ['Clear', 'Outline', 'Body dark', 'Body', 'Body light', 'Shade dark', 'Shade', 'Shade light', 'Accent dark', 'Accent', 'Accent light', 'Eye dark', 'Eye', 'Eye light', 'Metal dark', 'Metal light'];
   var LAYER_LABELS = { shadow: 'Shadow', back: 'Back gear', body: 'Body', legs: 'Legs', torso: 'Torso', head: 'Head', hair: 'Hair', front: 'Front gear' };
-  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Battle idle' };
+  var POSE_LABELS = { stand: 'Stand', stepA: 'Step A', stepB: 'Step B', idle: 'Idle', ready: 'Ready', step: 'Step', windup: 'Wind up', attack: 'Attack', cast: 'Cast', item: 'Item', hurt: 'Hurt', kneel: 'Kneel', ko: 'KO', revive: 'Revive', victory: 'Victory', limit: 'Limit', nod: 'Nod', shakeL: 'Shake left', shakeR: 'Shake right', crouch: 'Crouch', jump: 'Jump', sit: 'Sit', laugh: 'Laugh', laughB: 'Laugh B' };
   function cur() { return Kit.bundle.current(); }
   function touch(reason) { Kit.bundle.touch(reason || 'sprites'); Kit.refreshValidation(); }
   // Shared small widgets (WS:INTERFACE uses them too).
@@ -150,8 +150,8 @@
           body.appendChild(el('h3', 'section-h', 'Frames'));
           body.appendChild(el('p', 'muted a7-small', 'Tap a frame to draw on it. A hand edited frame is stored as an override; the rest keep following the recipe. Left facing frames mirror right facing ones unless you edit them.'));
           var grid = el('div', 'a7-frames');
-          var set = spr.mode === 'battle' ? ES.BATTLE_POSES.map(function (p) { return [p, spr.kind === 'enemy' ? 'right' : 'left']; }) : [];
-          if (spr.mode !== 'battle') ES.FIELD_POSES.forEach(function (p) { ES.DIRS.forEach(function (d) { set.push([p, d]); }); });
+          var set = spr.mode === 'battle' ? (spr.kind === 'enemy' ? ES.ENEMY_POSES : ES.BATTLE_POSES).map(function (p) { return [p, spr.kind === 'enemy' ? 'right' : 'left']; }) : [];
+          if (spr.mode !== 'battle') { ES.FIELD_POSES.forEach(function (p) { ES.DIRS.forEach(function (d) { set.push([p, d]); }); }); ES.EMOTE_POSES.forEach(function (p) { set.push([p, 'down']); }); }
           var ov = Object.assign({}, base.overrides || {}, spr.overrides || {});
           set.forEach(function (pd) {
             var f = frameOf(spr, pd[0], pd[1]), k = pd[0] + '.' + pd[1];
@@ -424,12 +424,11 @@
     } else {
       var body = S.partByLib(b, 'body.average');
       var spec = { layout: 'humanoid', size: T, layers: (part.layer === 'body' ? [] : body ? [{ layer: 'body', gen: body.gen }] : []).concat([{ layer: part.layer, gen: part.gen }]) };
-      ES.FIELD_POSES.concat(ES.BATTLE_POSES).forEach(function (pose) {
-        ['down', 'up', 'right'].forEach(function (dir) {
-          if (pose === 'idle' && dir !== 'right') return;
-          var fr = ES.partFrame(spec, part.layer, pose, dir);
-          variants[pose + '.' + dir] = { w: fr.w, h: fr.h, d: EC.encode(fr.idx) };
-        });
+      // Field poses in three directions (left mirrors right), battle poses facing right, emotes facing down. Lying
+      // poses are composed from the standing frames, so they need no variant of their own.
+      ES.handPoses().forEach(function (pd) {
+        var fr = ES.partFrame(spec, part.layer, pd[0], pd[1]);
+        variants[pd[0] + '.' + pd[1]] = { w: fr.w, h: fr.h, d: EC.encode(fr.idx) };
       });
     }
     return { base: T, variants: variants };
