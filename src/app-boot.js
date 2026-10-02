@@ -14,6 +14,7 @@
   wire('btnTitle', null, null, Kit.renameProject);
   wire('btnValidation', null, null, Kit.openValidation);
   wire('btnSize', null, null, function () { ART.openSize(); });
+  wire('btnCoverage', null, null, function () { ART.openCoverage(); });
   wire('btnSave', 'save', 'Save', function () { if (Kit.bundle.save()) Kit.ui.toast('Draft saved in this browser.', 'ok'); });
   wire('btnSlots', 'slots', 'Slots', Kit.openSlots);
   wire('btnImport', 'import', 'Import', function () { var f = document.getElementById('fileImport'); f.value = ''; f.click(); });
@@ -33,6 +34,7 @@
     var want = Kit.uiState.get().tab;
     if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
     ART.paintMeter();
+    ART.paintCoverage();
   });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Kit.bundle.suspend.save(); });
   window.addEventListener('pagehide', function () { Kit.bundle.suspend.save(); });

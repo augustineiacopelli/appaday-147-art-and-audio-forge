@@ -95,6 +95,8 @@ function makeApi() {
   const tbl = L.table(b);
   check('the forward field table covers all eight fields', ['chr_.portrait', 'chr_.leitmotif', 'abl_.animation', 'abl_.sfx', 'abl_.icon', 'itm_.icon', 'eqp_.icon', 'fam_.sprite'].every((k) => tbl.some((r) => r.prefix + '.' + r.field === k)));
   Kit.bundle.touch('test');
+  // Phase 8 moved Fill forward fields to the Export tab's References view.
+  if (ART.coverage) ART.coverage.exportUi.sub = 'references';
   Kit.go('export'); Kit.rerender();
   const fillBtn = [...d.querySelectorAll('#ws .btn')].find((x) => /Fill forward fields/.test(x.textContent));
   check('the Export tab offers Fill forward fields (disabled when nothing is owed)', fillBtn && fillBtn.disabled && /forward field/i.test(d.getElementById('ws').textContent));

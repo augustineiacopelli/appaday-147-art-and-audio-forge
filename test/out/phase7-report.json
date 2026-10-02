@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-02T11:43:54.604Z",
+  "date": "2026-10-02T12:08:12.288Z",
   "pass": 91,
   "total": 91,
   "results": [
@@ -20,29 +20,29 @@
         1,
         139593,
         160477,
-        227953,
-        232915,
-        454783,
-        507129,
-        527023,
-        551880,
-        584051,
-        596266,
-        638158,
-        663355,
-        691114,
-        739618,
-        777119,
-        808367,
-        823633,
-        836536,
-        864733,
-        890583,
-        928458,
-        979469,
-        984416,
-        1067134,
-        1091299
+        228693,
+        233655,
+        455523,
+        507869,
+        527763,
+        552620,
+        584791,
+        597006,
+        638898,
+        664095,
+        691854,
+        740358,
+        777859,
+        809107,
+        824373,
+        837276,
+        865473,
+        891323,
+        929198,
+        980209,
+        985156,
+        1090695,
+        1128535
       ]
     },
     {
@@ -116,13 +116,13 @@
           "prefix": "chr_",
           "field": "portrait",
           "from": "por_gone_zz99",
-          "to": "por_courier_portrait_gcu5"
+          "to": "por_courier_portrait_x9zf"
         },
         {
           "recordId": "itm_tonic_10jm",
           "prefix": "itm_",
           "field": "icon",
-          "from": "ico_tonic_icon_bwqr",
+          "from": "ico_tonic_icon_b1v8",
           "to": null
         }
       ]
@@ -255,7 +255,7 @@
       "detail": {
         "cards": 0,
         "drawers": 1,
-        "text": "Courier colorwayRecordpal_courier_colorway_hyvqForCourierOrigineditedSkinHairCloth ACloth BMetalAccentCloth BMetalRerollDraft colorwaysAdd a Claude API key in Settings to use this.Reset to generated"
+        "text": "Courier colorwayRecordpal_courier_colorway_s8wzForCourierOrigineditedSkinHairCloth ACloth BMetalAccentCloth BMetalRerollDraft colorwaysAdd a Claude API key in Settings to use this.Reset to generated"
       }
     },
     {
@@ -494,7 +494,7 @@
       "ok": true,
       "detail": {
         "unresolved": 0,
-        "referenced": 37
+        "referenced": 166
       }
     },
     {
@@ -513,7 +513,7 @@
         "forward": 0,
         "blocked": null,
         "artKept": true,
-        "portrait": "por_courier_portrait_gcu5"
+        "portrait": "por_courier_portrait_x9zf"
       }
     },
     {

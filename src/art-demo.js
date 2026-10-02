@@ -219,10 +219,17 @@
           notes: notes, errors: errs, seconds: Math.round(secs), roles: need.filter(function (r) { return ART.audio.trackFor(copy, r.key); }).length, required: need.length,
           sfxSeconds: Math.round(smp / 22050 * 10) / 10, renderMs: Math.round(performance.now() - tr6), ms: Math.round(performance.now() - ta) };
       }
+      // Phase 8: coverage computed from the bundle, and every reference an art record makes.
+      var coverage = 'not run', refs = null;
+      if (ART.coverage) {
+        var tc = performance.now(), cv = ART.coverage.compute(copy), sc = ART.refs.scan(copy);
+        coverage = { required: cv.required, covered: cv.covered, percent: cv.percent, green: cv.green, gaps: cv.gaps.map(function (g) { return g.key; }), advisories: cv.advisories.map(function (g) { return g.key; }) };
+        refs = { refs: sc.refs.length, dangling: sc.dangling.length, uncovered: ART.refs.uncovered(copy, sc).length, ids: sc.ids.length, ms: Math.round(performance.now() - tc) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: coverage, refs: refs, canFinal: ART.canOpen(copy) && !res.errors.length && !res.broken.length,
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake

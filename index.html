@@ -466,6 +466,65 @@ SESSION 7 / PHASE 7 (2026-10-02, Opus): CLAUDE DRAFTING AND FORWARD FIELDS. COMP
     (style parts carry no free parameters). Instruments and the cursor and touch skin have no drafter. Coverage, the
     reference report, and the engine file extraction are Phase 8.
 === END SESSION 7 ===
+SESSION 8 / PHASE 8 (2026-10-02, Opus): COVERAGE AND EXPORT. COMPLETE. DAY 147 FEATURE COMPLETE.
+  Fences, in order: ... ART:LINKS, ART:AI, ART:COVERAGE, WS:ART147, APP:BOOT. CSS adds ART:COVERAGE CSS. KIT:CORE still
+    verbatim. ART:COVERAGE builds its engine marker strings from parts so it never finds itself in the page.
+  Engine files: build.js now also writes engine-render.js and engine-audio.js at the repository root, each the fence (open
+    and close marker lines included) byte for byte under a three line header (engine, version, "declares one global, reads
+    no host global"). ART.engines.file(key, hash) cuts the same fences out of the page's own script at run time and adds
+    the same header plus a Bundle hash line; with an empty hash it equals the repository file exactly. Both load in a
+    bare vm context (no window, no document), declare only ENGINE_RENDER and ENGINE_AUDIO, and engine-audio.js loads alone.
+  Coverage (ART.coverage.compute(b), never stored): items {key, group, label, need required|advisory, ok, detail, fix {tab,
+    sub, id}, restore}. Required: master palette; colorway per chr_, the villain, and each NPC archetype; tier palette per
+    fam_; efx_ per element; field and battle sprite per chr_ and the villain; field sprite per NPC; battle sprite per fam_;
+    portrait per chr_ and the villain; icon per itm_ eqp_ abl_ sta_ mat_; the library animation behind every required
+    taxonomy pose (walk, 7 emotes, 12 party, 4 enemy); ability animation and sound per non passive abl_; overlay per wth_
+    (a generic overlay counts, with a note); at least one biome and one interior; a background and palette per tileset;
+    the five UI parts; a track per required music role; a leitmotif per chr_; a sound per element and per cue; every
+    forward field Quick Build would still fill. DECISION: a default the user deleted (retired) is advisory with a Restore
+    button, never a gap (a deleted forest stays deleted); required poses and music roles stay required even when deleted.
+    Climate (125 cells of temperature, moisture, elevation matched by a non feature biome) is advisory: the default twelve
+    cover 109 of 125 (temperature 0 or 1 at elevation 1 and similar); Day 148 falls back to the nearest biome.
+    DECISION: coverage gaps warn but never block a Final export (phase0's envelope only Final still works); dangling
+    references and unresolved forward fields block it.
+  References (ART.refs.scan(b)): every valid ID inside every art record (top level id, name, notes, tags, subject skipped),
+    "til_id:key" interior tile refs, subjects (rules ID of the right prefix, or a Charter element key), and art.priority.
+    Validator art.refs reports a dangling art ID as broken only at paths no phase validator owns (REFS.COVERED: anm_
+    impact.fx; ico_, por_, til_ pal; mus_ derivedFrom.motif, instruments, slots; spr_ anims, pal, recipe.parts, shares;
+    uik_ sfx and bg), so nothing is reported twice (phase8 proves each covered path once per link kind). A stale rules ID
+    inside an art record that is not its own subject is a warning.
+  Manifest (ART.manifest): forge, bundleHash, artVersion, charterVersion, exportedAt, created (every art ID), referenced
+    (every ID the art mentions plus forward values), unresolved (forward fields and dangling art links), forward (all eight
+    kinds with ok), artOpened, counts, coverage {required, covered, percent, gaps, advisories}, engines [{key, global,
+    file, version}].
+  Export: Kit.buildExport(status, {fill, engines}); files bundle, manifest, engine-render.js, engine-audio.js, all carrying
+    the hash exportFile restamps. The bare call never fills. The dialog (and the Downloads view) turns Fill on when a field
+    is owed, shows coverage and issues, and enables Final when it would pass after the fill (tried on a copy, finalState).
+  UI: header Coverage chip (count, green check when complete, hidden until a Charter is locked) opens the gap list
+    drawer: meter, group chips, gaps with Fix (opens the record, or the right sub tab), Quick Build, Fill forward fields,
+    and an advice section with Restore. Export tab has Coverage (optionally every item), References (dangling table with
+    Open, forward fields, manifest preview), Size, and Downloads (export form, both engine files). Phase 7's Fill button
+    now lives under References (phase7.js opens that view first). Dev self test gains Coverage and References columns.
+  Full fixture pass: every fixture Quick Builds to 100 percent coverage with zero dangling references, exports Final with
+    fill, and opens in Day 146 with a matching hash, zero broken, zero forward, and no error the raw fixture lacks (F4
+    keeps Day 146's two "Continent label is required" Charter errors, by design of F4). Final bundle sizes: F0 252 KB,
+    F1 329 KB, demo 396 KB, F4 379 KB, F2 743 KB, F3 738 KB (pretty printed).
+  Day 146 round trip: 147 Final opens in 146 clean (art IDs read as resolved references), 146 exports a Draft, 147 reopens
+    it with the hash matching and art canonically identical, codex prefixes registered again, coverage green, Quick Build
+    creating nothing, and a second Final opening clean in 146.
+  Tests: test/phase8.js 86 of 86 (static and fence checks; engine files byte equal to the fences, ASCII, bare vm load,
+    one global each; coverage before and after Quick Build, every owed kind, reacting to deletes, a new character,
+    retire and restore, a deleted portrait owing its forward field; Fix and Open navigation; reference scan, every covered
+    path reported once, an uncovered dangling link broken and blocking Final, an interior tile key, an orphaned subject;
+    the export dialog, fill, four files, one hash everywhere, manifest contents; the file engines reproduce the page's
+    frames, tiles, a presented battle with its cues, compiled tracks, rendered sounds, and a realized motif; the Day 146
+    round trip; the fixture pass; every Export view, the chip, the drawer, the Dev table). Earlier suites 27, 59, 67, 80,
+    79, 99, 114, 91 pass, one at a time.
+  Checked in headless Chromium at 390 and 1280: every Export view, the gap drawer, and the export dialog have no
+    horizontal scroll and no tap target under 44 px; Fix lands on Sprites, Villain and NPCs.
+  Known limits: coverage checks that records exist, not that they look good. The in browser self test takes about 13 s
+    across ten fixtures (F3 bakes everything at 64 px). Climate cells unmatched by the default biomes are advice only.
+=== END SESSION 8 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
@@ -1016,6 +1075,23 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .a7-ai-strip { display: flex; min-width: 120px; max-width: 100%; }
 .a7-ai-strip i { flex: 1 1 18px; min-width: 14px; height: 22px; }
 /* === ART:AI CSS END === */
+/* === ART:COVERAGE CSS BEGIN === */
+.cov-btn { gap: 6px; }
+.cov-btn[hidden] { display: none; }
+.cov-btn .a7-cov-l { font-size: .86rem; color: var(--ink2); pointer-events: none; }
+.cov-btn .chip { pointer-events: none; }
+.a7-meter.a7-ok i { background: var(--ok); }
+.a7-gaps { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 14px; }
+.a7-gap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; border: 1px solid var(--line2); border-left: 4px solid var(--warn); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-gap.a7-gap-ok { border-left-color: var(--ok); }
+.a7-gap-t { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.a7-gap-t small { color: var(--ink2); }
+.a7-gap-a { display: flex; flex-wrap: wrap; gap: 6px; }
+.a7-gap-a .btn { min-height: 44px; }
+.a7-export-opts { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 10px; }
+.a7-export-opts .a7-check { min-height: 44px; }
+@media (max-width: 520px) { .cov-btn .a7-cov-l { display: none; } }
+/* === ART:COVERAGE CSS END === */
 </style>
 </head>
 <body>
@@ -1033,6 +1109,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
   <div class="topbar" role="toolbar" aria-label="Project">
     <button class="btn btn-ghost proj-title" id="btnTitle" type="button" title="Rename project"><span class="t">Untitled Saga</span></button>
     <button class="btn size-btn" id="btnSize" type="button" aria-label="Bundle size"></button>
+    <button class="btn size-btn cov-btn" id="btnCoverage" type="button" aria-label="Coverage" hidden></button>
     <button class="btn vbadge" id="btnValidation" type="button" title="Open validation panel" aria-label="Validation status"></button>
     <div class="top-actions">
       <button class="btn" id="btnSave" type="button" title="Save draft (Ctrl+S)"></button>
@@ -4294,10 +4371,17 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           notes: notes, errors: errs, seconds: Math.round(secs), roles: need.filter(function (r) { return ART.audio.trackFor(copy, r.key); }).length, required: need.length,
           sfxSeconds: Math.round(smp / 22050 * 10) / 10, renderMs: Math.round(performance.now() - tr6), ms: Math.round(performance.now() - ta) };
       }
+      // Phase 8: coverage computed from the bundle, and every reference an art record makes.
+      var coverage = 'not run', refs = null;
+      if (ART.coverage) {
+        var tc = performance.now(), cv = ART.coverage.compute(copy), sc = ART.refs.scan(copy);
+        coverage = { required: cv.required, covered: cv.covered, percent: cv.percent, green: cv.green, gaps: cv.gaps.map(function (g) { return g.key; }), advisories: cv.advisories.map(function (g) { return g.key; }) };
+        refs = { refs: sc.refs.length, dangling: sc.dangling.length, uncovered: ART.refs.uncovered(copy, sc).length, ids: sc.ids.length, ms: Math.round(performance.now() - tc) };
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, audio: audio, coverage: coverage, refs: refs, canFinal: ART.canOpen(copy) && !res.errors.length && !res.broken.length,
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
@@ -15689,6 +15773,328 @@ var ENGINE_AUDIO = (function () {
   };
 })();
 // === ART:AI END ===
+// === ART:COVERAGE BEGIN ===
+(function () {
+  'use strict';
+  // Phase 8: coverage, reference validation, the export manifest, and the engine files.
+  //   ART.coverage  what the bundle owes (computed from the bundle every time, never stored) and whether the art exists
+  //   ART.refs      every ID an art record mentions, and which of them dangle; the art.refs validator reports the ones
+  //                 no phase validator already covers
+  //   ART.manifest  the forge 147 manifest {created, referenced, unresolved, forward, coverage, engines, counts}
+  //   ART.engines   ENGINE:RENDER and ENGINE:AUDIO read back from this page's own script, as engine-render.js and
+  //                 engine-audio.js. build.js writes the same files to the repository with the same function.
+  var U = Kit.util;
+  function cur() { return Kit.bundle.current(); }
+  function rulesList(b, p) { var m = b && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(U.isObj); }
+  function elements(b) { var r = b && b.charter && b.charter.ruleset; return r && Array.isArray(r.elements) ? r.elements.filter(function (e) { return U.isObj(e) && e.key; }) : []; }
+  function retired(b) { var st = b && b.art && b.art.settings; return st && Array.isArray(st.retired) ? st.retired : []; }
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ================================================================ coverage
+  // Each item: {key, group, label, need 'required'|'advisory', ok, detail, fix {tab, sub, id}, restore (a retired key)}.
+  // Required items count toward the percentage. Advisory items are shown but never block anything: things the user
+  // retired on purpose (a deleted default biome stays deleted), and the climate check Day 148 can live without.
+  var COV = ART.coverage = {};
+  COV.GROUPS = [
+    { key: 'palette', label: 'Palettes', tab: 'palette' },
+    { key: 'sprites', label: 'Sprites', tab: 'sprites' },
+    { key: 'portraits', label: 'Portraits', tab: 'sprites' },
+    { key: 'icons', label: 'Icons', tab: 'interface' },
+    { key: 'motion', label: 'Motion', tab: 'motion' },
+    { key: 'world', label: 'World art', tab: 'world' },
+    { key: 'interface', label: 'Interface', tab: 'interface' },
+    { key: 'sound', label: 'Sound', tab: 'sound' },
+    { key: 'links', label: 'Forward fields', tab: 'export' }
+  ];
+  var GROUP_OF = {};
+  COV.GROUPS.forEach(function (g) { GROUP_OF[g.key] = g; });
+  function nameOf(rec) { return (rec && (rec.name || rec.id)) || ''; }
+
+  COV.compute = function (b) {
+    b = b || cur();
+    var items = [];
+    if (!b || !b.art) return summarize(items);
+    var ret = retired(b);
+    function add(group, key, label, rec, fix, o) {
+      o = o || {};
+      var it = { key: group + ':' + key, group: group, label: label, need: o.need || 'required', ok: o.ok != null ? !!o.ok : !!rec, detail: o.detail || '', fix: fix || { tab: GROUP_OF[group].tab } };
+      if (rec && rec.id && !it.fix.id) it.fix.id = rec.id;
+      if (o.restore) it.restore = o.restore;
+      items.push(it);
+      return it;
+    }
+    function isRetired(k) { return ret.indexOf(k) >= 0; }
+    // A default the user deleted is advisory: listed with a Restore button, never counted as a gap.
+    function retiredNeed(k, has) { return isRetired(k) && !has ? { need: 'advisory', restore: k, detail: 'Deleted by you. Restore brings the default back.' } : {}; }
+    var P = ART.palette, S = ART.sprites, M = ART.motion, TL = ART.tiles, I = ART.iface, A = ART.audio;
+    var chrs = rulesList(b, 'chr_'), fams = rulesList(b, 'fam_');
+
+    // ---- palettes
+    var master = P.master(b);
+    add('palette', 'master', 'Master palette', master, { tab: 'palette', sub: 'master' }, { detail: master ? (P.entries(b).length + ' of ' + P.size(b) + ' colors') : 'Run Quick Build to build it from the Charter.' });
+    chrs.forEach(function (c) { add('palette', 'chr:' + c.id, 'Colorway: ' + nameOf(c), ART.bySubject('pal_', 'chr', c.id, b), { tab: 'palette', sub: 'colorways' }); });
+    var vPal = ART.bySubject('pal_', 'role', 'villain', b);
+    add('palette', 'villain', 'Colorway: villain', vPal, { tab: 'palette', sub: 'colorways' }, retiredNeed('villain', vPal));
+    ART.NPC_ARCHETYPES.forEach(function (k) { var r = ART.bySubject('pal_', 'role', 'npc:' + k, b); add('palette', 'npc:' + k, 'Colorway: ' + k, r, { tab: 'palette', sub: 'colorways' }, retiredNeed('npc:' + k, r)); });
+    fams.forEach(function (f) { add('palette', 'fam:' + f.id, 'Tier palette: ' + nameOf(f), ART.bySubject('pal_', 'fam', f.id, b), { tab: 'palette', sub: 'tiers' }); });
+    elements(b).forEach(function (e) { add('palette', 'element:' + e.key, 'Element effect: ' + (e.label || e.key), ART.bySubject('efx_', 'element', e.key, b), { tab: 'palette', sub: 'elements' }); });
+
+    // ---- sprites and portraits
+    chrs.forEach(function (c) {
+      ['field', 'battle'].forEach(function (m) { add('sprites', 'chr:' + c.id + ':' + m, cap(m) + ' sprite: ' + nameOf(c), S.spriteFor(b, 'chr', c.id, m), { tab: 'sprites', sub: 'characters' }); });
+      var por = ART.bySubject('por_', 'chr', c.id, b);
+      add('portraits', 'chr:' + c.id, 'Portrait: ' + nameOf(c), por, { tab: 'sprites', sub: 'portraits' });
+    });
+    ['field', 'battle'].forEach(function (m) { var r = S.spriteFor(b, 'role', 'villain', m); add('sprites', 'villain:' + m, cap(m) + ' sprite: villain', r, { tab: 'sprites', sub: 'cast' }, retiredNeed('villain', r)); });
+    var vPor = ART.bySubject('por_', 'role', 'villain', b);
+    add('portraits', 'villain', 'Portrait: villain', vPor, { tab: 'sprites', sub: 'portraits' }, retiredNeed('villain', vPor));
+    ART.NPC_ARCHETYPES.forEach(function (k) { var r = S.spriteFor(b, 'role', 'npc:' + k, 'field'); add('sprites', 'npc:' + k, 'NPC sprite: ' + k, r, { tab: 'sprites', sub: 'cast' }, retiredNeed('npc:' + k, r)); });
+    fams.forEach(function (f) { add('sprites', 'fam:' + f.id, 'Battle sprite: ' + nameOf(f), S.spriteFor(b, 'fam', f.id, 'battle'), { tab: 'sprites', sub: 'bestiary' }); });
+
+    // ---- icons
+    S.ICON_SOURCES.forEach(function (p) {
+      var kind = p.slice(0, 3);
+      rulesList(b, p).forEach(function (r) { add('icons', kind + ':' + r.id, 'Icon: ' + nameOf(r), ART.bySubject('ico_', kind, r.id, b), { tab: 'interface', sub: 'icons' }); });
+    });
+
+    // ---- motion: required poses (each needs its library animation), ability animations, weather overlays
+    var tax = b.art.poseTaxonomy || {}, seenAnim = {};
+    M.GROUPS.forEach(function (g) {
+      (Array.isArray(tax[g.key]) ? tax[g.key] : []).forEach(function (e) {
+        if (!U.isObj(e) || !e.required) return;
+        var ak = M.animKey(g.key, e.key);
+        if (seenAnim[ak]) return;
+        seenAnim[ak] = 1;
+        var r = M.libAnim(b, ak);
+        add('motion', 'pose:' + ak, 'Pose animation: ' + (g.key === 'field' ? 'walk' : g.label.toLowerCase() + ' ' + (e.label || e.key)), r, { tab: 'motion', sub: 'anims' },
+          r ? {} : { restore: isRetired('anim:' + ak) ? 'anim:' + ak : null, detail: 'Required by the pose taxonomy.' });
+      });
+    });
+    rulesList(b, 'abl_').forEach(function (a) {
+      if (a.kind === 'passive') return;
+      add('motion', 'abl:' + a.id, 'Ability animation: ' + nameOf(a), ART.bySubject('anm_', 'abl', a.id, b), { tab: 'motion', sub: 'abilities' });
+    });
+    rulesList(b, 'wth_').forEach(function (w) {
+      var o = M.overlayFor(b, w.id);
+      add('motion', 'wth:' + w.id, 'Weather overlay: ' + nameOf(w), o, { tab: 'motion', sub: 'weather' }, o && o.generic ? { detail: 'Generic overlay: the weather text matched no known kind. Edit it to make it yours.' } : {});
+    });
+
+    // ---- world art
+    var biomes = TL.biomes(b), interiors = TL.interiors(b);
+    add('world', 'biomes', 'At least one biome tileset', biomes[0] || null, { tab: 'world', sub: 'tilesets' }, { ok: biomes.length > 0, detail: biomes.length + ' biome' + (biomes.length === 1 ? '' : 's') });
+    add('world', 'interiors', 'At least one interior set', interiors[0] || null, { tab: 'world', sub: 'interiors' }, { ok: interiors.length > 0, detail: interiors.length + ' interior set' + (interiors.length === 1 ? '' : 's') });
+    TL.tilesets(b).forEach(function (t) {
+      var role = t.subject && t.subject.ref, bg = TL.bgFor(b, t);
+      add('world', 'bg:' + t.id, 'Battle background: ' + nameOf(t), bg, { tab: 'world', sub: 'backgrounds', id: bg ? bg.id : t.id }, retiredNeed('bg:' + role, bg));
+      if (!TL.palFor(b, t)) add('world', 'pal:' + t.id, 'Tile palette: ' + nameOf(t), null, { tab: 'world', sub: t.kind === 'interior' ? 'interiors' : 'tilesets', id: t.id });
+    });
+    (TL.BIOMES || []).forEach(function (d) { if (isRetired('biome:' + d.key) && !TL.biome(b, d.key)) add('world', 'biome:' + d.key, 'Biome: ' + d.key, null, { tab: 'world', sub: 'tilesets' }, retiredNeed('biome:' + d.key, null)); });
+    (TL.INTERIORS || []).forEach(function (d) { if (isRetired('interior:' + d.key) && !TL.interior(b, d.key)) add('world', 'interior:' + d.key, 'Interior: ' + d.key, null, { tab: 'world', sub: 'interiors' }, retiredNeed('interior:' + d.key, null)); });
+    // Climate: Day 148 places a biome per cell from temperature, moisture, and elevation (five steps each). A cell no
+    // biome claims falls back to the nearest, so this is advice, not a gap.
+    if (biomes.length) {
+      var miss = COV.climateGaps(b);
+      add('world', 'climate', 'Climate cells with a matching biome', null, { tab: 'world', sub: 'tilesets' }, { need: 'advisory', ok: !miss.length,
+        detail: miss.length ? (125 - miss.length) + ' of 125 cells match a biome. Unmatched, for example: ' + miss.slice(0, 3).map(function (c) { return 'temperature ' + c[0] + ', moisture ' + c[1] + ', elevation ' + c[2]; }).join('; ') + '. Day 148 uses the nearest biome there.' : 'Every combination of temperature, moisture, and elevation matches a biome.' });
+    }
+
+    // ---- interface
+    I.ROLES.forEach(function (r) { var rec = I.get(b, r.key); add('interface', r.key, 'UI: ' + r.label, rec, { tab: 'interface', sub: r.key === 'font' ? 'window' : r.key }, retiredNeed('ui:' + r.key, rec)); });
+
+    // ---- sound
+    ART.musicRoles(b).filter(function (r) { return r.required; }).forEach(function (r) {
+      add('sound', 'music:' + r.key, 'Music: ' + r.label, A.trackFor(b, r.key), { tab: 'sound', sub: 'score' }, isRetired('music:' + r.key) && !A.trackFor(b, r.key) ? { restore: 'music:' + r.key, detail: 'Deleted by you. A required role needs a track.' } : {});
+    });
+    chrs.forEach(function (c) { add('sound', 'motif:' + c.id, 'Leitmotif: ' + nameOf(c), A.motifFor(b, 'chr', c.id), { tab: 'sound', sub: 'motifs' }); });
+    rulesList(b, 'abl_').forEach(function (a) { if (a.kind !== 'passive') add('sound', 'abl:' + a.id, 'Ability sound: ' + nameOf(a), A.abilitySfx(b, a.id), { tab: 'sound', sub: 'effects' }); });
+    elements(b).forEach(function (e) { add('sound', 'element:' + e.key, 'Element sound: ' + (e.label || e.key), A.elementSfx(b, e.key), { tab: 'sound', sub: 'effects' }); });
+    A.CUES.forEach(function (c) { var r = A.cueSfx(b, c.key); add('sound', 'cue:' + c.key, 'Cue sound: ' + c.key, r, { tab: 'sound', sub: 'effects' }, retiredNeed('sfx:' + c.key, r)); });
+
+    // ---- forward fields: every field Quick Build would fill is still owed
+    ART.links.plan(b).forEach(function (p) {
+      add('links', p.recordId + '.' + p.field, 'Forward field: ' + p.recordId + ' ' + p.field, null, { tab: 'export', sub: 'references', id: p.recordId },
+        { ok: false, detail: p.from ? 'Points at ' + p.from + ', which no longer exists.' : 'Empty, and ' + p.to + ' is ready to fill it.' });
+    });
+    return summarize(items);
+  };
+  function summarize(items) {
+    var req = items.filter(function (i) { return i.need === 'required'; }), ok = req.filter(function (i) { return i.ok; }).length;
+    var byGroup = {};
+    COV.GROUPS.forEach(function (g) { byGroup[g.key] = { required: 0, covered: 0, advisory: 0 }; });
+    items.forEach(function (i) { var g = byGroup[i.group]; if (i.need === 'required') { g.required++; if (i.ok) g.covered++; } else g.advisory++; });
+    return {
+      items: items, required: req.length, covered: ok, missing: req.length - ok,
+      percent: req.length ? Math.floor(ok / req.length * 1000) / 10 : 100,
+      gaps: req.filter(function (i) { return !i.ok; }), advisories: items.filter(function (i) { return i.need === 'advisory' && !i.ok; }),
+      byGroup: byGroup, green: ok === req.length
+    };
+  }
+  COV.climateGaps = function (b) {
+    var bs = ART.tiles.biomes(b).filter(function (t) { return t.climate && !t.climate.feature; }), out = [];
+    function inR(r, v) { return Array.isArray(r) && v >= r[0] && v <= r[1]; }
+    for (var t = 0; t < 5; t++) for (var m = 0; m < 5; m++) for (var e = 0; e < 5; e++) {
+      if (!bs.some(function (x) { return inR(x.climate.temp, t) && inR(x.climate.moist, m) && inR(x.climate.elev, e); })) out.push([t, m, e]);
+    }
+    return out;
+  };
+  // Opens the editor that fixes an item: the record itself when it exists, else the right sub tab of the right tab.
+  COV.go = function (it) {
+    var f = it && it.fix || {};
+    if (f.id && (ART.records.get(f.id) || Kit.records.get(f.id)) && f.tab !== 'export') { Kit.jump(f.id); return true; }
+    var ws = ART.WS && ART.WS[f.tab];
+    if (ws && ws.ui && f.sub) { ws.ui.sub = f.sub; ws.ui.focus = f.id && ART.records.get(f.id) ? f.id : null; }
+    if (f.tab === 'export' && COV.exportUi) { COV.exportUi.sub = f.sub || 'coverage'; }
+    return Kit.go(f.tab);
+  };
+  // Brings a retired default back: the key leaves art.settings.retired and Quick Build recreates it.
+  COV.restore = function (b, key) {
+    b = b || cur();
+    var r = retired(b), i = r.indexOf(key);
+    if (i >= 0) r.splice(i, 1);
+    var rep = ART.quickBuild.run(b);
+    Kit.bundle.touch('restore');
+    return rep;
+  };
+
+  // ================================================================ references
+  var REFS = ART.refs = {};
+  // Paths a phase validator already reports when the target is missing (proved in test/phase8.js); art.refs skips them
+  // so nothing is reported twice. Anything else that dangles is broken, and blocks a Final export.
+  REFS.COVERED = {
+    'anm_': /^impact\.fx$/, 'ico_': /^pal$/, 'por_': /^pal$/, 'til_': /^pal$/,
+    'mus_': /^(derivedFrom\.motif|instruments\.(p1|p2|tri|noise)|slots\[\d+\])$/,
+    'spr_': /^(anims\..+|pal|recipe\.parts\.\w+|shares)$/,
+    'uik_': /^(sfx\.\w+|bg)$/
+  };
+  var SKIP_TOP = { id: 1, name: 1, notes: 1, tags: 1, subject: 1 };
+  var INTERIOR_REF = /^([a-z]{3}_[a-z0-9_]*[a-z0-9]):([a-z0-9_.-]+)$/;
+  // scan(b) -> {refs [{from, path, id, kind 'art'|'rules'|'subject'|'priority', ok, key}], dangling, ids}
+  REFS.scan = function (b) {
+    b = b || cur();
+    var out = [], ids = {};
+    if (!b || !b.art) return { refs: out, dangling: [], ids: [] };
+    var idx = Kit.index(b), els = {};
+    elements(b).forEach(function (e) { els[e.key] = 1; });
+    function exists(id) { return ART.PREFIXES.indexOf(Kit.ids.prefixOf(id)) >= 0 ? !!ART.records.get(id, b) : !!idx.byId[id]; }
+    function note(from, path, id, kind, ok, key) { ids[id] = 1; out.push({ from: from, path: path, id: id, kind: kind, ok: ok, key: key || null }); }
+    function walk(node, rec, path) {
+      if (typeof node === 'string') {
+        if (Kit.ids.isValid(node)) { if (node !== rec.id) note(rec.id, path, node, ART.PREFIXES.indexOf(Kit.ids.prefixOf(node)) >= 0 ? 'art' : 'rules', exists(node)); return; }
+        var m = INTERIOR_REF.exec(node);
+        if (m && Kit.ids.isValid(m[1]) && Kit.ids.prefixOf(m[1]) === 'til_') {
+          var t = ART.records.get(m[1], b);
+          note(rec.id, path, m[1], 'art', !!t && (t.tiles || []).some(function (x) { return x && x.key === m[2]; }), m[2]);
+        }
+        return;
+      }
+      if (Array.isArray(node)) { for (var i = 0; i < node.length; i++) walk(node[i], rec, path + '[' + i + ']'); return; }
+      if (U.isObj(node)) Object.keys(node).forEach(function (k) { walk(node[k], rec, path ? path + '.' + k : k); });
+    }
+    var recs = b.art.records || {};
+    Object.keys(recs).forEach(function (p) {
+      Object.keys(recs[p] || {}).forEach(function (id) {
+        var r = recs[p][id];
+        if (!U.isObj(r)) return;
+        Object.keys(r).forEach(function (k) { if (!SKIP_TOP[k]) walk(r[k], r, k); });
+        var s = r.subject;
+        if (U.isObj(s) && typeof s.ref === 'string' && s.ref) {
+          if (s.kind === 'element') note(id, 'subject.ref', s.ref, 'subject', !!els[s.ref]);
+          else if (s.kind !== 'role') note(id, 'subject.ref', s.ref, 'subject', Kit.ids.isValid(s.ref) && !!idx.byId[s.ref] && Kit.ids.prefixOf(s.ref) === s.kind + '_');
+        }
+      });
+    });
+    (Array.isArray(b.art.priority) ? b.art.priority : []).forEach(function (tid, i) { if (typeof tid === 'string') note('art', 'priority[' + i + ']', tid, 'priority', !!ART.records.get(tid, b)); });
+    out.forEach(function (r) { if (r.kind === 'subject' && !Kit.ids.isValid(r.id)) delete ids[r.id]; });
+    return { refs: out, dangling: out.filter(function (r) { return !r.ok; }), ids: Object.keys(ids).sort() };
+  };
+  // What the art.refs validator reports: dangling art IDs at paths no phase validator owns (broken), and rules IDs
+  // inside an art record that no longer exist, other than the record's own subject (warning; its validator warns).
+  REFS.uncovered = function (b, scan) {
+    scan = scan || REFS.scan(b);
+    return scan.dangling.filter(function (r) {
+      if (r.kind === 'subject' || r.kind === 'priority') return false;
+      var p = Kit.ids.prefixOf(r.from), re = REFS.COVERED[p];
+      if (r.kind === 'art') return !(re && re.test(r.path));
+      var rec = ART.records.get(r.from, b);
+      return !(rec && rec.subject && rec.subject.ref === r.id);
+    });
+  };
+  Kit.validate.register('art.refs', function (b, ctx) {
+    if (!b || !b.art) return;
+    REFS.uncovered(b).forEach(function (r) {
+      if (r.kind === 'art') ctx.add({ recordId: r.from, fieldPath: r.path, message: 'Broken reference: ' + r.id + (r.key ? ' has no tile ' + r.key : ' does not exist') + '.', level: 'broken', id: r.id });
+      else ctx.add({ recordId: r.from, fieldPath: r.path, message: r.id + ' is no longer in the rules. The art still works; this link is stale.', level: 'warning', id: r.id });
+    });
+  });
+
+  // ================================================================ engines
+  // The exact fence text, read from this page's script. The marker strings are built from parts so this code never
+  // finds itself.
+  var ENG = ART.engines = {};
+  ENG.LIST = [
+    { key: 'render', fence: 'RENDER', global: 'ENGINE_RENDER', file: 'engine-render.js', label: 'Render engine' },
+    { key: 'audio', fence: 'AUDIO', global: 'ENGINE_AUDIO', file: 'engine-audio.js', label: 'Audio engine' }
+  ];
+  ENG.markers = function (fence) { return ['// === ENGINE:' + fence + ' BEGIN ===', '// === ENGINE:' + fence + ' END ===']; };
+  // The fence from open marker to close marker inclusive, out of any text ('' when absent or doubled).
+  ENG.cut = function (text, fence) {
+    var mk = ENG.markers(fence), a = text.indexOf(mk[0]), z = text.indexOf(mk[1]);
+    if (a < 0 || z < a || text.indexOf(mk[0], a + 1) >= 0) return '';
+    return text.slice(a, z + mk[1].length) + '\n';
+  };
+  var srcCache = {};
+  function pageScript() {
+    if (typeof document === 'undefined') return '';
+    var list = document.getElementsByTagName('script');
+    for (var i = 0; i < list.length; i++) { var t = list[i].textContent || ''; if (t.indexOf(ENG.markers('RENDER')[0]) >= 0) return t; }
+    return '';
+  }
+  ENG.source = function (key) {
+    var e = ENG.LIST.filter(function (x) { return x.key === key; })[0];
+    if (!e) return '';
+    if (srcCache[key]) return srcCache[key];
+    var s = ENG.cut(pageScript(), e.fence);
+    if (s) srcCache[key] = s;
+    return s;
+  };
+  ENG.version = function (key) {
+    try { var g = key === 'render' ? ENGINE_RENDER : ENGINE_AUDIO; return g && g.version ? String(g.version) : 'unknown'; } catch (e) { return 'unknown'; }
+  };
+  // header(e, version, hash) is shared with build.js through the text it produces; keep the two in step.
+  ENG.header = function (e, version, hash) {
+    return '/* Art and Audio Forge ENGINE:' + e.fence + ', engine version ' + version + '\n' +
+      (hash ? ' * Bundle hash: ' + hash + '\n' : '') +
+      ' * Forge 147 (AppADay 147). Declares one global, ' + e.global + '. No dependencies; reads no host global. */\n';
+  };
+  ENG.file = function (key, hash) {
+    var e = ENG.LIST.filter(function (x) { return x.key === key; })[0], src = ENG.source(key);
+    if (!e || !src) throw new Error('The ' + key + ' engine could not be read from this page.');
+    return { key: 'engine-' + key, name: e.file, text: ENG.header(e, ENG.version(key), hash) + src, mime: 'text/javascript' };
+  };
+  ENG.available = function () { return ENG.LIST.every(function (e) { return !!ENG.source(e.key); }); };
+
+  // ================================================================ manifest
+  ART.manifest = function (b, hash) {
+    b = b || cur();
+    var created = [], counts = {}, r = b.art && b.art.records || {};
+    Object.keys(r).sort().forEach(function (p) { var ids = Object.keys(r[p] || {}); if (ids.length) counts[p] = ids.length; created = created.concat(ids); });
+    var fw = ART.forwardRefs(b), scan = REFS.scan(b), cov = COV.compute(b), refd = {};
+    scan.refs.forEach(function (x) { if (x.kind !== 'subject' || Kit.ids.isValid(x.id)) refd[x.id] = 1; });
+    fw.forEach(function (f) { refd[f.id] = 1; });
+    var unresolved = fw.filter(function (f) { return !f.ok; }).map(function (f) { return { id: f.id, recordId: f.recordId, field: f.field }; })
+      .concat(scan.dangling.filter(function (x) { return x.kind === 'art' || x.kind === 'priority'; }).map(function (x) { return { id: x.id, recordId: x.from, field: x.path }; }));
+    return {
+      forge: 147, bundleHash: hash, artVersion: b.art.version, charterVersion: b.charter ? (b.charter.version || 0) : 0,
+      exportedAt: (b.kit.forges && b.kit.forges['147'] && b.kit.forges['147'].exportedAt) || U.now(),
+      created: created.sort(), referenced: Object.keys(refd).sort(), unresolved: unresolved,
+      forward: fw.map(function (f) { return { recordId: f.recordId, field: f.field, id: f.id, ok: f.ok }; }),
+      artOpened: Kit.codex.isOpened('art', b), counts: counts,
+      coverage: { required: cov.required, covered: cov.covered, percent: cov.percent, gaps: cov.gaps.map(function (g) { return g.key; }), advisories: cov.advisories.map(function (g) { return g.key; }) },
+      engines: ENG.LIST.map(function (e) { return { key: e.key, global: e.global, file: e.file, version: ENG.version(e.key) }; })
+    };
+  };
+})();
+// === ART:COVERAGE END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -15736,21 +16142,16 @@ var ENGINE_AUDIO = (function () {
 
   // ---------------------------------------------------------------- export (forge 147)
   // Overrides the Day 146 export dialog, which belongs to forge 146. KIT:CORE text is unchanged; these are reassignments.
-  function manifest(b, hash) {
-    var created = [], counts = {}, r = b.art && b.art.records || {};
-    Object.keys(r).sort().forEach(function (p) { var ids = Object.keys(r[p] || {}); if (ids.length) counts[p] = ids.length; created = created.concat(ids); });
-    var fw = ART.forwardRefs(b);
-    return {
-      forge: 147, bundleHash: hash, artVersion: b.art.version, charterVersion: b.charter.version || 0,
-      created: created.sort(), referenced: fw.map(function (f) { return f.id; }).sort(),
-      unresolved: fw.filter(function (f) { return !f.ok; }).map(function (f) { return { id: f.id, recordId: f.recordId, field: f.field }; }),
-      artOpened: Kit.codex.isOpened('art', b), counts: counts
-    };
-  }
-  Kit.buildExport = function (status) {
+  // buildExport(status, opts): opts.fill fills the forward fields first (the export dialog does this by default; the
+  // bare call never does, so a dangling field still blocks Final), opts.engines false leaves the engine files out.
+  // Files, in order: bundle, manifest, engine-render.js, engine-audio.js. exportFile restamps kit.contentHash, and the
+  // manifest and both engine headers carry that same hash.
+  Kit.buildExport = function (status, opts) {
+    opts = opts || {};
     var b = cur();
     if (!b) throw new Error('No project is open.');
     ART.ensure(b); ART.registerCodex(b);
+    if (opts.fill && ART.links.plan(b).length) { ART.links.fill(b); Kit.bundle.touch('links'); }
     var res = Kit.refreshValidation();
     if (status === 'final') {
       if (res.errors.length || res.broken.length) throw new Error('Final export is blocked by ' + (res.errors.length + res.broken.length) + ' error' + (res.errors.length + res.broken.length === 1 ? '' : 's') + '.');
@@ -15759,35 +16160,137 @@ var ENGINE_AUDIO = (function () {
     } else if (!ART.canOpen(b)) Kit.bundle.close('art');
     b.kit.forges['147'] = { status: status, exportedAt: U.now(), artVersion: b.art.version, charterVersion: b.charter.version || 0 };
     var out = Kit.bundle.exportFile({ download: false });
-    return { hash: out.hash, files: [
+    var files = [
       { key: 'bundle', name: out.filename, text: out.text, mime: 'application/json' },
-      { key: 'manifest', name: Kit.bundle.slug() + '-art-manifest.json', text: JSON.stringify(manifest(cur(), out.hash), null, 2), mime: 'application/json' }
-    ] };
+      { key: 'manifest', name: Kit.bundle.slug() + '-art-manifest.json', text: JSON.stringify(ART.manifest(cur(), out.hash), null, 2), mime: 'application/json' }
+    ];
+    if (opts.engines !== false && ART.engines.available()) ART.engines.LIST.forEach(function (e) { files.push(ART.engines.file(e.key, out.hash)); });
+    return { hash: out.hash, files: files };
   };
+  // Would a Final export be allowed after the forward fields are filled? Tried on a copy; nothing is written.
+  function finalState(b, fill) {
+    var res = Kit.refreshValidation(), s = Kit.validate.summary(res);
+    if (s.errors + s.broken > 0) return { ok: false, why: 'Blocked by ' + (s.errors + s.broken) + ' error' + (s.errors + s.broken === 1 ? '' : 's') + ' or broken reference' + (s.errors + s.broken === 1 ? '' : 's') + '. Open the validation panel to fix them.' };
+    if (ART.canOpen(b)) return { ok: true };
+    if (fill) { var c = U.clone(b); ART.links.fill(c); if (ART.canOpen(c)) return { ok: true }; }
+    return { ok: false, why: 'Blocked: a forward field points at an art record that does not exist. Fill forward fields first.' };
+  }
+  ART.finalState = finalState;
+  function download(files) { files.forEach(function (f, i) { setTimeout(function () { U.download(f.name, f.text, f.mime); }, i * 350); }); }
+  ART.exportNow = function (status, opts) {
+    try {
+      var out = Kit.buildExport(status, opts);
+      download(out.files);
+      Kit.ui.toast('Exported ' + out.files.length + ' files (' + status + '). Hash ' + out.hash.slice(0, 12) + '.', 'ok', 6000);
+      Kit.rerender();
+      return out;
+    } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return null; }
+  };
+  // The status cards, the fill and engine toggles, and the coverage line, shared by the dialog and the Downloads view.
+  function exportForm(host, st, onChange) {
+    var b = cur(), cov = ART.coverage.compute(b), plan = ART.links.plan(b), s = Kit.validate.summary(Kit.refreshValidation());
+    host.appendChild(el('div', null, '<dl class="kv"><dt>Project</dt><dd>' + esc(b.kit.title) + '</dd><dt>Art version</dt><dd>' + esc(b.art.version) + '</dd><dt>Art records</dt><dd>' + ART.manifest(b, '').created.length + '</dd>' +
+      '<dt>Coverage</dt><dd>' + covChip(cov) + (cov.green ? '' : ' <span class="muted">' + cov.missing + ' required item' + (cov.missing === 1 ? '' : 's') + ' missing</span>') + '</dd>' +
+      '<dt>Issues</dt><dd>' + (s.errors + s.broken ? '<span class="chip chip-error">' + s.errors + ' err</span> <span class="chip chip-broken">' + s.broken + ' broken</span>' : '<span class="chip chip-ok">' + Kit.icon('check') + 'none</span>') + '</dd></dl>'));
+    var rc = el('div', 'radio-cards');
+    host.appendChild(rc);
+    var tg = el('div', 'a7-export-opts');
+    if (plan.length) tg.appendChild(ART.ui.toggle('Fill ' + plan.length + ' forward field' + (plan.length === 1 ? '' : 's') + ' first', st.fill, function (on) { st.fill = on; paintCards(); if (onChange) onChange(); }));
+    tg.appendChild(ART.ui.toggle('Include engine-render.js and engine-audio.js', st.engines, function (on) { st.engines = on; if (onChange) onChange(); }));
+    host.appendChild(tg);
+    if (!cov.green) host.appendChild(el('p', 'msg msg-warning', 'Coverage is not complete. You can still export; later forges draw what is missing with their own fallbacks. Open the gap list to see what is owed.'));
+    function paintCards() {
+      var fs = finalState(b, st.fill && plan.length);
+      if (!fs.ok && st.status === 'final') st.status = 'draft';
+      rc.innerHTML = '<label class="radio-card"><input type="radio" name="a7Status" value="draft"' + (st.status === 'draft' ? ' checked' : '') + '><span><strong>Draft</strong><br><span class="muted">Always allowed. Art stays closed while a forward field is unresolved, so Day 146 keeps reading art fields as forward.</span></span></label>' +
+        '<label class="radio-card' + (fs.ok ? '' : ' disabled') + '"><input type="radio" name="a7Status" value="final"' + (fs.ok ? '' : ' disabled') + (st.status === 'final' ? ' checked' : '') + '><span><strong>Final</strong><br><span class="muted">' + esc(fs.ok ? 'Opens the art namespace and marks forge 147 final.' : fs.why) + '</span></span></label>';
+      Array.prototype.forEach.call(rc.querySelectorAll('input'), function (r) { r.addEventListener('change', function () { st.status = r.value; if (onChange) onChange(); }); });
+    }
+    paintCards();
+  }
+  function exportState() { return { status: 'draft', fill: ART.links.plan(cur()).length > 0, engines: true }; }
   Kit.openExport = function () {
-    var res = Kit.refreshValidation(), s = Kit.validate.summary(res), b = cur(), status = 'draft';
-    var blocked = s.errors + s.broken > 0 || !ART.canOpen(b);
+    var st = exportState();
     Kit.ui.dialog({
       title: 'Export forge 147',
-      body: function (body) {
-        body.innerHTML = '<dl class="kv"><dt>Project</dt><dd>' + esc(b.kit.title) + '</dd><dt>Art version</dt><dd>' + esc(b.art.version) + '</dd><dt>Art records</dt><dd>' + manifest(b, '').created.length + '</dd><dt>Issues</dt><dd><span class="chip chip-error">' + s.errors + ' err</span> <span class="chip chip-broken">' + s.broken + ' broken</span></dd></dl>';
-        var rc = el('div', 'radio-cards');
-        rc.innerHTML = '<label class="radio-card"><input type="radio" name="a7Status" value="draft" checked><span><strong>Draft</strong><br><span class="muted">Always allowed. Art stays closed, so Day 146 keeps reading art fields as forward.</span></span></label>' +
-          '<label class="radio-card' + (blocked ? ' disabled' : '') + '"><input type="radio" name="a7Status" value="final"' + (blocked ? ' disabled' : '') + '><span><strong>Final</strong><br><span class="muted">' + (blocked ? 'Blocked until errors are fixed and every forward field resolves.' : 'Opens the art namespace and marks forge 147 final.') + '</span></span></label>';
-        body.appendChild(rc);
-        Array.prototype.forEach.call(rc.querySelectorAll('input'), function (r) { r.addEventListener('change', function () { status = r.value; }); });
-      },
+      body: function (body) { exportForm(body, st); },
       actions: [
         { label: 'Close', kind: 'ghost', value: null },
-        { label: 'Download bundle and manifest', kind: 'primary', icon: 'export', onClick: function () {
-          try {
-            var out = Kit.buildExport(status);
-            out.files.forEach(function (f, i) { setTimeout(function () { U.download(f.name, f.text, f.mime); }, i * 350); });
-            Kit.ui.toast('Exported (' + status + '). Hash ' + out.hash.slice(0, 12) + '.', 'ok', 6000);
-          } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return false; }
-        } }
+        { label: 'Download', kind: 'primary', icon: 'export', onClick: function () { if (!ART.exportNow(st.status, { fill: st.fill, engines: st.engines })) return false; } }
       ]
     });
+  };
+
+  // ---------------------------------------------------------------- coverage (header chip and gap list)
+  function covChip(cov) {
+    var cls = cov.green ? 'chip-ok' : cov.percent >= 90 ? 'chip-warning' : 'chip-error';
+    return '<span class="chip ' + cls + '">' + (cov.green ? Kit.icon('check') : '') + esc(cov.covered + '/' + cov.required) + '</span>';
+  }
+  function paintCoverage() {
+    var btn = document.getElementById('btnCoverage');
+    if (!btn) return;
+    var b = cur();
+    if (!b || ready(b) !== true) { btn.hidden = true; return; }
+    btn.hidden = false;
+    var cov = ART.coverage.compute(b);
+    btn.innerHTML = '<span class="a7-cov-l">Coverage</span>' + covChip(cov);
+    btn.setAttribute('aria-label', 'Coverage ' + cov.covered + ' of ' + cov.required + ' required art items' + (cov.green ? ', complete' : ', ' + cov.missing + ' missing') + '. Open the gap list.');
+    btn.title = cov.green ? 'Every required art item exists' : cov.missing + ' required art item' + (cov.missing === 1 ? '' : 's') + ' missing';
+  }
+  var coverageSoon = U.debounce(paintCoverage, 300);
+  ART.paintCoverage = paintCoverage;
+  function gapRow(it, after) {
+    var row = el('div', 'a7-gap' + (it.ok ? ' a7-gap-ok' : ''));
+    row.appendChild(el('div', 'a7-gap-t', '<strong>' + esc(it.label) + '</strong>' + (it.detail ? '<small>' + esc(it.detail) + '</small>' : '')));
+    var acts = el('div', 'a7-gap-a');
+    if (it.restore) acts.appendChild(ART.ui.button('Restore', 'spark', '', function () {
+      ART.coverage.restore(cur(), it.restore); Kit.refreshValidation(); paintCoverage(); Kit.ui.toast('Restored ' + it.restore + '.', 'ok'); if (after) after(true);
+    }));
+    var open = ART.ui.button(it.ok ? 'Open' : 'Fix', 'edit', it.ok ? 'btn-ghost' : '', function () { if (after) after(false); ART.coverage.go(it); });
+    open.setAttribute('aria-label', (it.ok ? 'Open ' : 'Fix ') + it.label);
+    acts.appendChild(open);
+    row.appendChild(acts);
+    return row;
+  }
+  // The gap list. o.all also lists covered items; o.after(changed) runs after a fix or restore (the drawer closes).
+  function coverageBody(host, o) {
+    o = o || {};
+    var b = cur(), cov = ART.coverage.compute(b);
+    host.appendChild(el('div', 'a7-meter a7-' + (cov.green ? 'ok' : cov.percent >= 90 ? 'amber' : 'red'), '<i style="width:' + Math.round(cov.percent) + '%"></i>'));
+    host.appendChild(el('p', 'muted', esc(cov.green ? 'Every required item exists: ' + cov.covered + ' of ' + cov.required + '. Coverage is computed from the bundle each time, so a new character or ability shows up here at once.' :
+      cov.covered + ' of ' + cov.required + ' required items exist (' + cov.percent + ' percent). Quick Build fills every missing item without Claude; each Fix button opens the editor for that item.')));
+    var row = el('div', 'btn-row');
+    if (!cov.green) row.appendChild(ART.ui.button('Quick Build', 'spark', 'btn-primary', function () { if (o.after) o.after(false); ART.openQuickBuild(); }));
+    if (ART.links.plan(b).length) row.appendChild(ART.ui.button('Fill forward fields', 'check', '', function () { ART.links.fill(cur()); Kit.bundle.touch('links'); Kit.refreshValidation(); paintCoverage(); if (o.after) o.after(true); }));
+    if (row.children.length) host.appendChild(row);
+    var chips = el('div', 'a7-prefixes');
+    chips.innerHTML = ART.coverage.GROUPS.map(function (g) {
+      var n = cov.byGroup[g.key];
+      if (!n.required && !n.advisory) return '';
+      return '<span class="chip ' + (n.covered === n.required ? 'chip-ok' : 'chip-warning') + '">' + esc(g.label + ' ' + n.covered + '/' + n.required) + '</span>';
+    }).join('');
+    host.appendChild(chips);
+    var list = o.all ? cov.items.filter(function (i) { return i.need === 'required'; }) : cov.gaps;
+    ART.coverage.GROUPS.forEach(function (g) {
+      var its = list.filter(function (i) { return i.group === g.key; });
+      if (!its.length) return;
+      host.appendChild(el('h3', 'section-h', esc(g.label) + (o.all ? '' : ' (' + its.length + ' missing)')));
+      var box = el('div', 'a7-gaps');
+      its.forEach(function (it) { box.appendChild(gapRow(it, o.after)); });
+      host.appendChild(box);
+    });
+    if (!o.all && !cov.gaps.length) host.appendChild(el('div', 'empty-line', 'No gaps.'));
+    var adv = cov.items.filter(function (i) { return i.need === 'advisory'; });
+    if (adv.length) {
+      host.appendChild(el('h3', 'section-h', 'Advice and deleted defaults'));
+      var ab = el('div', 'a7-gaps');
+      adv.forEach(function (it) { ab.appendChild(gapRow(it, o.after)); });
+      host.appendChild(ab);
+    }
+  }
+  ART.openCoverage = function () {
+    var h = Kit.ui.drawer({ title: 'Coverage', body: function (body, hd) { coverageBody(body, { after: function (changed) { hd.close(); if (changed) { Kit.rerender(); ART.openCoverage(); } } }); } });
+    return h;
   };
 
   // ---------------------------------------------------------------- Quick Build
@@ -15805,6 +16308,7 @@ var ENGINE_AUDIO = (function () {
       try { rep = ART.quickBuild.run(b); } catch (e) { console.error(e); Kit.ui.toast('Quick Build failed: ' + e.message, 'error', 8000); return; }
       Kit.refreshValidation();
       Kit.rerender();
+      paintMeter(); paintCoverage();
       Kit.ui.toast('Quick Build done in ' + rep.ms + ' ms: ' + rep.created + ' new, ' + rep.refreshed + ' refreshed, ' + rep.kept + ' kept.', 'ok', 6000);
     });
   };
@@ -15917,31 +16421,104 @@ var ENGINE_AUDIO = (function () {
     ['playtest', 'Playtest', 'sword', 'Dressed battles, the test room, and the window preview.', 'Phase 4 and 5']
   ];
 
-  function renderExport(host) {
-    var b = cur(), fw = ART.forwardRefs(b);
+  // Export: Coverage, References, Size, Downloads (the plan's four sub tabs).
+  var exportUi = ART.coverage.exportUi = { sub: 'coverage', all: false };
+  var EXPORT_SUBS = [['coverage', 'Coverage'], ['references', 'References'], ['size', 'Size'], ['downloads', 'Downloads']];
+  function refsView(host) {
+    var b = cur(), scan = ART.refs.scan(b), fw = ART.forwardRefs(b), plan = ART.links.plan(b), un = ART.refs.uncovered(b, scan);
+    var art = scan.refs.filter(function (r) { return r.kind === 'art'; }), dang = scan.dangling;
     var p = el('section', 'panel');
-    p.innerHTML = '<h2 class="panel-title">Export</h2><p class="muted">Coverage and reference checks arrive in Phase 8. Today this exports the bundle with the art namespace and a forge 147 manifest. A Draft export keeps art closed so Day 146 still reads art fields as forward references; a Final export opens art and is allowed only when every forward field resolves.</p>';
-    var bt = el('button', 'btn btn-primary', Kit.icon('export') + '<span>Export</span>'); bt.type = 'button'; bt.addEventListener('click', Kit.openExport);
-    p.appendChild(bt);
+    p.appendChild(el('h3', 'section-h', 'Reference check'));
+    p.appendChild(el('p', 'muted', esc(art.length + ' links between art records, ' + scan.refs.filter(function (r) { return r.kind === 'subject'; }).length + ' subjects that name a rules record or element, and ' + fw.length + ' forward field' + (fw.length === 1 ? '' : 's') + '. ' +
+      (dang.length ? dang.length + ' point at nothing.' : 'Every one resolves.') + ' A Final export is blocked while an art link or a forward field points at nothing.')));
+    if (dang.length) {
+      var t = el('table', 'tbl');
+      t.innerHTML = '<thead><tr><th scope="col">Record</th><th scope="col">Field</th><th scope="col">Points at</th><th scope="col">Kind</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead><tbody></tbody>';
+      var tb = t.querySelector('tbody');
+      dang.forEach(function (r) {
+        var tr = el('tr');
+        var rec = ART.records.get(r.from);
+        tr.innerHTML = '<td>' + esc(rec ? rec.name : r.from) + ' <code class="id">' + esc(r.from) + '</code></td><td>' + esc(r.path) + '</td><td><code>' + esc(r.id + (r.key ? ':' + r.key : '')) + '</code></td><td>' +
+          (r.kind === 'art' ? '<span class="chip chip-broken">' + (un.indexOf(r) >= 0 ? 'broken' : 'error') + '</span>' : r.kind === 'subject' ? '<span class="chip chip-warning">orphan subject</span>' : '<span class="chip chip-warning">' + esc(r.kind) + '</span>') + '</td>';
+        var td = el('td');
+        if (rec) td.appendChild(ART.ui.button('Open', 'edit', 'btn-ghost', function () { Kit.jump(r.from); }));
+        tr.appendChild(td); tb.appendChild(tr);
+      });
+      var w0 = el('div', 'tbl-wrap'); w0.appendChild(t); p.appendChild(w0);
+    } else p.appendChild(el('div', 'empty-line', 'No dangling references.'));
     host.appendChild(p);
+
     var f = el('section', 'panel');
     f.appendChild(el('h3', 'section-h', 'Forward fields'));
-    var plan = ART.links.plan(b);
     f.appendChild(el('p', 'muted', 'Day 146 reserved eight fields for this forge: a character\'s portrait and leitmotif, an ability\'s animation, sound, and icon, item and equipment icons, and an enemy family\'s sprite. Quick Build fills them from the art made for each record; fields you pointed elsewhere are kept. ' +
       (plan.length ? plan.length + ' field' + (plan.length === 1 ? ' is' : 's are') + ' empty or point at a deleted record.' : 'Every field that can be filled is filled.')));
     var lrow = el('div', 'btn-row');
-    var lb = el('button', 'btn' + (plan.length ? ' btn-primary' : ''), Kit.icon('check') + '<span>Fill forward fields</span>'); lb.type = 'button';
+    var lb = ART.ui.button('Fill forward fields', 'check', plan.length ? 'btn-primary' : '', function () { var ch = ART.links.fill(cur()); Kit.bundle.touch('links'); Kit.refreshValidation(); Kit.rerender(); Kit.ui.toast(ch.length + ' forward field' + (ch.length === 1 ? '' : 's') + ' updated.', 'ok'); });
     lb.disabled = !plan.length;
-    lb.addEventListener('click', function () { var ch = ART.links.fill(cur()); Kit.bundle.touch('links'); Kit.refreshValidation(); Kit.rerender(); Kit.ui.toast(ch.length + ' forward field' + (ch.length === 1 ? '' : 's') + ' updated.', 'ok'); });
     lrow.appendChild(lb); f.appendChild(lrow);
     if (!fw.length) f.appendChild(el('div', 'empty-line', 'No forward field is filled yet. Run Quick Build, or Fill forward fields once the art exists.'));
     else {
-      var t = el('table', 'tbl');
-      t.innerHTML = '<thead><tr><th scope="col">Record</th><th scope="col">Field</th><th scope="col">Points at</th><th scope="col">State</th></tr></thead><tbody>' +
+      var t2 = el('table', 'tbl');
+      t2.innerHTML = '<thead><tr><th scope="col">Record</th><th scope="col">Field</th><th scope="col">Points at</th><th scope="col">State</th></tr></thead><tbody>' +
         fw.map(function (x) { return '<tr><td><code>' + esc(x.recordId) + '</code></td><td>' + esc(x.field) + '</td><td><code>' + esc(x.id) + '</code></td><td>' + (x.ok ? '<span class="chip chip-ok">resolves</span>' : '<span class="chip chip-broken">missing</span>') + '</td></tr>'; }).join('') + '</tbody>';
-      var w = el('div', 'tbl-wrap'); w.appendChild(t); f.appendChild(w);
+      var w = el('div', 'tbl-wrap'); w.appendChild(t2); f.appendChild(w);
     }
     host.appendChild(f);
+
+    var m = el('section', 'panel'), man = ART.manifest(b, '');
+    m.appendChild(el('h3', 'section-h', 'Manifest preview'));
+    m.appendChild(el('p', 'muted', 'The manifest exported next to the bundle lists every art ID this forge created, every ID the art refers to, and everything unresolved, so Days 148 to 150 can check what they receive.'));
+    m.appendChild(el('div', null, kv([['Created', man.created.length + ' art IDs'], ['Referenced', man.referenced.length + ' IDs'], ['Unresolved', man.unresolved.length ? '<span class="chip chip-broken">' + man.unresolved.length + '</span>' : '<span class="chip chip-ok">0</span>'],
+      ['Coverage', esc(man.coverage.covered + ' of ' + man.coverage.required)], ['Engines', esc(man.engines.map(function (e) { return e.file + ' ' + e.version; }).join(', '))]])));
+    host.appendChild(m);
+  }
+  function downloadsView(host) {
+    var st = exportUi.dl = exportUi.dl || exportState();
+    var p = el('section', 'panel');
+    p.appendChild(el('h3', 'section-h', 'Export the bundle'));
+    p.appendChild(el('p', 'muted', 'Exports four files: the bundle with the art namespace, the forge 147 manifest, and the two engines. Day 146 opens the bundle unchanged. A Final export opens the art namespace for Days 148 to 150.'));
+    exportForm(p, st);
+    p.appendChild(ART.ui.button('Download', 'export', 'btn-primary', function () { ART.exportNow(st.status, { fill: st.fill, engines: st.engines }); }));
+    host.appendChild(p);
+    var e = el('section', 'panel');
+    e.appendChild(el('h3', 'section-h', 'Engines'));
+    e.appendChild(el('p', 'muted', 'ENGINE_RENDER draws sprites, portraits, icons, tiles, effects, weather, windows, text, and battles from the art namespace. ENGINE_AUDIO plays the score and the sound effects. Each is one file with no dependencies that reads no host global, the same code this page runs.'));
+    var row = el('div', 'btn-row');
+    ART.engines.LIST.forEach(function (en) {
+      var bt = ART.ui.button(en.file + ' (' + ART.engines.version(en.key) + ')', 'export', '', function () { var f = ART.engines.file(en.key, ''); U.download(f.name, f.text, f.mime); });
+      if (!ART.engines.source(en.key)) { bt.disabled = true; bt.title = 'This page cannot read its own engine source.'; }
+      row.appendChild(bt);
+    });
+    e.appendChild(row);
+    if (!ART.engines.available()) e.appendChild(el('p', 'msg msg-warning', 'This page cannot read its own engine source, so the engine files are unavailable.'));
+    host.appendChild(e);
+  }
+  function renderExport(host) {
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Export</h2><p class="muted">Check coverage and references, see what the bundle weighs, and export the bundle, its manifest, and both engines.</p>';
+    host.appendChild(head);
+    var tabs = el('div', 'a7-sub'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Export sections');
+    var panel = el('div', 'a7-subpanel'); panel.setAttribute('role', 'tabpanel');
+    EXPORT_SUBS.forEach(function (s) {
+      var t = el('button', null, esc(s[1])); t.type = 'button'; t.setAttribute('role', 'tab'); t.dataset.sub = s[0];
+      t.addEventListener('click', function () { exportUi.sub = s[0]; paint(); });
+      tabs.appendChild(t);
+    });
+    host.appendChild(tabs); host.appendChild(panel);
+    function paint() {
+      Array.prototype.forEach.call(tabs.children, function (t) { t.setAttribute('aria-selected', t.dataset.sub === exportUi.sub ? 'true' : 'false'); });
+      U.clear(panel);
+      if (exportUi.sub === 'coverage') {
+        var c = el('section', 'panel');
+        var tg = ART.ui.toggle('Show covered items too', exportUi.all, function (on) { exportUi.all = on; paint(); });
+        c.appendChild(tg);
+        coverageBody(c, { all: exportUi.all, after: function (changed) { if (changed) Kit.rerender(); } });
+        panel.appendChild(c);
+      } else if (exportUi.sub === 'references') refsView(panel);
+      else if (exportUi.sub === 'size') { var z = el('section', 'panel'); z.appendChild(el('h3', 'section-h', 'Size')); sizeBody(z); panel.appendChild(z); }
+      else downloadsView(panel);
+    }
+    paint();
   }
 
   function renderDev(host) {
@@ -15964,8 +16541,8 @@ var ENGINE_AUDIO = (function () {
       var rows = ART_DEMO.selfTest();
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
-      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Battle</th><th scope="col">Audio</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.battle ? r.battle.beats + ' beats, ' + r.battle.hits + ' hits in ' + r.battle.ms + ' ms, ' + (r.battle.ended || 'open') + (r.battle.real ? '; engine: ' + r.battle.real.outcome + ', ' + r.battle.real.beats + ' beats' : '; engine not loaded') : 'none') + '</td><td class="muted">' + esc(r.audio ? r.audio.roles + '/' + r.audio.required + ' roles scored, ' + r.audio.tracks + ' tracks (' + r.audio.notes + ' notes, ' + r.audio.seconds + ' s' + (r.audio.errors ? ', ' + r.audio.errors + ' MML errors' : '') + '), ' + r.audio.sounds + ' sounds rendered in ' + r.audio.renderMs + ' ms, ' + r.audio.instruments + ' instruments, ' + r.audio.motifs + ' motifs' : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
+      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Battle</th><th scope="col">Audio</th><th scope="col">Coverage</th><th scope="col">References</th><th scope="col">Bake</th></tr></thead><tbody>' +
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.battle ? r.battle.beats + ' beats, ' + r.battle.hits + ' hits in ' + r.battle.ms + ' ms, ' + (r.battle.ended || 'open') + (r.battle.real ? '; engine: ' + r.battle.real.outcome + ', ' + r.battle.real.beats + ' beats' : '; engine not loaded') : 'none') + '</td><td class="muted">' + esc(r.audio ? r.audio.roles + '/' + r.audio.required + ' roles scored, ' + r.audio.tracks + ' tracks (' + r.audio.notes + ' notes, ' + r.audio.seconds + ' s' + (r.audio.errors ? ', ' + r.audio.errors + ' MML errors' : '') + '), ' + r.audio.sounds + ' sounds rendered in ' + r.audio.renderMs + ' ms, ' + r.audio.instruments + ' instruments, ' + r.audio.motifs + ' motifs' : 'none') + '</td><td class="muted">' + esc(typeof r.coverage === 'string' ? r.coverage : r.coverage.covered + '/' + r.coverage.required + (r.coverage.green ? ' complete' : ' (' + r.coverage.gaps.slice(0, 3).join(', ') + ')') + (r.coverage.advisories.length ? '; ' + r.coverage.advisories.length + ' advisory' : '')) + '</td><td class="muted">' + esc(r.refs ? r.refs.refs + ' refs, ' + r.refs.dangling + ' dangling in ' + r.refs.ms + ' ms' + (r.canFinal ? '; Final ok' : '; Final blocked') : 'none') + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);
@@ -15984,7 +16561,8 @@ var ENGINE_AUDIO = (function () {
   if (DEV) Kit.mount('dev', { title: 'Dev', icon: 'gear', canEnter: function () { return true; }, render: renderDev });
   ART.paintMeter = paintMeter;
   Kit.on('change', meterSoon);
-  Kit.on('load', function () { paintMeter(); });
+  Kit.on('change', coverageSoon);
+  Kit.on('load', function () { paintMeter(); paintCoverage(); });
 })();
 // === WS:ART147 END ===
 // === APP:BOOT BEGIN ===
@@ -16003,6 +16581,7 @@ var ENGINE_AUDIO = (function () {
   wire('btnTitle', null, null, Kit.renameProject);
   wire('btnValidation', null, null, Kit.openValidation);
   wire('btnSize', null, null, function () { ART.openSize(); });
+  wire('btnCoverage', null, null, function () { ART.openCoverage(); });
   wire('btnSave', 'save', 'Save', function () { if (Kit.bundle.save()) Kit.ui.toast('Draft saved in this browser.', 'ok'); });
   wire('btnSlots', 'slots', 'Slots', Kit.openSlots);
   wire('btnImport', 'import', 'Import', function () { var f = document.getElementById('fileImport'); f.value = ''; f.click(); });
@@ -16022,6 +16601,7 @@ var ENGINE_AUDIO = (function () {
     var want = Kit.uiState.get().tab;
     if (!want || !Kit.go(want, { silent: true })) Kit.go('start', { silent: true });
     ART.paintMeter();
+    ART.paintCoverage();
   });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Kit.bundle.suspend.save(); });
   window.addEventListener('pagehide', function () { Kit.bundle.suspend.save(); });

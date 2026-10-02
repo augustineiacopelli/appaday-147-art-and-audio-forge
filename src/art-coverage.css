@@ -1,0 +1,17 @@
+/* === ART:COVERAGE CSS BEGIN === */
+.cov-btn { gap: 6px; }
+.cov-btn[hidden] { display: none; }
+.cov-btn .a7-cov-l { font-size: .86rem; color: var(--ink2); pointer-events: none; }
+.cov-btn .chip { pointer-events: none; }
+.a7-meter.a7-ok i { background: var(--ok); }
+.a7-gaps { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 14px; }
+.a7-gap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; border: 1px solid var(--line2); border-left: 4px solid var(--warn); border-radius: var(--radius-sm); background: var(--bg2); min-width: 0; }
+.a7-gap.a7-gap-ok { border-left-color: var(--ok); }
+.a7-gap-t { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.a7-gap-t small { color: var(--ink2); }
+.a7-gap-a { display: flex; flex-wrap: wrap; gap: 6px; }
+.a7-gap-a .btn { min-height: 44px; }
+.a7-export-opts { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 10px; }
+.a7-export-opts .a7-check { min-height: 44px; }
+@media (max-width: 520px) { .cov-btn .a7-cov-l { display: none; } }
+/* === ART:COVERAGE CSS END === */

@@ -465,6 +465,65 @@ SESSION 7 / PHASE 7 (2026-10-02, Opus): CLAUDE DRAFTING AND FORWARD FIELDS. COMP
     (style parts carry no free parameters). Instruments and the cursor and touch skin have no drafter. Coverage, the
     reference report, and the engine file extraction are Phase 8.
 === END SESSION 7 ===
+SESSION 8 / PHASE 8 (2026-10-02, Opus): COVERAGE AND EXPORT. COMPLETE. DAY 147 FEATURE COMPLETE.
+  Fences, in order: ... ART:LINKS, ART:AI, ART:COVERAGE, WS:ART147, APP:BOOT. CSS adds ART:COVERAGE CSS. KIT:CORE still
+    verbatim. ART:COVERAGE builds its engine marker strings from parts so it never finds itself in the page.
+  Engine files: build.js now also writes engine-render.js and engine-audio.js at the repository root, each the fence (open
+    and close marker lines included) byte for byte under a three line header (engine, version, "declares one global, reads
+    no host global"). ART.engines.file(key, hash) cuts the same fences out of the page's own script at run time and adds
+    the same header plus a Bundle hash line; with an empty hash it equals the repository file exactly. Both load in a
+    bare vm context (no window, no document), declare only ENGINE_RENDER and ENGINE_AUDIO, and engine-audio.js loads alone.
+  Coverage (ART.coverage.compute(b), never stored): items {key, group, label, need required|advisory, ok, detail, fix {tab,
+    sub, id}, restore}. Required: master palette; colorway per chr_, the villain, and each NPC archetype; tier palette per
+    fam_; efx_ per element; field and battle sprite per chr_ and the villain; field sprite per NPC; battle sprite per fam_;
+    portrait per chr_ and the villain; icon per itm_ eqp_ abl_ sta_ mat_; the library animation behind every required
+    taxonomy pose (walk, 7 emotes, 12 party, 4 enemy); ability animation and sound per non passive abl_; overlay per wth_
+    (a generic overlay counts, with a note); at least one biome and one interior; a background and palette per tileset;
+    the five UI parts; a track per required music role; a leitmotif per chr_; a sound per element and per cue; every
+    forward field Quick Build would still fill. DECISION: a default the user deleted (retired) is advisory with a Restore
+    button, never a gap (a deleted forest stays deleted); required poses and music roles stay required even when deleted.
+    Climate (125 cells of temperature, moisture, elevation matched by a non feature biome) is advisory: the default twelve
+    cover 109 of 125 (temperature 0 or 1 at elevation 1 and similar); Day 148 falls back to the nearest biome.
+    DECISION: coverage gaps warn but never block a Final export (phase0's envelope only Final still works); dangling
+    references and unresolved forward fields block it.
+  References (ART.refs.scan(b)): every valid ID inside every art record (top level id, name, notes, tags, subject skipped),
+    "til_id:key" interior tile refs, subjects (rules ID of the right prefix, or a Charter element key), and art.priority.
+    Validator art.refs reports a dangling art ID as broken only at paths no phase validator owns (REFS.COVERED: anm_
+    impact.fx; ico_, por_, til_ pal; mus_ derivedFrom.motif, instruments, slots; spr_ anims, pal, recipe.parts, shares;
+    uik_ sfx and bg), so nothing is reported twice (phase8 proves each covered path once per link kind). A stale rules ID
+    inside an art record that is not its own subject is a warning.
+  Manifest (ART.manifest): forge, bundleHash, artVersion, charterVersion, exportedAt, created (every art ID), referenced
+    (every ID the art mentions plus forward values), unresolved (forward fields and dangling art links), forward (all eight
+    kinds with ok), artOpened, counts, coverage {required, covered, percent, gaps, advisories}, engines [{key, global,
+    file, version}].
+  Export: Kit.buildExport(status, {fill, engines}); files bundle, manifest, engine-render.js, engine-audio.js, all carrying
+    the hash exportFile restamps. The bare call never fills. The dialog (and the Downloads view) turns Fill on when a field
+    is owed, shows coverage and issues, and enables Final when it would pass after the fill (tried on a copy, finalState).
+  UI: header Coverage chip (count, green check when complete, hidden until a Charter is locked) opens the gap list
+    drawer: meter, group chips, gaps with Fix (opens the record, or the right sub tab), Quick Build, Fill forward fields,
+    and an advice section with Restore. Export tab has Coverage (optionally every item), References (dangling table with
+    Open, forward fields, manifest preview), Size, and Downloads (export form, both engine files). Phase 7's Fill button
+    now lives under References (phase7.js opens that view first). Dev self test gains Coverage and References columns.
+  Full fixture pass: every fixture Quick Builds to 100 percent coverage with zero dangling references, exports Final with
+    fill, and opens in Day 146 with a matching hash, zero broken, zero forward, and no error the raw fixture lacks (F4
+    keeps Day 146's two "Continent label is required" Charter errors, by design of F4). Final bundle sizes: F0 252 KB,
+    F1 329 KB, demo 396 KB, F4 379 KB, F2 743 KB, F3 738 KB (pretty printed).
+  Day 146 round trip: 147 Final opens in 146 clean (art IDs read as resolved references), 146 exports a Draft, 147 reopens
+    it with the hash matching and art canonically identical, codex prefixes registered again, coverage green, Quick Build
+    creating nothing, and a second Final opening clean in 146.
+  Tests: test/phase8.js 86 of 86 (static and fence checks; engine files byte equal to the fences, ASCII, bare vm load,
+    one global each; coverage before and after Quick Build, every owed kind, reacting to deletes, a new character,
+    retire and restore, a deleted portrait owing its forward field; Fix and Open navigation; reference scan, every covered
+    path reported once, an uncovered dangling link broken and blocking Final, an interior tile key, an orphaned subject;
+    the export dialog, fill, four files, one hash everywhere, manifest contents; the file engines reproduce the page's
+    frames, tiles, a presented battle with its cues, compiled tracks, rendered sounds, and a realized motif; the Day 146
+    round trip; the fixture pass; every Export view, the chip, the drawer, the Dev table). Earlier suites 27, 59, 67, 80,
+    79, 99, 114, 91 pass, one at a time.
+  Checked in headless Chromium at 390 and 1280: every Export view, the gap drawer, and the export dialog have no
+    horizontal scroll and no tap target under 44 px; Fix lands on Sprites, Villain and NPCs.
+  Known limits: coverage checks that records exist, not that they look good. The in browser self test takes about 13 s
+    across ten fixtures (F3 bakes everything at 64 px). Climate cells unmatched by the default biomes are advice only.
+=== END SESSION 8 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

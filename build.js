@@ -67,6 +67,7 @@ ${fs.existsSync(path.join(__dirname, 'src/art-world.css')) ? R('src/art-world.cs
 ${fs.existsSync(path.join(__dirname, 'src/art-ui.css')) ? R('src/art-ui.css').trim() : ''}
 ${R('src/art-sound.css').trim()}
 ${R('src/art-ai.css').trim()}
+${R('src/art-coverage.css').trim()}
 </style>
 </head>
 <body>
@@ -84,6 +85,7 @@ ${R('src/art-ai.css').trim()}
   <div class="topbar" role="toolbar" aria-label="Project">
     <button class="btn btn-ghost proj-title" id="btnTitle" type="button" title="Rename project"><span class="t">Untitled Saga</span></button>
     <button class="btn size-btn" id="btnSize" type="button" aria-label="Bundle size"></button>
+    <button class="btn size-btn cov-btn" id="btnCoverage" type="button" aria-label="Coverage" hidden></button>
     <button class="btn vbadge" id="btnValidation" type="button" title="Open validation panel" aria-label="Validation status"></button>
     <div class="top-actions">
       <button class="btn" id="btnSave" type="button" title="Save draft (Ctrl+S)"></button>
@@ -112,7 +114,7 @@ ${engineRender}
 ${R('src/engine-audio.js').trim()}
 ${R('src/art-palette.js').trim()}
 ${R('src/ws-palette.js').trim()}
-${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js', 'src/art-motion.js', 'src/ws-motion.js', 'src/art-tiles.js', 'src/ws-world.js', 'src/ws-playtest.js', 'src/art-ui.js', 'src/art-battle.js', 'src/ws-battle.js', 'src/art-audio.js', 'src/ws-sound.js', 'src/art-links.js', 'src/art-ai.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
+${['src/art-sprites.js', 'src/art-pixed.js', 'src/ws-sprites.js', 'src/ws-interface.js', 'src/art-motion.js', 'src/ws-motion.js', 'src/art-tiles.js', 'src/ws-world.js', 'src/ws-playtest.js', 'src/art-ui.js', 'src/art-battle.js', 'src/ws-battle.js', 'src/art-audio.js', 'src/ws-sound.js', 'src/art-links.js', 'src/art-ai.js', 'src/art-coverage.js'].filter((f) => fs.existsSync(path.join(__dirname, f))).map((f) => R(f).trim()).join('\n')}
 ${R('src/ws-art147.js').trim()}
 ${R('src/app-boot.js').trim()}
 </script>
@@ -125,3 +127,22 @@ const out = R('index.html');
 const same = fence(out, '// === KIT:CORE BEGIN ===', '// === KIT:CORE END ===') === kitJs && fence(out, '/* === KIT:CORE CSS BEGIN === */', '/* === KIT:CORE CSS END === */') === kitCss;
 console.log('index.html', out.length, 'chars,', out.split('\n').length, 'lines; KIT:CORE verbatim:', same);
 if (!same) process.exit(1);
+
+// Engine files. ART:COVERAGE (ART.engines) cuts the same fences out of the page at run time and adds the same header,
+// with the bundle hash line when a bundle is exported. These repository copies carry no hash.
+const ENGINES = [
+  { fence: 'RENDER', global: 'ENGINE_RENDER', file: 'engine-render.js', ver: /var R = \{ version: '([^']+)' \}/ },
+  { fence: 'AUDIO', global: 'ENGINE_AUDIO', file: 'engine-audio.js', ver: /var VERSION = '([^']+)'/ }
+];
+ENGINES.forEach((e) => {
+  const open = '// === ENGINE:' + e.fence + ' BEGIN ===', close = '// === ENGINE:' + e.fence + ' END ===';
+  const a = out.indexOf(open), z = out.indexOf(close);
+  if (a < 0 || z < a || out.indexOf(open, a + 1) >= 0) throw new Error('ENGINE:' + e.fence + ' fence not found exactly once.');
+  const src = out.slice(a, z + close.length) + '\n';
+  const m = e.ver.exec(src);
+  if (!m) throw new Error('No version in ENGINE:' + e.fence + '.');
+  const header = '/* Art and Audio Forge ENGINE:' + e.fence + ', engine version ' + m[1] + '\n' +
+    ' * Forge 147 (AppADay 147). Declares one global, ' + e.global + '. No dependencies; reads no host global. */\n';
+  fs.writeFileSync(path.join(__dirname, e.file), header + src);
+  console.log(e.file, (header + src).length, 'chars, version', m[1]);
+});

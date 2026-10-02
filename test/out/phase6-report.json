@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-02T11:43:37.854Z",
+  "date": "2026-10-02T12:05:14.170Z",
   "pass": 114,
   "total": 114,
   "results": [
@@ -20,27 +20,27 @@
         1,
         139593,
         160477,
-        227953,
-        232915,
-        454783,
-        507129,
-        527023,
-        551880,
-        584051,
-        596266,
-        638158,
-        663355,
-        691114,
-        739618,
-        777119,
-        808367,
-        823633,
-        836536,
-        864733,
-        890583,
-        928458,
-        1067134,
-        1091299
+        228693,
+        233655,
+        455523,
+        507869,
+        527763,
+        552620,
+        584791,
+        597006,
+        638898,
+        664095,
+        691854,
+        740358,
+        777859,
+        809107,
+        824373,
+        837276,
+        865473,
+        891323,
+        929198,
+        1090695,
+        1128433
       ]
     },
     {
@@ -654,7 +654,7 @@
           "created": 61,
           "refreshed": 0,
           "kept": 0,
-          "ms": 14
+          "ms": 9
         },
         "els": 4,
         "abls": 6,
@@ -670,7 +670,7 @@
         "created": 0,
         "refreshed": 0,
         "kept": 61,
-        "ms": 5
+        "ms": 4
       }
     },
     {
@@ -815,23 +815,23 @@
       "detail": {
         "sfx": 44,
         "playing": {
-          "id": "mus_victory_music_55h1",
+          "id": "mus_victory_music_ptku",
           "name": "Victory music",
           "role": "victory",
           "ended": false
         },
         "log": [
-          "sfx:ko=sfx_ally_falls_xlt0",
-          "ui:ready=sfx_turn_ready_ufbx",
-          "sfx:cast=sfx_cast_j4rg",
-          "sfx:release=sfx_mend_sound_io45",
-          "sfx:revive=sfx_revive_noym",
-          "sfx:status.off=sfx_status_cured_v2q2",
-          "sfx:cast=sfx_swing_a1xs",
-          "sfx:miss=sfx_miss_phkq",
-          "sfx:cast=sfx_swing_a1xs",
-          "sfx:hit=sfx_hit_snu2",
-          "sfx:death=sfx_enemy_defeated_a5jd",
+          "sfx:ko=sfx_ally_falls_f5xe",
+          "ui:ready=sfx_turn_ready_u8sj",
+          "sfx:cast=sfx_cast_911t",
+          "sfx:release=sfx_mend_sound_b0ic",
+          "sfx:revive=sfx_revive_djv7",
+          "sfx:status.off=sfx_status_cured_eri2",
+          "sfx:cast=sfx_swing_zj58",
+          "sfx:miss=sfx_miss_ppqv",
+          "sfx:cast=sfx_swing_zj58",
+          "sfx:hit=sfx_hit_rkfh",
+          "sfx:death=sfx_enemy_defeated_t9cr",
           "music:victory>victory"
         ]
       }
@@ -840,18 +840,18 @@
       "name": "the window preview plays move and confirm",
       "ok": true,
       "detail": [
-        "sfx:cast=sfx_cast_j4rg",
-        "sfx:release=sfx_mend_sound_io45",
-        "sfx:revive=sfx_revive_noym",
-        "sfx:status.off=sfx_status_cured_v2q2",
-        "sfx:cast=sfx_swing_a1xs",
-        "sfx:miss=sfx_miss_phkq",
-        "sfx:cast=sfx_swing_a1xs",
-        "sfx:hit=sfx_hit_snu2",
-        "sfx:death=sfx_enemy_defeated_a5jd",
+        "sfx:cast=sfx_cast_911t",
+        "sfx:release=sfx_mend_sound_b0ic",
+        "sfx:revive=sfx_revive_djv7",
+        "sfx:status.off=sfx_status_cured_eri2",
+        "sfx:cast=sfx_swing_zj58",
+        "sfx:miss=sfx_miss_ppqv",
+        "sfx:cast=sfx_swing_zj58",
+        "sfx:hit=sfx_hit_rkfh",
+        "sfx:death=sfx_enemy_defeated_t9cr",
         "music:victory>victory",
-        "ui:move=sfx_cursor_move_1o7f",
-        "ui:confirm=sfx_confirm_gosh"
+        "ui:move=sfx_cursor_move_a4v8",
+        "ui:confirm=sfx_confirm_5zyr"
       ]
     },
     {
@@ -962,8 +962,8 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 469,
-        "ms": 470
+        "renderMs": 457,
+        "ms": 458
       }
     },
     {
@@ -1023,8 +1023,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.9,
-        "renderMs": 244,
-        "ms": 244
+        "renderMs": 217,
+        "ms": 217
       },
       "validation": {
         "errors": 0,
@@ -1046,8 +1046,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 234,
-        "ms": 235
+        "renderMs": 197,
+        "ms": 198
       },
       "validation": {
         "errors": 0,
@@ -1069,8 +1069,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 5.8,
-        "renderMs": 229,
-        "ms": 229
+        "renderMs": 208,
+        "ms": 209
       },
       "validation": {
         "errors": 0,
@@ -1092,8 +1092,8 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 469,
-        "ms": 470
+        "renderMs": 457,
+        "ms": 458
       },
       "validation": {
         "errors": 0,
@@ -1115,8 +1115,8 @@
         "roles": 16,
         "required": 16,
         "sfxSeconds": 12.8,
-        "renderMs": 462,
-        "ms": 467
+        "renderMs": 402,
+        "ms": 408
       },
       "validation": {
         "errors": 0,
@@ -1138,8 +1138,8 @@
         "roles": 9,
         "required": 9,
         "sfxSeconds": 7.4,
-        "renderMs": 268,
-        "ms": 269
+        "renderMs": 233,
+        "ms": 234
       },
       "validation": {
         "errors": 0,
@@ -1161,8 +1161,8 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 275,
-        "ms": 276
+        "renderMs": 207,
+        "ms": 207
       },
       "validation": {
         "errors": 0,
@@ -1184,8 +1184,8 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 261,
-        "ms": 266
+        "renderMs": 240,
+        "ms": 240
       },
       "validation": {
         "errors": 0,
@@ -1207,8 +1207,8 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 260,
-        "ms": 261
+        "renderMs": 228,
+        "ms": 229
       },
       "validation": {
         "errors": 0,
@@ -1230,8 +1230,8 @@
         "roles": 11,
         "required": 11,
         "sfxSeconds": 7.3,
-        "renderMs": 259,
-        "ms": 260
+        "renderMs": 239,
+        "ms": 240
       },
       "validation": {
         "errors": 0,
