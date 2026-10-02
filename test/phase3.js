@@ -41,7 +41,7 @@ function mockCtx(w, h) {
   check('every fence opens and closes once', fences.every((f) => script.split('// === ' + f + ' BEGIN ===').length === 2 && script.split('// === ' + f + ' END ===').length === 2));
   check('ART:MOTION CSS fence present', html.split('/* === ART:MOTION CSS BEGIN === */').length === 2 && html.split('/* === ART:MOTION CSS END === */').length === 2);
   const eng = script.slice(script.indexOf('// === ENGINE:RENDER BEGIN ==='), script.indexOf('// === ENGINE:RENDER END ==='));
-  check('ENGINE:RENDER (with the motion sections) reads no host globals', eng.indexOf('PHASE 3: MOTION') > 0 && !/\b(Kit|ART|window|document|localStorage|indexedDB|requestAnimationFrame|performance|ENGINE_AUDIO|ENGINE_BATTLE)\b/.test(eng.replace(/\/\/.*$/gm, '')));
+  check('ENGINE:RENDER (with the motion sections) reads no host globals', eng.indexOf('PHASE 3: MOTION') > 0 && !/(?<![.\w$])(Kit|ART|window|document|localStorage|indexedDB|requestAnimationFrame|performance|ENGINE_AUDIO|ENGINE_BATTLE)\b(?!\s*:)/.test(eng.replace(/\/\/.*$/gm, '')));
   check('no forbidden APIs (roundRect, ellipse, confirm, bare remove)', !/\.roundRect\(|\.ellipse\(|window\.confirm|\bconfirm\(\s*['"]|[^a-zA-Z.]remove\(\)|\)\.remove\(\)/.test(script.replace(/\/\/.*$/gm, '')));
 
   let { win, errors } = boot(APP147, { url: 'https://augustineiacopelli.github.io/appaday/147/?dev=1' });

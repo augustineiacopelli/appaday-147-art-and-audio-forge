@@ -1,0 +1,1141 @@
+{
+  "date": "2026-10-02T01:38:26.453Z",
+  "pass": 99,
+  "total": 99,
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "fences present in order, ART:UI, ART:BATTLE, WS:BATTLE before WS:ART147",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        160477,
+        226525,
+        231487,
+        453355,
+        473249,
+        498017,
+        530151,
+        541587,
+        583272,
+        607241,
+        635000,
+        683040,
+        720541,
+        751233,
+        765633,
+        778536,
+        806733,
+        831041,
+        853605
+      ]
+    },
+    {
+      "name": "every fence opens and closes once",
+      "ok": true
+    },
+    {
+      "name": "ART:UI CSS fence present",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:RENDER (with the interface and presenter sections) reads no host globals",
+      "ok": true
+    },
+    {
+      "name": "Day 147 ships no copy of ENGINE:BATTLE",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "ENGINE_RENDER frozen with ui and presenter",
+      "ok": true
+    },
+    {
+      "name": "the default font covers code points 32 to 126 with 8 rows each",
+      "ok": true
+    },
+    {
+      "name": "every printable glyph is distinct and non blank",
+      "ok": true
+    },
+    {
+      "name": "descenders use the eighth row and nothing else does",
+      "ok": true
+    },
+    {
+      "name": "measure is advance times length minus the trailing gap, scaled",
+      "ok": true
+    },
+    {
+      "name": "text lights exactly the glyph pixels, merging runs",
+      "ok": true,
+      "detail": {
+        "iPix": 11,
+        "iWant": 11,
+        "rects": 7
+      }
+    },
+    {
+      "name": "text draws with shadow, outline, scale, and centering without errors",
+      "ok": true
+    },
+    {
+      "name": "wrap breaks on words within the width",
+      "ok": true,
+      "detail": [
+        "one two",
+        "three four",
+        "five six",
+        "seven"
+      ]
+    },
+    {
+      "name": "windows draw at units 1 to 4 with every corner and border",
+      "ok": true
+    },
+    {
+      "name": "a window at open 0 draws nothing; grow opening shrinks it",
+      "ok": true
+    },
+    {
+      "name": "every cursor shape draws, aimed left of the point, and the bob moves it",
+      "ok": true,
+      "detail": {
+        "cur1": {
+          "x": 93,
+          "y": 46,
+          "w": 6,
+          "h": 9
+        },
+        "cur2": {
+          "x": 89,
+          "y": 46,
+          "w": 6,
+          "h": 9
+        }
+      }
+    },
+    {
+      "name": "gauge draws back and fill",
+      "ok": true
+    },
+    {
+      "name": "title wraps a long logo to at most three lines, shrinking the scale",
+      "ok": true,
+      "detail": {
+        "lines": 3,
+        "scale": 2
+      }
+    },
+    {
+      "name": "schemes lay out their controls (dpad, stick, tap, hybrid)",
+      "ok": true,
+      "detail": [
+        "a,b,dpad,menu",
+        "a,b,menu,stick",
+        "menu,tap",
+        "a,b,menu,stick,tap"
+      ]
+    },
+    {
+      "name": "the pad reads four directions and a dead center",
+      "ok": true
+    },
+    {
+      "name": "buttons hit, empty space misses on dpad and taps on tap and hybrid",
+      "ok": true
+    },
+    {
+      "name": "the stick reports a vector",
+      "ok": true
+    },
+    {
+      "name": "every scheme draws round and square, pressed and not",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "controls fit a 160 by 144 screen",
+      "ok": true
+    },
+    {
+      "name": "Quick Build makes the five interface records",
+      "ok": true,
+      "detail": {
+        "created": 5,
+        "refreshed": 0,
+        "kept": 0,
+        "ms": 1
+      }
+    },
+    {
+      "name": "every color field has a master index fitted from its hex",
+      "ok": true
+    },
+    {
+      "name": "the font record carries the default glyphs as hex rows",
+      "ok": true
+    },
+    {
+      "name": "touch follows the Charter scheme and the title follows the Charter title",
+      "ok": true
+    },
+    {
+      "name": "the demo validates clean after Quick Build",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Quick Build is idempotent",
+      "ok": true,
+      "detail": {
+        "created": 0,
+        "refreshed": 0,
+        "kept": 5,
+        "ms": 1
+      }
+    },
+    {
+      "name": "setColor marks the record edited and fits the new hex",
+      "ok": true
+    },
+    {
+      "name": "glyph rows round trip through setGlyph",
+      "ok": true
+    },
+    {
+      "name": "Quick Build leaves edited interface records alone",
+      "ok": true
+    },
+    {
+      "name": "reset restores the default look",
+      "ok": true
+    },
+    {
+      "name": "a deleted record is retired and not recreated",
+      "ok": true
+    },
+    {
+      "name": "restore brings it back",
+      "ok": true
+    },
+    {
+      "name": "a master rebuild refits generated records and keeps edited ones inside the new palette",
+      "ok": true,
+      "detail": {
+        "title": {
+          "hex": "#30a0f0",
+          "m": 48
+        },
+        "touch": {
+          "hex": "#ff00ff",
+          "m": 61
+        },
+        "touchBefore": 63
+      }
+    },
+    {
+      "name": "art.ui flags a bad corner, glyph, scheme, cursor, missing background, and a duplicate role",
+      "ok": true,
+      "detail": {
+        "errors": 5,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "name": "the scripted demo uses every event type the presenter maps (and the item event)",
+      "ok": true,
+      "detail": [
+        "tick",
+        "ready",
+        "command",
+        "action",
+        "damage",
+        "status",
+        "limitReady",
+        "heal",
+        "miss",
+        "item",
+        "ko",
+        "revive",
+        "end"
+      ]
+    },
+    {
+      "name": "targets() gives a rectangle per unit inside the field",
+      "ok": true,
+      "detail": {
+        "p0": {
+          "x": 190,
+          "y": 57,
+          "w": 32,
+          "h": 24
+        },
+        "p1": {
+          "x": 194,
+          "y": 85,
+          "w": 32,
+          "h": 24
+        },
+        "p2": {
+          "x": 198,
+          "y": 113,
+          "w": 32,
+          "h": 24
+        },
+        "e0": {
+          "x": 81,
+          "y": 61,
+          "w": 32,
+          "h": 32
+        },
+        "e1": {
+          "x": 25,
+          "y": 61,
+          "w": 32,
+          "h": 32
+        }
+      }
+    },
+    {
+      "name": "the party stands on the right and foes on the left",
+      "ok": true
+    },
+    {
+      "name": "damage waits for the hit marker, then HP rolls down",
+      "ok": true,
+      "detail": {
+        "hp0": 40,
+        "early": 40,
+        "landedAt": 352
+      }
+    },
+    {
+      "name": "the script plays to the end: foes gone, party in victory poses",
+      "ok": true,
+      "detail": {
+        "p0": {
+          "name": "Courier",
+          "side": "party",
+          "hp": 210,
+          "hpTarget": 210,
+          "maxHp": 210,
+          "mp": 30,
+          "maxMp": 35,
+          "ko": false,
+          "gone": false,
+          "statuses": [],
+          "atb": 0,
+          "ready": false,
+          "anim": "battle.victory"
+        },
+        "p1": {
+          "name": "Scholar",
+          "side": "party",
+          "hp": 47,
+          "hpTarget": 47,
+          "maxHp": 155,
+          "mp": 54,
+          "maxMp": 65,
+          "ko": false,
+          "gone": false,
+          "statuses": [],
+          "atb": 0.733154296875,
+          "ready": false,
+          "anim": "battle.victory"
+        },
+        "p2": {
+          "name": "Guard",
+          "side": "party",
+          "hp": 243,
+          "hpTarget": 243,
+          "maxHp": 260,
+          "mp": 15,
+          "maxMp": 15,
+          "ko": false,
+          "gone": false,
+          "statuses": [],
+          "atb": 1,
+          "ready": false,
+          "anim": "battle.victory"
+        },
+        "e0": {
+          "name": "Slime A",
+          "side": "foe",
+          "hp": 0,
+          "hpTarget": 0,
+          "maxHp": 40,
+          "mp": 0,
+          "maxMp": 0,
+          "ko": true,
+          "gone": true,
+          "statuses": [],
+          "atb": 0,
+          "ready": false,
+          "anim": "death"
+        },
+        "e1": {
+          "name": "Slime B",
+          "side": "foe",
+          "hp": 0,
+          "hpTarget": 0,
+          "maxHp": 40,
+          "mp": 0,
+          "maxMp": 0,
+          "ko": true,
+          "gone": true,
+          "statuses": [],
+          "atb": 0,
+          "ready": false,
+          "anim": "death"
+        }
+      }
+    },
+    {
+      "name": "the KO and revive resolve: the revived member stands with HP",
+      "ok": true,
+      "detail": {
+        "name": "Scholar",
+        "side": "party",
+        "hp": 47,
+        "hpTarget": 47,
+        "maxHp": 155,
+        "mp": 54,
+        "maxMp": 65,
+        "ko": false,
+        "gone": false,
+        "statuses": [],
+        "atb": 0.733154296875,
+        "ready": false,
+        "anim": "battle.victory"
+      }
+    },
+    {
+      "name": "cues go out for hits, statuses, Limits, items, deaths, and the victory music",
+      "ok": true,
+      "detail": [
+        "ui:ready",
+        "ui:confirm",
+        "sfx:action",
+        "sfx:cast",
+        "sfx:release",
+        "sfx:crit",
+        "sfx:hit",
+        "sfx:status",
+        "sfx:limit",
+        "sfx:heal",
+        "ui:error",
+        "sfx:item",
+        "sfx:death",
+        "sfx:ko",
+        "sfx:revive",
+        "sfx:status.off",
+        "sfx:miss",
+        "music:victory"
+      ]
+    },
+    {
+      "name": "the failed cast became a message beat",
+      "ok": true
+    },
+    {
+      "name": "a multi hit ability spreads its results over its hit markers",
+      "ok": true,
+      "detail": [
+        864,
+        1024,
+        1184
+      ]
+    },
+    {
+      "name": "every frame of the script draws (field, effects, popups, banner, HUD) with finite rects",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "the presenter is a pure function of its feeds and dt sequence",
+      "ok": true
+    },
+    {
+      "name": "a replay at 33 ms frames ends in the same state as 16 ms frames",
+      "ok": true
+    },
+    {
+      "name": "active pacing compresses a backlog so it never falls far behind",
+      "ok": true,
+      "detail": {
+        "backlog": 16650,
+        "wall": 6464
+      }
+    },
+    {
+      "name": "setPacing switches modes",
+      "ok": true
+    },
+    {
+      "name": "thirteen units fit the field, foes keep their sprite size (spacing shrinks instead)",
+      "ok": true,
+      "detail": {
+        "p0": {
+          "x": 190,
+          "y": 51,
+          "w": 32,
+          "h": 24
+        },
+        "p1": {
+          "x": 194,
+          "y": 73,
+          "w": 32,
+          "h": 24
+        },
+        "p2": {
+          "x": 198,
+          "y": 95,
+          "w": 32,
+          "h": 24
+        },
+        "p3": {
+          "x": 202,
+          "y": 117,
+          "w": 32,
+          "h": 24
+        },
+        "e0": {
+          "x": 81,
+          "y": 12,
+          "w": 32,
+          "h": 32
+        },
+        "e1": {
+          "x": 81,
+          "y": 44,
+          "w": 32,
+          "h": 32
+        },
+        "e2": {
+          "x": 25,
+          "y": 20,
+          "w": 32,
+          "h": 32
+        },
+        "e3": {
+          "x": 81,
+          "y": 77,
+          "w": 32,
+          "h": 32
+        },
+        "e4": {
+          "x": 81,
+          "y": 109,
+          "w": 32,
+          "h": 32
+        },
+        "e5": {
+          "x": 25,
+          "y": 61,
+          "w": 32,
+          "h": 32
+        },
+        "e6": {
+          "x": 45,
+          "y": 34,
+          "w": 32,
+          "h": 32
+        },
+        "e7": {
+          "x": 45,
+          "y": 87,
+          "w": 32,
+          "h": 32
+        },
+        "e8": {
+          "x": 25,
+          "y": 101,
+          "w": 32,
+          "h": 32
+        }
+      }
+    },
+    {
+      "name": "a throwing cue callback does not break playback",
+      "ok": true
+    },
+    {
+      "name": "extract pulls the ENGINE:BATTLE fence out of a whole Day 146 page",
+      "ok": true
+    },
+    {
+      "name": "a 2.x engine is refused with a version message and nothing is installed",
+      "ok": true,
+      "detail": "This forge reads ENGINE_BATTLE 1.x; the file is version 2.0.0."
+    },
+    {
+      "name": "an engine missing its API is refused",
+      "ok": true,
+      "detail": "ENGINE_BATTLE is missing init, advance, suggest, replay."
+    },
+    {
+      "name": "the real engine installs from the Day 146 page and declares no global",
+      "ok": true,
+      "detail": {
+        "loaded": true,
+        "version": "1.0.0",
+        "via": "saga",
+        "name": "Saga Forge",
+        "error": null,
+        "bytes": 64146,
+        "loading": false
+      }
+    },
+    {
+      "name": "buildParty mirrors Day 146 (four at most, gear by tier, materia placed)",
+      "ok": true,
+      "detail": [
+        {
+          "chr": "chr_courier_jonc",
+          "level": 20,
+          "equipment": [
+            "eqp_short_blade_2skr",
+            "eqp_quilted_coat_dk8u",
+            "eqp_plain_ring_62mq"
+          ],
+          "materia": [
+            {
+              "eqp": "eqp_short_blade_2skr",
+              "slot": 0,
+              "mat": "mat_fire_stone_ewyt",
+              "ap": 0
+            }
+          ],
+          "abilities": [],
+          "row": "front"
+        },
+        {
+          "chr": "chr_scholar_6i8u",
+          "level": 20,
+          "equipment": [
+            "eqp_quilted_coat_dk8u",
+            "eqp_plain_ring_62mq"
+          ],
+          "materia": [
+            {
+              "eqp": "eqp_quilted_coat_dk8u",
+              "slot": 0,
+              "mat": "mat_life_stone_n4xi",
+              "ap": 0
+            }
+          ],
+          "abilities": [],
+          "row": "front"
+        },
+        {
+          "chr": "chr_guard_7l1b",
+          "level": 20,
+          "equipment": [
+            "eqp_short_blade_2skr",
+            "eqp_quilted_coat_dk8u",
+            "eqp_plain_ring_62mq"
+          ],
+          "materia": [],
+          "abilities": [],
+          "row": "front"
+        }
+      ]
+    },
+    {
+      "name": "an auto battle in Wait pacing runs to its end through the presenter",
+      "ok": true,
+      "detail": "win"
+    },
+    {
+      "name": "in Wait pacing the engine never advances while a beat is playing",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "name": "the battle code has Day 146's shape",
+      "ok": true
+    },
+    {
+      "name": "playing our battle code back matches tick for tick",
+      "ok": true,
+      "detail": {
+        "a": {
+          "outcome": "win",
+          "ticks": 121,
+          "turns": 3,
+          "rngCalls": 15
+        },
+        "b": {
+          "outcome": "win",
+          "ticks": 121,
+          "turns": 3,
+          "rngCalls": 15
+        }
+      }
+    },
+    {
+      "name": "playback at a different frame time still matches",
+      "ok": true,
+      "detail": {
+        "outcome": "win",
+        "ticks": 121,
+        "turns": 3,
+        "rngCalls": 15
+      }
+    },
+    {
+      "name": "an auto battle in Active pacing also ends, with the presenter caught up",
+      "ok": true,
+      "detail": "win"
+    },
+    {
+      "name": "a hand driven battle stops at the command menu",
+      "ok": true
+    },
+    {
+      "name": "a command is accepted and recorded; a bad one is rejected and not recorded",
+      "ok": true
+    },
+    {
+      "name": "Day 146 replays a battle code made here to the same end",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "outcome": "win",
+        "ticks": 121,
+        "code146": "eyJ2IjoxLCJ0cm9vcElkIjoidHJwX2xvd2xhbmRfc2xpbWVzX3Vic3YiLCJwYXJ0eSI6W3siY2hyIjoiY2hyX2NvdXJpZXJfam9uYyIsImxldmVsIjoyMCwiZXF1aXBtZW50IjpbImVxcF9zaG9ydF9ibGFkZV8yc2tyIiwiZXFwX3F1aWx0ZWRfY29hdF9kazh1IiwiZXFwX3BsYWluX3JpbmdfNjJtcSJdLCJtYXRlcmlhIjpbeyJlcXAiOiJlcXBfc2hvcnRfYmxhZGVfMnNrciIsInNsb3QiOjAsIm1hdCI6Im1hdF9maXJlX3N0b25lX2V3eXQiLCJhcCI6MH1dLCJhYmlsaXRpZXMiOltdLCJyb3ciOiJmcm9udCJ9LHsiY2hyIjoiY2hyX3NjaG9sYXJfNmk4dSIsImxldmVsIjoyMCwiZXF1aXBtZW50IjpbImVxcF9xdWlsdGVkX2NvYXRfZGs4dSIsImVxcF9wbGFpbl9yaW5nXzYybXEiXSwibWF0ZXJpYSI6W3siZXFwIjoiZXFwX3F1aWx0ZWRfY29hdF9kazh1Iiwic2xvdCI6MCwibWF0IjoibWF0X2xpZmVfc3RvbmVfbjR4aSIsImFwIjowfV0sImFiaWxpdGllcyI6W10sInJvdyI6ImZyb250In0seyJjaHIiOiJjaHJfZ3VhcmRfN2wxYiIsImxldmVsIjoyMCwiZXF1aXBtZW50IjpbImVxcF9zaG9ydF9ibGFkZV8yc2tyIiwiZXFwX3F1aWx0ZWRfY29hdF9kazh1IiwiZXFwX3BsYWluX3JpbmdfNjJtcSJdLCJtYXRlcmlhIjpbXSwiYWJpbGl0aWVzIjpbXSwicm93IjoiZnJvbnQifV0sInNlZWQiOjIzLCJpbnB1dHMiOlt7InQiOjExNywiaW5wdXQiOnsidHlwZSI6ImNvbW1hbmQiLCJhY3RvciI6InAyIiwiY21kIjoiYXR0YWNrIiwiYWJsIjoiX2F0dGFjayIsInRhcmdldCI6ImUwIn19LHsidCI6MTQ4LCJpbnB1dCI6eyJ0eXBlIjoiY29tbWFuZCIsImFjdG9yIjoicDAiLCJjbWQiOiJtYWdpYyIsImFibCI6ImFibF9mbGFtZV8xcG4wIiwidGFyZ2V0IjoiZTEifX1dLCJ3ZWF0aGVySWQiOm51bGwsIm9wdHMiOnsid2FpdE1vZGUiOnRydWV9LCJlbmQiOnsib3V0Y29tZSI6IndpbiIsInRpY2tzIjoxNDgsInR1cm5zIjoyLCJybmdDYWxscyI6OX19",
+        "runOk": true
+      }
+    },
+    {
+      "name": "a battle code made in Day 146 plays back here and matches",
+      "ok": true,
+      "detail": {
+        "outcome": "win",
+        "ticks": 148,
+        "turns": 2,
+        "rngCalls": 9
+      }
+    },
+    {
+      "name": "Window and font view shows a preview, color pickers, and 94 glyph buttons",
+      "ok": true
+    },
+    {
+      "name": "toggling a glyph pixel edits the font record",
+      "ok": true
+    },
+    {
+      "name": "the corner select edits the window record",
+      "ok": true
+    },
+    {
+      "name": "Cursor view shows its preview and bob sliders",
+      "ok": true
+    },
+    {
+      "name": "pressing the A button in the touch preview reports it",
+      "ok": true,
+      "detail": "Last input: button A"
+    },
+    {
+      "name": "the scheme can be overridden from the Charter",
+      "ok": true
+    },
+    {
+      "name": "the title view edits the logo text",
+      "ok": true
+    },
+    {
+      "name": "jump goes to the Interface tab for uik_ records",
+      "ok": true
+    },
+    {
+      "name": "the bundle still validates clean after the edits",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "the Battle view shows the engine panel, the mode buttons, and a stage",
+      "ok": true
+    },
+    {
+      "name": "the scripted demo plays from the view",
+      "ok": true
+    },
+    {
+      "name": "Battle mode starts a real battle once the engine is loaded",
+      "ok": true
+    },
+    {
+      "name": "it runs to its end with a describe() result card and a copyable code",
+      "ok": true
+    },
+    {
+      "name": "the command menu opens with 44 px buttons for the waiting actor",
+      "ok": true
+    },
+    {
+      "name": "choosing a command and a target sends the input",
+      "ok": true,
+      "detail": [
+        {
+          "t": 88,
+          "input": {
+            "type": "command",
+            "actor": "p2",
+            "abl": "_attack",
+            "target": "e0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Battle code mode plays a pasted code and reports a match",
+      "ok": true
+    },
+    {
+      "name": "Window preview draws a stage with up and down controls",
+      "ok": true
+    },
+    {
+      "name": "with the touch skin on, the room walker takes the pad or stick",
+      "ok": true
+    },
+    {
+      "name": "views render with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "every fixture plays the scripted battle through the presenter",
+      "ok": true,
+      "detail": "F0:12/win F1a:24/win F1b:24/win F2:24/win F3:24/win F4:24/win F5d:28/win F5s:28/win F5t:28/win F5h:28/win"
+    },
+    {
+      "name": "with the engine loaded, every fixture with a cast fights one real battle to its end",
+      "ok": true,
+      "detail": "F0:- F1a:win F1b:win F2:win F3:win F4:win F5d:win F5s:win F5t:win F5h:win"
+    },
+    {
+      "name": "F1a (8 px, two colors) and F3 (64 px) present battles",
+      "ok": true,
+      "detail": {
+        "f1a": {
+          "beats": 24,
+          "hits": 11,
+          "frames": 899,
+          "ms": 5,
+          "ended": "win",
+          "real": {
+            "outcome": "win",
+            "beats": 5,
+            "inputs": 1
+          }
+        },
+        "f3": {
+          "beats": 24,
+          "hits": 11,
+          "frames": 899,
+          "ms": 26,
+          "ended": "win",
+          "real": {
+            "outcome": "win",
+            "beats": 5,
+            "inputs": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "every fixture still validates with no errors",
+      "ok": true,
+      "detail": "F0:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1a:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F1b:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F2:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F3:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F4:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":1} F5d:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5s:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5t:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0} F5h:{\"errors\":0,\"broken\":0,\"forward\":0,\"warnings\":0}"
+    },
+    {
+      "name": "146 imports a 147 draft with interface records: hash ok, no errors, art untouched",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "pageErrors": [],
+        "uik": 5,
+        "kept": true
+      }
+    },
+    {
+      "name": "manifest counts uik_",
+      "ok": true,
+      "detail": {
+        "anm_": 35,
+        "bgd_": 14,
+        "efx_": 4,
+        "ico_": 18,
+        "pal_": 36,
+        "por_": 4,
+        "prt_": 42,
+        "spr_": 24,
+        "til_": 14,
+        "uik_": 5,
+        "wov_": 3
+      }
+    },
+    {
+      "name": "the interface records stay small (under 8 KB with the font)",
+      "ok": true,
+      "detail": 4029
+    }
+  ],
+  "selfTest": [
+    {
+      "key": "F0",
+      "battle": {
+        "beats": 12,
+        "hits": 4,
+        "frames": 468,
+        "ms": 3,
+        "ended": "win",
+        "real": null
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F1a",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 5,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F1b",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 5,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F2",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 10,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F3",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 26,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F4",
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 7,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 5,
+          "inputs": 1
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "key": "F5d",
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 12,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 9,
+          "inputs": 2
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5s",
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 8,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 9,
+          "inputs": 2
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5t",
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 8,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 9,
+          "inputs": 2
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "key": "F5h",
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 8,
+        "ended": "win",
+        "real": {
+          "outcome": "win",
+          "beats": 9,
+          "inputs": 2
+        }
+      },
+      "validation": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    }
+  ]
+}

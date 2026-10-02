@@ -260,6 +260,73 @@ SESSION 4 / PHASE 4 (2026-10-01, Opus): TILES. COMPLETE.
   Known limits: tiles repeat per cell by nature; variants soften it. Background peaks shade by column (stylized). The
     test room is a stand in for Day 148: same climate keys and priority, simpler fields. Swimmable cells block on foot.
 === END SESSION 4 ===
+SESSION 5 / PHASE 5 (2026-10-01, Opus): PRESENTER AND UI KIT. COMPLETE.
+  Fences, in order: ... ART:TILES, WS:WORLD, WS:PLAYTEST, ART:UI, ART:BATTLE, WS:BATTLE, WS:ART147, APP:BOOT. CSS adds ART:UI
+    CSS. Engine code lives in src/engine-ui.js, spliced into ENGINE:RENDER after engine-tiles.js. KIT:CORE still verbatim.
+    Day 147 carries no copy of ENGINE:BATTLE (the loader builds Day 146's fence markers from parts).
+  Engine sections: ui {FONT, CORNERS, OPEN_STYLES, CURSORS, SCHEMES, TITLE_STYLES, TITLE_LAYOUTS, font, measure, text,
+    wrap, window, cursor, gauge, color, touch {layout, hit, draw}, title}, presenter {BEAT_MS, BACKLOG_MS}, createPresenter.
+    The window corner list is WIN_CORNERS inside the closure: CORNERS was already the tile engine's blob table (a shared
+    name silently broke compose47 until renamed).
+  Font: an original 5 by 7 font, cap height 7 plus one descender row (g j p q y), 95 glyphs for 32 to 126, advance 6, line
+    10. Engine source is 760 codec characters; the record stores hex rows. fontOf memoizes by content (an edited glyph
+    redraws at once). Text merges lit runs into single rects; shadow, outline, scale, align, wrap.
+  Records: uik_ ui:window {gradient {top, bottom}, border, light, corner square|round|notch, thickness 1-3, alpha, open {ms,
+    style grow|fade|none}}, ui:font {w, h, rows, advance, line, glyphs}, ui:cursor {style triangle|hand|diamond|bar, fill,
+    light, outline, bob {amp, ms}}, ui:touch {scheme (null follows charter.specs.mobileControls), shape, opacity, size, color,
+    ink, labels {a, b, menu}, sfx {move, confirm, cancel, error} for Phase 6}, ui:title {text (null reads the Charter
+    premise title), style, scale, color, shadow, light, layout, bg (null uses the grassland background), prompt, credit}.
+    Colors are {hex, m}; master rebuilds refit generated records from hex and remap edited ones. Delete retires ui:<key>.
+    DECISION: the cursor bob and window opening live on their uik_ records, not as anm_ records (the anm_ validator stays
+    sprite, death, ability). Hand drawn nine slice window frames are deferred; the frame is generated.
+  Quick Build 'interface' (order 50): five records once, origin default. Second run changes nothing.
+  Validator art.ui: role, duplicate role (warning), every color field, corner, thickness, alpha, opening, font width and
+    rows, glyph hex length, missing glyphs (warning), cursor style and bob, touch scheme, shape, opacity, size, sfx links,
+    title style, layout, scale, background.
+  Presenter: createPresenter({art, cache, ctx, w, h, snapshot, pacing, cue, layout, entries, bgd, wov, ui, seed, speed,
+    icons}) -> {feed(events, state), update, draw(ctx), isIdle, backlog, targets, display, setPacing, setSpeed, setCursor,
+    setMessage, ended, stats, beats, layout}. One advance call's events become beats: an action collects the results that
+    follow it (damage, heal, miss, status, revive), its KOs (one merged KO beat after it), and limitReady (after it).
+    Results land on the ability timeline's hit markers: the n-th result for a target takes hit n, extras stack on the
+    last, so an area spell hits everyone on the first marker and a three hit Limit spreads over three. HP rolls over
+    400 ms, popups 600 ms. Party KO holds the ko pose; enemies play their death (scatter, fade, melt) then vanish.
+    Standalone results (status ticks) get 420 ms beats; MP and flee misses become message windows. end plays victory
+    poses and cues music. Item beat: an 'item' event or an itm_ abl uses the default item animation (feature check).
+    States carry ATB and MP (contract gaps 1 and 2) and apply when their feed's last beat finishes. Active pacing
+    multiplies time by backlog / 2000 ms when backlog exceeds it; unstarted beats count at an estimate from their
+    timeline. Layout: party on the right on the ground band with a 4 px stagger and a back row step; foes packed in
+    columns by sprite height, front at 38 percent and back at 16 percent, extra columns outward; sprites never scale.
+    The ability name shows in a banner window; a HUD of two windows lists foes (grouped, x2) and party HP, MP, ATB.
+    Cue kinds: sfx (hit, crit, miss, heal, status, status.off, limit, item, action, death, ko, revive, and marker
+    names), ui (ready, confirm, error), music (victory, defeat, stop). A throwing cue never stops playback.
+  ART:BATTLE: engine loader (file, the live Saga Forge page at B.SAGA_URL, or the copy saved in art147:engine), evaluated
+    from a Blob URL inside a wrapper so it declares no global, accepted only for version 1.x with the API (mode
+    'function' for tests). buildParty mirrors Day 146 WS.arena.buildParty with materia placement; dataFor; battle codes
+    in Day 146's exact format both ways; script(b) writes a battle in engine event shapes from the bundle (every beat
+    kind, a KO and revive, the item beat); playScript; session(b, cfg) is the host loop (Wait advances only while the
+    presenter is idle; recorded inputs at their exact ticks; Auto via suggest; runOut for headless runs).
+  UI: Playtest Battle view: engine panel (load file, fetch from Saga Forge, forget), Scripted demo, Battle (troop,
+    weather, party custom or a chapter's expected state, level, gear tier, pacing, speed, background, seed, auto), and
+    Battle code modes; 44 px command menu (commands, abilities, targets with the cursor on hover or focus, flee);
+    result card with Copy battle code and replay match; live cue chips. Window preview: menu with a moving cursor, a
+    party window, and a typing dialogue window with a portrait. Test room: Touch skin toggle routes the pad or stick to
+    the walker. Interface tab: Window and font (colors, corner, border, opacity, opening, 94 glyph buttons and a pixel
+    editor), Cursor, Touch skin (live press readout, Charter override, shape, opacity, size, labels), Title.
+  Self test: new Battle column plays the scripted battle per fixture through the presenter, and one real auto battle
+    when the engine is loaded. Every fixture with a cast ends in a win; F3 (64 px) presents in about 20 ms.
+  Tests: test/phase5.js 99 of 99 (static and fence checks, font coverage and metrics, windows at units 1 to 4, cursors,
+    touch layouts and hits for all four schemes, title wrap, records and idempotence, edits, reset, retire, restore,
+    master rebuild, validator, hit sync, multi hit, the whole script, determinism across frame rates, active compression,
+    a 4 v 9 layout, a throwing cue, loader version and API checks, Wait and Active real battles, our code replayed here
+    at two frame rates and in Day 146, a Day 146 made code replayed here, hand driven commands, every view, jump, self
+    test, Day 146 draft round trip, manifest). Earlier suites: the host global scan now ignores property names and object
+    keys (ui.window is the plan's API name), and Phase 4's stub check asserts the views are live. 27, 59, 67, 80, 79
+    still pass. Run suites one at a time; all six in one shell loop can exhaust memory.
+  Checked in headless Chromium at 390 and 1280: the Blob URL loader accepts engine 1.0.0, no horizontal scroll, no tap
+    target under 44 px, no stage errors; long background names no longer push selects past the edge.
+  Known limits: engine 1.0.0 has no item event, so the item beat is exercised only by the script. Battle HUD shows up to
+    the rows that fit (four party at 256 by 224). Sound cues are names only until Phase 6 wires ENGINE_AUDIO.
+=== END SESSION 5 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

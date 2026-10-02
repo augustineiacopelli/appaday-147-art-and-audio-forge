@@ -34,7 +34,7 @@ function mockCtx(w, h) {
   check('every fence opens and closes once', fences.every((f) => script.split('// === ' + f + ' BEGIN ===').length === 2 && script.split('// === ' + f + ' END ===').length === 2));
   check('ART:WORLD CSS fence present', html.split('/* === ART:WORLD CSS BEGIN === */').length === 2 && html.split('/* === ART:WORLD CSS END === */').length === 2);
   const eng = script.slice(script.indexOf('// === ENGINE:RENDER BEGIN ==='), script.indexOf('// === ENGINE:RENDER END ==='));
-  check('ENGINE:RENDER (with the tile sections) reads no host globals', eng.indexOf('PHASE 4: TILES') > 0 && !/\b(Kit|ART|window|document|localStorage|indexedDB|requestAnimationFrame|performance|ENGINE_AUDIO|ENGINE_BATTLE)\b/.test(eng.replace(/\/\/.*$/gm, '')));
+  check('ENGINE:RENDER (with the tile sections) reads no host globals', eng.indexOf('PHASE 4: TILES') > 0 && !/(?<![.\w$])(Kit|ART|window|document|localStorage|indexedDB|requestAnimationFrame|performance|ENGINE_AUDIO|ENGINE_BATTLE)\b(?!\s*:)/.test(eng.replace(/\/\/.*$/gm, '')));
   check('no forbidden APIs (roundRect, ellipse, confirm, bare remove)', !/\.roundRect\(|\.ellipse\(|window\.confirm|\bconfirm\(\s*['"]|[^a-zA-Z.]remove\(\)|\)\.remove\(\)/.test(script.replace(/\/\/.*$/gm, '')));
 
   let { win, errors } = boot(APP147, { url: 'https://augustineiacopelli.github.io/appaday/147/?dev=1' });
@@ -258,8 +258,9 @@ function mockCtx(w, h) {
   check('jump goes to the World Art tab for til_ and bgd_', Kit.jump(TL.interior(b2, 'town').id) !== false && WS.ui.sub === 'interiors' && Kit.jump(TL.backgrounds(b2)[0].id) !== false && WS.ui.sub === 'backgrounds');
   PT.ui.sub = 'room'; Kit.go('playtest'); Kit.rerender();
   check('the Playtest tab mounts the test room with a canvas, a direction pad, and a readout', win.document.querySelectorAll('.a7-room-cv').length === 1 && win.document.querySelectorAll('.a7-dpad .btn').length === 4 && /cell/.test(win.document.querySelector('.a7-room-hud').textContent));
-  const stubs = ['battle', 'window'].map((s) => { PT.ui.sub = s; Kit.rerender(); return !!win.document.querySelector('#ws .stub, #ws [class*="stub"]'); });
-  check('Battle and Window preview say they arrive in Phase 5', stubs.every(Boolean) && /Phase 5/.test(win.document.getElementById('ws').textContent));
+  // Phase 5 filled the Battle and Window preview views that were stubs here; phase5.js tests them in depth.
+  const filled = ['battle', 'window'].map((s) => { PT.ui.sub = s; Kit.rerender(); return !win.document.querySelector('#ws .stub, #ws [class*="stub"]') && !!win.document.querySelector('#ws canvas'); });
+  check('Battle and Window preview are live (filled by Phase 5)', filled.every(Boolean));
   win.close();
 
   // 14. Live: the stage loop walks the room with the keyboard and the direction pad, with a 2D context.

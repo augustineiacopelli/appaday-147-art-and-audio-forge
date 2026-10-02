@@ -261,6 +261,73 @@ SESSION 4 / PHASE 4 (2026-10-01, Opus): TILES. COMPLETE.
   Known limits: tiles repeat per cell by nature; variants soften it. Background peaks shade by column (stylized). The
     test room is a stand in for Day 148: same climate keys and priority, simpler fields. Swimmable cells block on foot.
 === END SESSION 4 ===
+SESSION 5 / PHASE 5 (2026-10-01, Opus): PRESENTER AND UI KIT. COMPLETE.
+  Fences, in order: ... ART:TILES, WS:WORLD, WS:PLAYTEST, ART:UI, ART:BATTLE, WS:BATTLE, WS:ART147, APP:BOOT. CSS adds ART:UI
+    CSS. Engine code lives in src/engine-ui.js, spliced into ENGINE:RENDER after engine-tiles.js. KIT:CORE still verbatim.
+    Day 147 carries no copy of ENGINE:BATTLE (the loader builds Day 146's fence markers from parts).
+  Engine sections: ui {FONT, CORNERS, OPEN_STYLES, CURSORS, SCHEMES, TITLE_STYLES, TITLE_LAYOUTS, font, measure, text,
+    wrap, window, cursor, gauge, color, touch {layout, hit, draw}, title}, presenter {BEAT_MS, BACKLOG_MS}, createPresenter.
+    The window corner list is WIN_CORNERS inside the closure: CORNERS was already the tile engine's blob table (a shared
+    name silently broke compose47 until renamed).
+  Font: an original 5 by 7 font, cap height 7 plus one descender row (g j p q y), 95 glyphs for 32 to 126, advance 6, line
+    10. Engine source is 760 codec characters; the record stores hex rows. fontOf memoizes by content (an edited glyph
+    redraws at once). Text merges lit runs into single rects; shadow, outline, scale, align, wrap.
+  Records: uik_ ui:window {gradient {top, bottom}, border, light, corner square|round|notch, thickness 1-3, alpha, open {ms,
+    style grow|fade|none}}, ui:font {w, h, rows, advance, line, glyphs}, ui:cursor {style triangle|hand|diamond|bar, fill,
+    light, outline, bob {amp, ms}}, ui:touch {scheme (null follows charter.specs.mobileControls), shape, opacity, size, color,
+    ink, labels {a, b, menu}, sfx {move, confirm, cancel, error} for Phase 6}, ui:title {text (null reads the Charter
+    premise title), style, scale, color, shadow, light, layout, bg (null uses the grassland background), prompt, credit}.
+    Colors are {hex, m}; master rebuilds refit generated records from hex and remap edited ones. Delete retires ui:<key>.
+    DECISION: the cursor bob and window opening live on their uik_ records, not as anm_ records (the anm_ validator stays
+    sprite, death, ability). Hand drawn nine slice window frames are deferred; the frame is generated.
+  Quick Build 'interface' (order 50): five records once, origin default. Second run changes nothing.
+  Validator art.ui: role, duplicate role (warning), every color field, corner, thickness, alpha, opening, font width and
+    rows, glyph hex length, missing glyphs (warning), cursor style and bob, touch scheme, shape, opacity, size, sfx links,
+    title style, layout, scale, background.
+  Presenter: createPresenter({art, cache, ctx, w, h, snapshot, pacing, cue, layout, entries, bgd, wov, ui, seed, speed,
+    icons}) -> {feed(events, state), update, draw(ctx), isIdle, backlog, targets, display, setPacing, setSpeed, setCursor,
+    setMessage, ended, stats, beats, layout}. One advance call's events become beats: an action collects the results that
+    follow it (damage, heal, miss, status, revive), its KOs (one merged KO beat after it), and limitReady (after it).
+    Results land on the ability timeline's hit markers: the n-th result for a target takes hit n, extras stack on the
+    last, so an area spell hits everyone on the first marker and a three hit Limit spreads over three. HP rolls over
+    400 ms, popups 600 ms. Party KO holds the ko pose; enemies play their death (scatter, fade, melt) then vanish.
+    Standalone results (status ticks) get 420 ms beats; MP and flee misses become message windows. end plays victory
+    poses and cues music. Item beat: an 'item' event or an itm_ abl uses the default item animation (feature check).
+    States carry ATB and MP (contract gaps 1 and 2) and apply when their feed's last beat finishes. Active pacing
+    multiplies time by backlog / 2000 ms when backlog exceeds it; unstarted beats count at an estimate from their
+    timeline. Layout: party on the right on the ground band with a 4 px stagger and a back row step; foes packed in
+    columns by sprite height, front at 38 percent and back at 16 percent, extra columns outward; sprites never scale.
+    The ability name shows in a banner window; a HUD of two windows lists foes (grouped, x2) and party HP, MP, ATB.
+    Cue kinds: sfx (hit, crit, miss, heal, status, status.off, limit, item, action, death, ko, revive, and marker
+    names), ui (ready, confirm, error), music (victory, defeat, stop). A throwing cue never stops playback.
+  ART:BATTLE: engine loader (file, the live Saga Forge page at B.SAGA_URL, or the copy saved in art147:engine), evaluated
+    from a Blob URL inside a wrapper so it declares no global, accepted only for version 1.x with the API (mode
+    'function' for tests). buildParty mirrors Day 146 WS.arena.buildParty with materia placement; dataFor; battle codes
+    in Day 146's exact format both ways; script(b) writes a battle in engine event shapes from the bundle (every beat
+    kind, a KO and revive, the item beat); playScript; session(b, cfg) is the host loop (Wait advances only while the
+    presenter is idle; recorded inputs at their exact ticks; Auto via suggest; runOut for headless runs).
+  UI: Playtest Battle view: engine panel (load file, fetch from Saga Forge, forget), Scripted demo, Battle (troop,
+    weather, party custom or a chapter's expected state, level, gear tier, pacing, speed, background, seed, auto), and
+    Battle code modes; 44 px command menu (commands, abilities, targets with the cursor on hover or focus, flee);
+    result card with Copy battle code and replay match; live cue chips. Window preview: menu with a moving cursor, a
+    party window, and a typing dialogue window with a portrait. Test room: Touch skin toggle routes the pad or stick to
+    the walker. Interface tab: Window and font (colors, corner, border, opacity, opening, 94 glyph buttons and a pixel
+    editor), Cursor, Touch skin (live press readout, Charter override, shape, opacity, size, labels), Title.
+  Self test: new Battle column plays the scripted battle per fixture through the presenter, and one real auto battle
+    when the engine is loaded. Every fixture with a cast ends in a win; F3 (64 px) presents in about 20 ms.
+  Tests: test/phase5.js 99 of 99 (static and fence checks, font coverage and metrics, windows at units 1 to 4, cursors,
+    touch layouts and hits for all four schemes, title wrap, records and idempotence, edits, reset, retire, restore,
+    master rebuild, validator, hit sync, multi hit, the whole script, determinism across frame rates, active compression,
+    a 4 v 9 layout, a throwing cue, loader version and API checks, Wait and Active real battles, our code replayed here
+    at two frame rates and in Day 146, a Day 146 made code replayed here, hand driven commands, every view, jump, self
+    test, Day 146 draft round trip, manifest). Earlier suites: the host global scan now ignores property names and object
+    keys (ui.window is the plan's API name), and Phase 4's stub check asserts the views are live. 27, 59, 67, 80, 79
+    still pass. Run suites one at a time; all six in one shell loop can exhaust memory.
+  Checked in headless Chromium at 390 and 1280: the Blob URL loader accepts engine 1.0.0, no horizontal scroll, no tap
+    target under 44 px, no stage errors; long background names no longer push selects past the edge.
+  Known limits: engine 1.0.0 has no item event, so the item beat is exercised only by the script. Battle HUD shows up to
+    the rows that fit (four party at 256 by 224). Sound cues are names only until Phase 6 wires ENGINE_AUDIO.
+=== END SESSION 5 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.
@@ -714,6 +781,44 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .a7-dpad-down { grid-column: 2; grid-row: 3; }
 .a7-room-hud { min-height: 48px; }
 /* === ART:WORLD CSS END === */
+/* === ART:UI CSS BEGIN === */
+.a7-bt-stage { display: flex; justify-content: center; margin: 4px 0 10px; }
+.a7-bt-cv { width: 100%; touch-action: manipulation; outline: none; }
+.a7-bt-cv:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft); }
+.a7-seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.a7-seg .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.a7-engine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.a7-engine .a7-grow { min-width: 200px; }
+.a7-menu { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); margin-bottom: 10px; }
+.a7-menu[hidden] { display: none; }
+.a7-menu-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 800; }
+.a7-menu-head .who { flex: 1 1 auto; min-width: 0; }
+.a7-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 6px; }
+.a7-menu-grid .btn { min-height: 48px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; text-align: left; }
+.a7-menu-grid .btn small { font-size: .74rem; font-weight: 600; color: var(--ink3); }
+.a7-cues { display: flex; flex-wrap: wrap; gap: 4px; min-height: 26px; }
+.a7-chars { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.a7-code { width: 100%; min-height: 96px; font-family: var(--font-mono); font-size: .8rem; }
+.a7-glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.a7-glyphs .btn { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; font-family: var(--font-mono); font-weight: 700; }
+.a7-glyphs .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.a7-gedit { display: inline-grid; gap: 3px; padding: 6px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-gedit button { width: 44px; height: 44px; border: 1px solid var(--line2); border-radius: 6px; background: var(--bg); cursor: pointer; padding: 0; }
+.a7-gedit button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); }
+.a7-gedit button.a7-desc { border-style: dashed; }
+.a7-colors { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.a7-colors label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); }
+.a7-colors input[type="color"] { width: 44px; height: 44px; padding: 2px; border: 1px solid var(--line2); border-radius: 8px; background: var(--bg2); cursor: pointer; }
+.a7-text { display: flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); flex-wrap: wrap; }
+.a7-text input { min-height: 44px; min-width: 0; width: 22ch; max-width: 100%; }
+@media (max-width: 520px) {
+  .a7-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .a7-text input { width: 100%; }
+}
+/* Long record names (backgrounds, troops) must not push a select past the screen edge. */
+.a7-ctl .a7-sel { max-width: 100%; min-width: 0; }
+.a7-ctl .a7-sel select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+/* === ART:UI CSS END === */
 </style>
 </head>
 <body>
@@ -3961,10 +4066,27 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
         tiles = { biomes: ART.tiles.biomes(copy).length, interiors: ART.tiles.interiors(copy).length, backgrounds: ART.tiles.backgrounds(copy).length,
           tiles: nT, ms: bakeMs, bytes: k3.stats().bytes, roomMs: Math.round(performance.now() - tr), walkable: walk, cells: room.w * room.h, town: !!room.town, ruin: !!room.ruin };
       }
+      // Phase 5: the scripted battle through the presenter (every beat kind, no engine), then, when the battle engine
+      // is loaded, one real auto battle against the first troop played to its end in Wait pacing.
+      var battle = null;
+      if (ART.battle && ART.palette.master(copy)) {
+        var tb5 = performance.now(), sc5 = ART.battle.script(copy), P5 = ENGINE_RENDER.createPresenter(ART.battle.presenterConfig(copy, sc5.snapshot, { seed: 3 }));
+        var pl5 = ART.battle.playScript(P5, sc5), fr5 = 0;
+        while (!pl5.done() && fr5 < 20000) { pl5.step(16); fr5++; }
+        var s5 = P5.stats();
+        battle = { beats: s5.beats, hits: s5.hits, frames: fr5, ms: Math.round(performance.now() - tb5), ended: P5.ended(), real: null };
+        var E5 = ART.battle.engine(), trp5 = copy.rules && copy.rules.trp_ ? Object.keys(copy.rules.trp_)[0] : null;
+        if (E5 && trp5 && copy.rules.chr_ && Object.keys(copy.rules.chr_).length) {
+          try {
+            var ss5 = ART.battle.session(copy, { E: E5, troopId: trp5, party: ART.battle.buildParty(copy, { level: 20, gearTier: 3 }), seed: 7, auto: true, pacing: 'wait' }).runOut(16, 60000);
+            battle.real = { outcome: ss5.S.result ? ss5.S.result.outcome : 'unfinished', beats: ss5.P.stats().beats, inputs: ss5.inputs.length };
+          } catch (e5) { battle.real = { outcome: 'error: ' + e5.message }; }
+        }
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake
@@ -4019,6 +4141,11 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
  *      until a later engine version adds one, so Phase 5 builds the beat behind a feature check on the event type.
  *   4. Replays stay deterministic: the state is a pure function of seed plus inputs, so reading it does not break the rule
  *      that beat timing never feeds back into the engine.
+ *
+ * Resolved in Phase 5: feed(events, state) is the presenter's input. Gauges and MP ride on the last beat of each feed and
+ *   apply when it finishes. The item beat plays for an 'item' event or an action whose abl is an itm_ id; engine 1.0.0
+ *   emits neither, so only the scripted demo exercises it today. Day 147 never ships ENGINE:BATTLE: ART:BATTLE loads it
+ *   at run time and accepts version 1.x with init, advance, suggest, replay, and gaugeMax.
  */
 // === ART:CONTRACT END ===
 // === ENGINE:RENDER BEGIN ===
@@ -6472,6 +6599,758 @@ var ENGINE_RENDER = (function () {
   };
   R.bg = { KINDS: BG_KINDS, STYLES: BG_STYLES, draw: bgDraw };
 
+  // ================================================================ PHASE 5: INTERFACE KIT AND BATTLE PRESENTER
+  // build.js splices this file into ENGINE:RENDER after the tile engine. It reads no host global: records, palettes,
+  // contexts, battle snapshots, events, and the cue callback all arrive as arguments. Drawing uses fillRect and
+  // drawImage only, at logical resolution; the host scales the logical canvas once per frame.
+
+  // ---------------------------------------------------------------- the font
+  // An original 5 by 7 font (cap height 7, one descender row, so 8 rows per glyph) for code points 32 to 126. Each glyph
+  // is eight characters of the codec alphabet, one per row, bit 4 the leftmost pixel. A uik_ ui:font record stores the
+  // same glyphs as hex rows ({code: 'rrrrrrrrrrrrrrrr'}, two hex digits per row) so a user can redraw any of them.
+  var FONT_ROWS = '0000000044444040AAA00000AAVAVAA04FKE5U40OP248J30CIK8LID044800000248884208422248004LEL400044V440000000448' +
+    '000V000000000CC011248GG0EHJLPHE04C4444E0EH1248V0U11E11U026AIV220VGU11HE068GUHHE0V1248880EHHEHHE0EHHF12C0' +
+    '0CC0CC000CC0C480248G842000V0V00084212480EH124040EHNLNGF04AHHVHH0UHHUHHU0EHGGGHE0SIHHHIS0VGGUGGV0VGGUGGG0' +
+    'EHGNHHF0HHHVHHH0E44444E072222IC0HIKOKIH0GGGGGGV0HRLLHHH0HHPLJHH0EHHHHHE0UHHUGGG0EHHHLID0UHHUKIH0FGGE11U0' +
+    'V4444440HHHHHHE0HHHHHA40HHHLLLA0HHA4AHH0HHA44440V1248GV0E88888E0GG842110E22222E04AH000000000000V84200000' +
+    '00E1FHF0GGUHHHU000EGGHE011FHHHF000EHVGE0698S888000FHHF1EGGUHHHH040C444E0206222ICGGIKOKI0C44444E000QLLLL0' +
+    '00UHHHH000EHHHE000UHHUGG00FHHF1100MPGGG000FGE1U088S8896000HHHJD000HHHA4000HHLLA000HA4AH000HHHF1E00V248V0' +
+    '344O443044444440O44344O0008L2000';
+  var B32 = '0123456789ABCDEFGHIJKLMNOPQRSTUV';
+  function defaultGlyphs() {
+    var out = {};
+    for (var c = 32; c <= 126; c++) {
+      var s = FONT_ROWS.substr((c - 32) * 8, 8), hex = '';
+      for (var r = 0; r < 8; r++) { var v = B32.indexOf(s.charAt(r)); hex += (v < 16 ? '0' : '') + Math.max(0, v).toString(16); }
+      out[c] = hex;
+    }
+    return out;
+  }
+  var DEFAULT_FONT = { w: 5, h: 7, rows: 8, advance: 6, line: 10, glyphs: defaultGlyphs() };
+  // fontOf(record or null) -> {w, h, rows, advance, line, bits: {code: [row ints]}}. Memoized by content, so an edited
+  // glyph redraws at once and an unchanged record parses once.
+  var fontMemo = {}, fontMemoKeys = [], defaultFontObj = null;
+  function parseFont(src) {
+    var w = clamp(Math.round(Number(src.w) || 5), 1, 8), rows = clamp(Math.round(Number(src.rows) || 8), 1, 16);
+    var f = { w: w, h: clamp(Math.round(Number(src.h) || 7), 1, rows), rows: rows, advance: clamp(Math.round(Number(src.advance) || w + 1), 1, 16), line: clamp(Math.round(Number(src.line) || rows + 2), rows, 32), bits: {} };
+    var g = src.glyphs && typeof src.glyphs === 'object' ? src.glyphs : {};
+    Object.keys(g).forEach(function (k) {
+      var hex = String(g[k] || ''), list = [];
+      for (var r = 0; r < rows; r++) { var v = parseInt(hex.substr(r * 2, 2), 16); list.push(isFinite(v) ? v & ((1 << w) - 1) : 0); }
+      f.bits[Number(k)] = list;
+    });
+    return f;
+  }
+  function fontOf(rec0) {
+    if (!rec0 || !rec0.glyphs) { if (!defaultFontObj) defaultFontObj = parseFont(DEFAULT_FONT); return defaultFontObj; }
+    var key = [rec0.w, rec0.h, rec0.rows, rec0.advance, rec0.line, JSON.stringify(rec0.glyphs)].join('|');
+    if (fontMemo[key]) return fontMemo[key];
+    var f = parseFont(rec0);
+    fontMemo[key] = f; fontMemoKeys.push(key);
+    if (fontMemoKeys.length > 8) delete fontMemo[fontMemoKeys.shift()];
+    return f;
+  }
+  function glyphBits(font, code) { return font.bits[code] || font.bits[63] || null; }
+  function measure(font, str, scale) {
+    font = font && font.bits ? font : fontOf(font);
+    var s = String(str == null ? '' : str), k = Math.max(1, Math.round(scale || 1));
+    return s.length ? (s.length * font.advance - (font.advance - font.w)) * k : 0;
+  }
+  // text(ctx, font, str, x, y, {color, shadow, scale, align: left|center|right}) draws runs of lit pixels as single rects.
+  function drawText(ctx, font, str, x, y, opts) {
+    opts = opts || {};
+    font = font && font.bits ? font : fontOf(font);
+    var s = String(str == null ? '' : str), k = Math.max(1, Math.round(opts.scale || 1));
+    if (opts.align === 'center') x -= Math.floor(measure(font, s, k) / 2);
+    else if (opts.align === 'right') x -= measure(font, s, k);
+    x = Math.round(x); y = Math.round(y);
+    function pass(dx, dy, color) {
+      ctx.fillStyle = color;
+      for (var i = 0; i < s.length; i++) {
+        var bits = glyphBits(font, s.charCodeAt(i));
+        if (!bits) continue;
+        var gx = x + i * font.advance * k + dx;
+        for (var r = 0; r < bits.length; r++) {
+          var row = bits[r], c = 0;
+          while (c < font.w) {
+            if (!(row & (1 << (font.w - 1 - c)))) { c++; continue; }
+            var c0 = c;
+            while (c < font.w && (row & (1 << (font.w - 1 - c)))) c++;
+            ctx.fillRect(gx + c0 * k, y + r * k + dy, (c - c0) * k, k);
+          }
+        }
+      }
+    }
+    if (opts.shadow) pass(k, k, opts.shadow);
+    if (opts.outline) [[-k, 0], [k, 0], [0, -k], [0, k], [-k, -k], [k, -k], [-k, k], [k, k]].forEach(function (d) { pass(d[0], d[1], opts.outline); });
+    pass(0, 0, opts.color || '#ffffff');
+    return measure(font, s, k);
+  }
+  // Greedy word wrap to a pixel width.
+  function wrapText(font, str, maxW, scale) {
+    font = font && font.bits ? font : fontOf(font);
+    var words = String(str == null ? '' : str).split(/\s+/).filter(Boolean), lines = [], line = '';
+    words.forEach(function (wd) {
+      var t = line ? line + ' ' + wd : wd;
+      if (!line || measure(font, t, scale) <= maxW) line = t;
+      else { lines.push(line); line = wd; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // ---------------------------------------------------------------- colors from records
+  // A color field is {hex, m}: m is a master index (wins when the palette has it), hex the source it was fitted from.
+  function colOf(o, entries, fb) {
+    if (o && typeof o.m === 'number' && entries && entries[o.m]) return entries[o.m];
+    var h = o && normHex(o.hex);
+    return h || fb;
+  }
+
+  // ---------------------------------------------------------------- windows
+  // ui:window {gradient: {top, bottom}, border, light, corner: square|round|notch, thickness: 1|2, alpha, open {ms, style}}
+  var WIN_CORNERS = ['square', 'round', 'notch'];
+  var OPEN_STYLES = ['grow', 'fade', 'none'];
+  function drawWindow(ctx, uik, x, y, w, h, opts) {
+    opts = opts || {};
+    var ent = opts.entries || [], u = Math.max(1, Math.round(opts.unit || 1)), win = uik || {};
+    var open = opts.open == null ? 1 : clamp(Number(opts.open) || 0, 0, 1), st = win.open && win.open.style || 'grow';
+    if (open <= 0) return null;
+    x = Math.round(x); y = Math.round(y); w = Math.round(w); h = Math.round(h);
+    if (open < 1 && st === 'grow') { var nh = Math.max(4 * u, Math.round(h * open)); y += Math.round((h - nh) / 2); h = nh; }
+    var alpha = clamp(win.alpha == null ? 1 : Number(win.alpha), 0.2, 1) * (open < 1 && st === 'fade' ? open : 1);
+    var top = colOf(win.gradient && win.gradient.top, ent, '#2848a8'), bot = colOf(win.gradient && win.gradient.bottom, ent, '#101850');
+    var bd = colOf(win.border, ent, '#000000'), li = colOf(win.light, ent, '#e8e8f0'), th = clamp(Math.round(Number(win.thickness) || 1), 1, 3) * u;
+    var corner = WIN_CORNERS.indexOf(win.corner) >= 0 ? win.corner : 'round', cut = corner === 'round' ? u : corner === 'notch' ? 2 * u : 0;
+    ctx.globalAlpha = alpha;
+    // body: top color, a two row checker dither, then the bottom color
+    var bx = x + u + th, by = y + u + th, bw = w - 2 * (u + th), bh = h - 2 * (u + th);
+    if (bw > 0 && bh > 0) {
+      var mid = by + Math.round(bh * 0.5);
+      ctx.fillStyle = top; ctx.fillRect(bx, by, bw, Math.max(0, mid - by));
+      ctx.fillStyle = bot; ctx.fillRect(bx, mid, bw, by + bh - mid);
+      ctx.fillStyle = top;
+      for (var dy = mid; dy < Math.min(by + bh, mid + 2 * u); dy += u) for (var dx = bx + (((dy - mid) / u) & 1) * u; dx < bx + bw; dx += 2 * u) ctx.fillRect(dx, dy, u, u);
+      ctx.fillStyle = bot;
+      for (var dy2 = mid - 2 * u; dy2 < mid; dy2 += u) if (dy2 >= by) for (var dx2 = bx + (((dy2 - mid) / u) & 1) * u; dx2 < bx + bw; dx2 += 2 * u) ctx.fillRect(dx2, dy2, u, u);
+    }
+    // frame: the outer dark line, then the light border, with the chosen corner
+    function frame(x0, y0, w0, h0, s, color, c) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x0 + c, y0, w0 - 2 * c, s); ctx.fillRect(x0 + c, y0 + h0 - s, w0 - 2 * c, s);
+      ctx.fillRect(x0, y0 + c, s, h0 - 2 * c); ctx.fillRect(x0 + w0 - s, y0 + c, s, h0 - 2 * c);
+      if (c > s) { ctx.fillRect(x0 + s, y0 + s, c - s, c - s); ctx.fillRect(x0 + w0 - c, y0 + s, c - s, c - s); ctx.fillRect(x0 + s, y0 + h0 - c, c - s, c - s); ctx.fillRect(x0 + w0 - c, y0 + h0 - c, c - s, c - s); }
+    }
+    frame(x, y, w, h, u, bd, cut);
+    frame(x + u, y + u, w - 2 * u, h - 2 * u, th, li, Math.max(0, cut - u));
+    ctx.globalAlpha = 1;
+    return { x: x, y: y, w: w, h: h, inner: { x: bx + u, y: by + u, w: bw - 2 * u, h: bh - 2 * u } };
+  }
+
+  // ---------------------------------------------------------------- cursor
+  // ui:cursor {style: triangle|hand|diamond|bar, fill, outline, light, bob: {amp, ms}}. x, y is the point the cursor aims
+  // at; the cursor sits to its left and bobs horizontally.
+  var CURSOR_SHAPES = {
+    triangle: { rows: ['oo....', 'olo...', 'olfo..', 'offfo.', 'offffo', 'offfo.', 'offo..', 'ofo...', 'oo....'], tip: [5, 4] },
+    hand: { rows: ['..oooo....', '.ollffoooo', 'olffffllfo', 'offfffoooo', 'offffo....', '.offo.....', '..oo......'], tip: [9, 2] },
+    diamond: { rows: ['...o...', '..olo..', '.olffo.', 'offfffo', '.offfo.', '..ofo..', '...o...'], tip: [6, 3] },
+    bar: { rows: ['oo', 'lo', 'fo', 'fo', 'fo', 'fo', 'oo'], tip: [1, 3] }
+  };
+  function drawCursor(ctx, uik, x, y, tMs, opts) {
+    opts = opts || {};
+    var c = uik || {}, ent = opts.entries || [], u = Math.max(1, Math.round(opts.unit || 1)), sh = CURSOR_SHAPES[c.style] || CURSOR_SHAPES.triangle;
+    var bob = c.bob || {}, amp = clamp(Number(bob.amp == null ? 2 : bob.amp), 0, 8), ms = clamp(Number(bob.ms) || 600, 100, 4000);
+    var off = Math.round(-Math.abs(Math.sin((Number(tMs) || 0) / ms * Math.PI)) * amp) * u;
+    var cols = { o: colOf(c.outline, ent, '#101010'), f: colOf(c.fill, ent, '#f0f0f0'), l: colOf(c.light, ent, '#ffffff') };
+    var x0 = Math.round(x - (sh.tip[0] + 2) * u + off), y0 = Math.round(y - sh.tip[1] * u);
+    ['o', 'f', 'l'].forEach(function (k) {
+      ctx.fillStyle = cols[k];
+      sh.rows.forEach(function (row, r) { for (var i = 0; i < row.length; i++) if (row.charAt(i) === k) ctx.fillRect(x0 + i * u, y0 + r * u, u, u); });
+    });
+    return { x: x0, y: y0, w: sh.rows[0].length * u, h: sh.rows.length * u };
+  }
+
+  // ---------------------------------------------------------------- gauges and popups
+  function drawGauge(ctx, x, y, w, h, frac, colors) {
+    colors = colors || {};
+    x = Math.round(x); y = Math.round(y); w = Math.round(w); h = Math.round(h);
+    ctx.fillStyle = colors.back || '#101018'; ctx.fillRect(x, y, w, h);
+    var f = Math.round((w - 2) * clamp(Number(frac) || 0, 0, 1));
+    if (f > 0) { ctx.fillStyle = colors.fill || '#e8c040'; ctx.fillRect(x + 1, y + 1, f, h - 2); if (colors.light && h > 3) { ctx.fillStyle = colors.light; ctx.fillRect(x + 1, y + 1, f, 1); } }
+  }
+  // A number or word popping from a point: bounces for 240 ms, holds, fades over its last 150 ms.
+  var POPUP_MS = 600;
+  function popupOffset(age, u) {
+    if (age < 240) return -Math.round(Math.sin(age / 240 * Math.PI) * 6 * u);
+    return 0;
+  }
+
+  // ---------------------------------------------------------------- touch skin
+  // ui:touch {scheme (null reads the Charter), shape: round|square, opacity, size, color, ink, labels {a, b, menu}}.
+  // layout(scheme, w, h, skin) -> {scheme, controls: [{key, kind: dpad|stick|button|area, x, y, r, label}]}, all in
+  // logical pixels. hit(layout, x, y) -> {key, dir, vx, vy} or null. draw(ctx, layout, skin, {pressed, entries, font}).
+  var SCHEMES = ['dpad', 'stick', 'tap', 'hybrid'];
+  function touchLayout(scheme, w, h, skin) {
+    skin = skin || {};
+    scheme = SCHEMES.indexOf(scheme) >= 0 ? scheme : 'dpad';
+    var s = clamp(Math.round(Number(skin.size) || Math.min(w, h) * 0.2), 12, Math.round(Math.min(w, h) * 0.45));
+    var r = Math.round(s / 2), m = Math.max(3, Math.round(s * 0.18)), labels = skin.labels || {};
+    var out = [], br = Math.max(6, Math.round(r * 0.55)), cy = h - m - r;
+    if (scheme === 'tap' || scheme === 'hybrid') out.push({ key: 'tap', kind: 'area', x: 0, y: 0, w: w, h: h });
+    if (scheme === 'dpad') out.push({ key: 'dpad', kind: 'dpad', x: m + r, y: cy, r: r });
+    if (scheme === 'stick' || scheme === 'hybrid') out.push({ key: 'stick', kind: 'stick', x: m + r, y: cy, r: r });
+    if (scheme !== 'tap') {
+      out.push({ key: 'a', kind: 'button', x: w - m - br, y: cy - Math.round(br * 0.6), r: br, label: String(labels.a || 'A').slice(0, 2) });
+      out.push({ key: 'b', kind: 'button', x: w - m - br * 3 - 2, y: cy + Math.round(br * 0.6), r: br, label: String(labels.b || 'B').slice(0, 2) });
+    }
+    var mr = Math.max(5, Math.round(br * 0.6));
+    out.push({ key: 'menu', kind: 'button', x: w - m - mr, y: m + mr, r: mr, label: String(labels.menu || '=').slice(0, 2), small: true });
+    return { scheme: scheme, w: w, h: h, size: s, controls: out };
+  }
+  function touchHit(layout, x, y) {
+    if (!layout) return null;
+    var list = layout.controls, area = null;
+    for (var i = list.length - 1; i >= 0; i--) {
+      var c = list[i];
+      if (c.kind === 'area') { area = c; continue; }
+      var dx = x - c.x, dy = y - c.y, d = Math.sqrt(dx * dx + dy * dy), reach = c.kind === 'button' ? c.r * 1.25 : c.r * 1.35;
+      if (d > reach) continue;
+      if (c.kind === 'button') return { key: c.key };
+      var dead = c.r * 0.22;
+      if (d < dead) return { key: c.key, dir: null, vx: 0, vy: 0 };
+      var dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      return { key: c.key, dir: dir, vx: clamp(dx / c.r, -1, 1), vy: clamp(dy / c.r, -1, 1) };
+    }
+    return area ? { key: 'tap', x: x, y: y } : null;
+  }
+  function disc(ctx, cx, cy, r, round) {
+    cx = Math.round(cx); cy = Math.round(cy); r = Math.max(1, Math.round(r));
+    if (!round) { ctx.fillRect(cx - r, cy - r, 2 * r + 1, 2 * r + 1); return; }
+    for (var dy = -r; dy <= r; dy++) { var half = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.8)); ctx.fillRect(cx - half, cy + dy, 2 * half + 1, 1); }
+  }
+  function drawTouch(ctx, layout, skin, opts) {
+    if (!layout) return;
+    skin = skin || {}; opts = opts || {};
+    var ent = opts.entries || [], round = skin.shape !== 'square', a = clamp(skin.opacity == null ? 0.55 : Number(skin.opacity), 0.1, 1);
+    var col = colOf(skin.color, ent, '#d8d8e0'), ink = colOf(skin.ink, ent, '#202028'), pressed = opts.pressed || {}, font = opts.font ? fontOf(opts.font) : fontOf(null);
+    layout.controls.forEach(function (c) {
+      if (c.kind === 'area') return;
+      var on = pressed[c.key] != null && pressed[c.key] !== false;
+      ctx.globalAlpha = a * (on ? 1 : 0.8);
+      if (c.kind === 'dpad') {
+        var arm = Math.max(3, Math.round(c.r * 0.38));
+        ctx.fillStyle = ink; disc(ctx, c.x, c.y, c.r, round);
+        ctx.fillStyle = col;
+        ctx.fillRect(Math.round(c.x - arm), Math.round(c.y - c.r + 2), 2 * arm, 2 * c.r - 3);
+        ctx.fillRect(Math.round(c.x - c.r + 2), Math.round(c.y - arm), 2 * c.r - 3, 2 * arm);
+        var dirOn = on ? pressed[c.key] : null;
+        if (dirOn && typeof dirOn === 'string') {
+          var d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dirOn];
+          if (d) { ctx.fillStyle = ink; ctx.globalAlpha = a; ctx.fillRect(Math.round(c.x + d[0] * c.r * 0.6 - arm / 2), Math.round(c.y + d[1] * c.r * 0.6 - arm / 2), arm, arm); }
+        }
+      } else if (c.kind === 'stick') {
+        ctx.fillStyle = ink; disc(ctx, c.x, c.y, c.r, round);
+        ctx.fillStyle = col; ctx.globalAlpha = a * 0.5; disc(ctx, c.x, c.y, c.r - 2, round);
+        var v = on && typeof pressed[c.key] === 'object' ? pressed[c.key] : { vx: 0, vy: 0 };
+        ctx.globalAlpha = a; ctx.fillStyle = col; disc(ctx, c.x + (v.vx || 0) * c.r * 0.5, c.y + (v.vy || 0) * c.r * 0.5, Math.round(c.r * 0.45), round);
+      } else {
+        ctx.fillStyle = on ? col : ink; disc(ctx, c.x, c.y, c.r, round);
+        ctx.fillStyle = on ? ink : col; disc(ctx, c.x, c.y, c.r - 1, round);
+        ctx.globalAlpha = 1;
+        drawText(ctx, font, c.label || '', c.x, c.y - Math.floor(font.h / 2), { color: on ? col : ink, align: 'center' });
+      }
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------------------------------------------------------- title screen
+  // ui:title {text (null reads the Charter title), style: outline|shadow|plain, scale, color, shadow, layout:
+  // center|upper|lower, bg (bgd_ id), prompt, credit}. Draws the background, the logo, a blinking prompt, and a credit.
+  var TITLE_STYLES = ['outline', 'shadow', 'plain'];
+  var TITLE_LAYOUTS = ['center', 'upper', 'lower'];
+  function drawTitle(ctx, uik, opts) {
+    opts = opts || {};
+    var t = uik || {}, ent = opts.entries || [], w = opts.w || 256, h = opts.h || 224, u = Math.max(1, Math.round(opts.unit || 1)), tMs = Number(opts.tMs) || 0;
+    var font = fontOf(opts.font || null), bgd = opts.bgd || null;
+    if (bgd) bgDraw(ctx, bgd, tMs, w, h, { entries: ent }); else { ctx.fillStyle = colOf(t.shadow, ent, '#080810'); ctx.fillRect(0, 0, w, h); }
+    var text = String(t.text || opts.text || 'Untitled'), k = clamp(Math.round(Number(t.scale) || 3), 1, 8) * u;
+    var lines = wrapText(font, text, w - 16 * u, k);
+    while (lines.length > 3 && k > u) { k -= u; lines = wrapText(font, text, w - 16 * u, k); }
+    var lh = font.line * k, blockH = lines.length * lh, lay = TITLE_LAYOUTS.indexOf(t.layout) >= 0 ? t.layout : 'center';
+    var y0 = lay === 'upper' ? Math.round(h * 0.16) : lay === 'lower' ? Math.round(h * 0.62 - blockH) : Math.round(h * 0.42 - blockH / 2);
+    var main = colOf(t.color, ent, '#f0d070'), shade = colOf(t.shadow, ent, '#201008'), style = TITLE_STYLES.indexOf(t.style) >= 0 ? t.style : 'outline';
+    lines.forEach(function (ln, i) {
+      var o = { color: main, scale: k, align: 'center' };
+      if (style === 'outline') { o.outline = shade; o.shadow = shade; } else if (style === 'shadow') o.shadow = shade;
+      drawText(ctx, font, ln, w / 2, y0 + i * lh, o);
+    });
+    var prompt = t.prompt == null ? 'Press Start' : String(t.prompt);
+    if (prompt && Math.floor(tMs / 520) % 2 === 0) drawText(ctx, font, prompt, w / 2, Math.round(h * 0.76), { color: colOf(t.light, ent, '#ffffff'), shadow: shade, scale: u, align: 'center' });
+    if (t.credit) drawText(ctx, font, String(t.credit), w / 2, h - (font.line + 2) * u, { color: colOf(t.light, ent, '#c0c0c0'), shadow: shade, scale: u, align: 'center' });
+    return { lines: lines.length, scale: k };
+  }
+
+  // ---------------------------------------------------------------- the battle presenter
+  // createPresenter(cfg) turns ENGINE_BATTLE events into timed beats on a logical canvas. cfg:
+  //   {art, cache, ctx, w, h, snapshot (the init state, deep copied, read once), pacing: wait|active, cue(kind, id, opts),
+  //    layout: {partySide: right|left}, entries, bgd, wov, ui: {window, font, cursor} (uik_ records), seed, speed,
+  //    names: {abl id: name}, icons: {sta id: ico id}}
+  // Returns {feed(events, state), update(dtMs), draw(), isIdle(), backlog(), targets(), display(), setPacing(mode),
+  //   setSpeed(k), setCursor(uid or null), setMessage(text), stats(), beats()}.
+  // The presenter's look is a pure function of the snapshot, the fed events and states, and the dt sequence: beat
+  // timing never reaches the engine, so a replay renders identically.
+  var BACKLOG_MS = 2000;
+  var BASE_KEYS = { 'battle.idle': 1, 'battle.kneel': 1, 'battle.ready': 1, 'battle.victory': 1, 'enemy.idle': 1 };
+  var BEAT_MS = { ready: 160, command: 120, status: 300, limitReady: 500, revive: 760, message: 700, result: 420, end: 1400 };
+  function createPresenter(cfg) {
+    cfg = cfg || {};
+    var art = cfg.art || { records: {} }, cache = cfg.cache, ctx = cfg.ctx, W = cfg.w || 256, H = cfg.h || 224, ent = cfg.entries || (cache && cache.entries) || [];
+    var u = Math.max(1, Math.round((cache && cache.size || 16) / 16)), cue = typeof cfg.cue === 'function' ? cfg.cue : function () {};
+    var uiRec = cfg.ui || {}, font = fontOf(uiRec.font || null), side = (cfg.layout && cfg.layout.partySide) === 'left' ? 'left' : 'right';
+    var snap = JSON.parse(JSON.stringify(cfg.snapshot || { units: [] })), db = snap.db || {};
+    var pacing = cfg.pacing === 'active' ? 'active' : 'wait', speedK = Math.max(0.25, Number(cfg.speed) || 1), seed = (cfg.seed >>> 0) || 1;
+    var fieldH = Math.round(H * 0.64), hudY = fieldH, now = 0, queue = [], popups = [], cursor = null, message = null, banner = null, ended = null;
+    var weather = cfg.wov ? weatherCreate(cfg.wov, W, fieldH, seed, { entries: ent, unit: u }) : null, pb = null, pbBeat = null, flashScreen = 0;
+    var stats = { beats: 0, events: 0, hits: 0, popups: 0, compressed: 0, cues: 0 };
+    var A = {}, order = [];
+
+    // ---- sprites and animations from the art namespace
+    function findSpr(kind, ref) {
+      var all = recs(art, 'spr_'), ks = Object.keys(all);
+      for (var i = 0; i < ks.length; i++) { var s = all[ks[i]]; if (s && s.subject && s.subject.kind === kind && s.subject.ref === ref && s.mode === 'battle') return s; }
+      return null;
+    }
+    function bySubject(p, kind, ref) {
+      var all = recs(art, p), ks = Object.keys(all);
+      for (var i = 0; i < ks.length; i++) { var r = all[ks[i]]; if (r && r.subject && r.subject.kind === kind && r.subject.ref === ref) return r; }
+      return null;
+    }
+    function animKey(a, key) { return a.spr ? animFor(art, a.spr, key) : bySubject('anm_', 'role', 'anim:' + key); }
+    function frameOf(a, pose) { return a.spr && cache ? cache.sprite(a.spr.id, pose || 'idle', a.dir) : null; }
+
+    // ---- actors from the snapshot
+    (snap.units || []).forEach(function (un) {
+      var party = un.side === 'party', spr = party ? findSpr('chr', un.ref) : findSpr('fam', un.fam) || findSpr('fam', un.ref);
+      var a = { uid: un.uid, side: party ? 'party' : 'foe', name: String(un.name || un.uid), spr: spr, dir: party ? (side === 'right' ? 'left' : 'right') : (side === 'right' ? 'right' : 'left'),
+        row: un.row === 'back' ? 'back' : 'front', boss: !!un.isBoss, hp: Number(un.hp) || 0, maxHp: Math.max(1, Number(un.maxHp) || 1), mp: Number(un.mp) || 0, maxMp: Math.max(0, Number(un.maxMp) || 0),
+        shownHp: Number(un.hp) || 0, roll: null, ko: !!un.ko, gone: false, gauge: 0, ready: false, statuses: (un.statuses || []).map(function (s) { return s.sta; }),
+        anim: null, animT: 0, off: [0, 0], flash: 0, glow: 0, highlight: 0, death: null, tint: un.palette || null };
+      a.base = a.ko ? (party ? 'battle.ko' : null) : party ? 'battle.idle' : 'enemy.idle';
+      if (a.ko && !party) a.gone = true;
+      A[a.uid] = a; order.push(a.uid);
+    });
+    function gaugeOf(un) { var gm = Number(snap.gaugeMax) || 65536; return clamp((Number(un.gauge) || 0) / gm, 0, 1); }
+    (snap.units || []).forEach(function (un) { if (A[un.uid]) A[un.uid].gauge = gaugeOf(un); });
+
+    // ---- layout: party stacked with a stagger on its side, foes packed in columns by sprite height
+    var pos = {};
+    function size(a) { var f = frameOf(a, a.side === 'party' ? 'idle' : 'idle'); return f ? { w: f.w, h: f.h, ax: f.ax, ay: f.ay } : { w: 16 * u, h: 24 * u, ax: 8 * u, ay: 23 * u }; }
+    function layout() {
+      var party = order.filter(function (k) { return A[k].side === 'party'; }), foes = order.filter(function (k) { return A[k].side === 'foe'; });
+      var top = 10 * u, bottom = fieldH - 4 * u, avail = bottom - top, right = side === 'right';
+      // The party stands on the ground band (below the backdrop's horizon at 56 percent), not up in the sky.
+      var pTop = Math.round(fieldH * 0.36), pAvail = bottom - pTop;
+      var ph = party.map(function (k) { return size(A[k]).h; }), sumP = ph.reduce(function (s, v) { return s + v; }, 0);
+      var gapP = party.length ? Math.max(0, (pAvail - sumP) / (party.length + 1)) : 0, yP = pTop + gapP;
+      party.forEach(function (k, i) {
+        var a = A[k], sz = size(a), stagger = Math.round(i * 4 * u), back = a.row === 'back' ? 10 * u : 0;
+        var x = right ? Math.round(W * 0.8) + stagger + back : Math.round(W * 0.2) - stagger - back;
+        var feet = Math.round(yP + sz.h);
+        if (sumP > pAvail) feet = Math.round(pTop + pAvail * (i + 1) / party.length);
+        pos[k] = { x: x, y: Math.min(bottom, feet) };
+        yP += sz.h + gapP;
+      });
+      function pack(list, x0, dirSign) {
+        var cols = [[]], colH = [0], colW = [0];
+        list.forEach(function (k) {
+          var sz = size(A[k]), c = cols.length - 1;
+          if (colH[c] + sz.h > avail && cols[c].length) { cols.push([]); colH.push(0); colW.push(0); c++; }
+          cols[c].push(k); colH[c] += sz.h; colW[c] = Math.max(colW[c], sz.w);
+        });
+        var x = x0;
+        cols.forEach(function (col, ci) {
+          var gap = Math.max(0, (avail - colH[ci]) / (col.length + 1)), y = top + gap;
+          col.forEach(function (k) { var sz = size(A[k]); pos[k] = { x: Math.round(x), y: Math.round(Math.min(bottom, y + sz.h)) }; y += sz.h + gap; });
+          x += dirSign * (colW[ci] + 4 * u);
+        });
+      }
+      var front = foes.filter(function (k) { return A[k].row !== 'back'; }), back = foes.filter(function (k) { return A[k].row === 'back'; });
+      if (right) { pack(front, Math.round(W * 0.38), -1); pack(back, Math.round(W * 0.16), -1); }
+      else { pack(front, Math.round(W * 0.62), 1); pack(back, Math.round(W * 0.84), 1); }
+    }
+    layout();
+    function rectOf(k) {
+      var a = A[k], p = pos[k], sz = size(a);
+      return p ? { x: p.x - sz.ax + a.off[0], y: p.y - sz.ay + a.off[1], w: sz.w, h: sz.h } : null;
+    }
+    function center(k) { var r = rectOf(k); return r ? { x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h * 0.55) } : { x: W / 2, y: fieldH / 2 }; }
+    function front(k) { var r = rectOf(k), a = A[k]; if (!r) return center(k); var lft = a.dir === 'left'; return { x: lft ? r.x : r.x + r.w, y: Math.round(r.y + r.h * 0.45) }; }
+
+    // ---- actor animation helpers
+    function play(a, key) { var an = animKey(a, key); a.anim = an; a.animT = 0; a.animKey = key; return an; }
+    function baseKey(a) {
+      if (a.side === 'foe') return a.ko ? null : 'enemy.idle';
+      if (a.ko) return 'battle.ko';
+      if (ended === 'win') return 'battle.victory';
+      if (a.ready) return 'battle.ready';
+      return a.shownHp <= a.maxHp / 4 ? 'battle.kneel' : 'battle.idle';
+    }
+    function settle(a) { var k = baseKey(a); if (a.animKey !== k || !a.anim) { if (k) play(a, k); else { a.anim = null; a.animKey = null; } } }
+    function popup(uid, text, color, extra) {
+      var a = A[uid]; if (!a) return;
+      var c = center(uid), r = rectOf(uid);
+      popups.push({ uid: uid, x: c.x, y: r ? r.y + Math.round(r.h * 0.3) : c.y, text: String(text), color: color, age: 0, dy: (extra && extra.dy) || 0 });
+      stats.popups++;
+    }
+    function setHp(a, v) { v = clamp(Number(v) || 0, 0, a.maxHp); a.roll = { from: a.shownHp, to: v, t: 0 }; a.hp = v; }
+    function emit(kind, id, opts) { stats.cues++; try { cue(kind, id, opts || {}); } catch (e) { /* a cue never stops the show */ } }
+
+    // ---- results (damage, heal, miss, status, ko, revive) applied when their hit lands
+    function applyResult(e) {
+      var t = A[e.target];
+      stats.hits++;
+      if (!t) return;
+      if (e.type === 'damage') {
+        setHp(t, t.hp - (Number(e.value) || 0));
+        popup(t.uid, String(e.value), e.crit ? '#f8e060' : '#ffffff');
+        if (!t.ko) { play(t, t.side === 'party' ? 'battle.hurt' : 'enemy.hurt'); t.flash = 90; }
+        emit('sfx', e.crit ? 'crit' : 'hit', { element: e.element || null, target: t.uid });
+      } else if (e.type === 'heal') {
+        setHp(t, t.hp + (Number(e.value) || 0));
+        popup(t.uid, String(e.value), '#70f090');
+        t.glow = 300;
+        emit('sfx', 'heal', { target: t.uid });
+      } else if (e.type === 'miss') {
+        popup(t.uid, 'Miss', '#c0c0c8');
+        emit('sfx', 'miss', { target: t.uid });
+      } else if (e.type === 'status') {
+        var v = String(e.value || ''), off = v.charAt(0) === '-', sid = off ? v.slice(1) : v, nm = (db.sta && db.sta[sid] && db.sta[sid].name) || (cfg.names && cfg.names[sid]) || sid;
+        if (off) t.statuses = t.statuses.filter(function (s) { return s !== sid; }); else if (t.statuses.indexOf(sid) < 0) t.statuses.push(sid);
+        popup(t.uid, off ? (e.name || 'cured') : nm, off ? '#a0c0f0' : '#e0a0f0', { dy: -4 * u });
+        emit('sfx', off ? 'status.off' : 'status', { status: sid, target: t.uid });
+      } else if (e.type === 'revive') {
+        t.ko = false; t.gone = false; t.death = null;
+        if (e.value != null && Number(e.value) > 0) setHp(t, Number(e.value));
+        play(t, t.side === 'party' ? 'battle.revive' : 'enemy.idle');
+        emit('sfx', 'revive', { target: t.uid });
+      }
+    }
+    function applyKo(e) {
+      var t = A[e.target];
+      if (!t) return 0;
+      t.ko = true; t.ready = false;
+      setHp(t, 0);
+      emit('sfx', t.side === 'party' ? 'ko' : 'death', { target: t.uid });
+      if (t.side === 'party') { play(t, 'battle.ko'); return 640; }
+      var an = animKey(t, 'enemy.death'), ms = an ? duration(an) : 700;
+      t.death = { anm: an || { kind: 'death', method: 'scatter', ms: 700 }, t: 0, ms: ms };
+      t.anim = null; t.animKey = null;
+      return ms;
+    }
+
+    // ---- beats
+    function abilityRecord(e) {
+      var id = e.abl, an = id ? bySubject('anm_', 'abl', id) : null, info = id && db.abl ? db.abl[id] : null;
+      var isItem = e.type === 'item' || (typeof id === 'string' && id.slice(0, 4) === 'itm_');
+      if (!an) {
+        var def = isItem ? 'item' : info && (info.kind === 'magic' || info.kind === 'heal' || info.kind === 'status' || info.kind === 'summon') ? 'cast' : 'attack';
+        an = bySubject('anm_', 'role', 'ability:' + def) || { kind: 'ability', caster: def, travel: { type: def === 'cast' ? 'projectile' : def === 'item' ? 'rise' : 'none', ms: 260 }, impact: { fx: null, ms: 400 }, hits: 1, markers: [] };
+      }
+      return { anm: an, item: isItem, info: info };
+    }
+    function actionBeat(e) {
+      return { kind: 'action', ev: e, results: [], kos: [], after: [], dur: 0, t: 0 };
+    }
+    function startAction(b) {
+      var e = b.ev, a = A[e.actor], look = abilityRecord(e), anm = look.anm;
+      var targets = (e.targets && e.targets.length ? e.targets : b.results.map(function (r) { return r.target; })).filter(function (k) { return A[k]; });
+      var tgt = targets.length ? targets : a ? [a.uid] : [];
+      var to = tgt.length ? tgt.map(center).reduce(function (s, c) { return { x: s.x + c.x / tgt.length, y: s.y + c.y / tgt.length }; }, { x: 0, y: 0 }) : { x: W / 2, y: fieldH / 2 };
+      var casterKey = !a ? null : a.side === 'party' ? 'battle.' + (look.item ? 'item' : EA_CASTER(anm.caster)) : 'enemy.attack';
+      var casterAnm = a && casterKey ? animKey(a, casterKey) : null;
+      var fx = anm && anm.impact && anm.impact.fx ? rec(art, anm.impact.fx) : null;
+      if (!fx && e.element) fx = bySubject('efx_', 'element', e.element);
+      pb = abilityCreate({ anm: anm, caster: casterAnm, from: a ? front(a.uid) : to, to: { x: Math.round(to.x), y: Math.round(to.y) }, efx: fx, entries: ent, unit: u, seed: (seed + stats.beats * 31) >>> 0 });
+      pbBeat = b;
+      if (a && casterKey) { play(a, casterKey); a.ready = false; }
+      b.caster = a; b.tl = pb.timeline;
+      // Results land on hit markers: the n-th result for a target takes the n-th hit, and every hit past the last
+      // marker stacks on it. A single hit area attack hits every target on the first marker.
+      var per = {}, nh = pb.timeline.hits.length;
+      b.slots = b.results.map(function (r) { var k = r.target || '_', j = per[k] || 0; per[k] = j + 1; return Math.min(j, nh - 1); });
+      b.landed = b.results.map(function () { return false; });
+      b.dur = pb.timeline.duration + 160;
+      var nm = e.name || (look.info && look.info.name) || '';
+      if (nm && e.abl !== '_attack') banner = { text: nm, t: 0, ms: b.dur };
+      emit('sfx', look.item ? 'item' : 'action', { abl: e.abl || null, element: e.element || null, actor: e.actor });
+    }
+    function EA_CASTER(c) { return c === 'cast' || c === 'item' || c === 'limit' ? c : 'attack'; }
+    function landHit(b, i) {
+      b.results.forEach(function (r, k) { if (!b.landed[k] && b.slots[k] === i) { b.landed[k] = true; applyResult(r); } });
+    }
+    function finishAction(b) {
+      b.results.forEach(function (r, k) { if (!b.landed[k]) { b.landed[k] = true; applyResult(r); } });
+      if (b.caster) { b.caster.off = [0, 0]; settle(b.caster); }
+      pb = null; pbBeat = null; banner = null;
+    }
+    function beatFor(kind, e, dur) { return { kind: kind, ev: e, dur: dur, t: 0 }; }
+    function start(b) {
+      b.started = true; stats.beats++;
+      var e = b.ev || {}, a = A[e.actor];
+      if (b.kind === 'action') startAction(b);
+      else if (b.kind === 'ready') { if (a) { a.ready = true; a.highlight = b.dur; settle(a); } emit('ui', 'ready', { actor: e.actor }); }
+      else if (b.kind === 'command') { if (a) a.highlight = b.dur; emit('ui', 'confirm', { actor: e.actor }); if (e.value === 'flee') banner = { text: e.name || 'Flee', t: 0, ms: 600 }; }
+      else if (b.kind === 'result') applyResult(e);
+      else if (b.kind === 'ko') { var ms = 0; b.list.forEach(function (x) { ms = Math.max(ms, applyKo(x)); }); b.dur = Math.max(b.dur, ms + 80); }
+      else if (b.kind === 'revive') applyResult(e);
+      else if (b.kind === 'limitReady') { var t = A[e.target]; if (t) { t.glow = 500; popup(t.uid, 'LIMIT', '#f8d040', { dy: -8 * u }); } emit('sfx', 'limit', { target: e.target }); }
+      else if (b.kind === 'message') { message = { text: b.text, t: 0, ms: b.dur }; emit('ui', b.sound || 'error', {}); }
+      else if (b.kind === 'end') {
+        ended = e.value || 'end';
+        order.forEach(function (k) { var x = A[k]; x.ready = false; if (x.side === 'party' && !x.ko) settle(x); });
+        if (ended === 'flee') order.forEach(function (k) { var x = A[k]; if (x.side === 'party' && !x.ko) x.flee = true; });
+        message = { text: { win: 'Victory', lose: 'Defeat', flee: 'Escaped', timeout: 'Time out' }[ended] || String(ended), t: 0, ms: 1e9 };
+        emit('music', ended === 'win' ? 'victory' : ended === 'lose' ? 'defeat' : 'stop', { outcome: ended });
+      }
+    }
+    function finish(b) {
+      if (b.kind === 'action') finishAction(b);
+      if (b.kind === 'message') message = null;
+      if (b.apply) applyState(b.apply, false);
+    }
+    // States carry what events do not: ATB gauges, MP, and readiness (contract gaps 1 and 2). A state rides on the last
+    // beat of its feed and applies when that beat finishes, so the HUD never runs ahead of the show.
+    function applyState(st, early) {
+      if (!st || !st.units) return;
+      st.units.forEach(function (un) {
+        var a = A[un.uid]; if (!a) return;
+        a.gauge = gaugeOf(un);
+        if (!early) { a.mp = Number(un.mp) || 0; a.maxMp = Math.max(0, Number(un.maxMp) || a.maxMp); }
+      });
+    }
+
+    // feed(events, state): converts one advance call's events to beats.
+    var open = null;
+    function close() { if (open) { queue.push(open); open.after.forEach(function (x) { queue.push(x); }); if (open.kos.length) queue.push({ kind: 'ko', list: open.kos, dur: 120, t: 0 }); open = null; } }
+    function feed(events, state) {
+      var before = queue.length;
+      (events || []).forEach(function (e) {
+        if (!e || !e.type) return;
+        stats.events++;
+        var tp = e.type;
+        if (tp === 'tick') return;
+        var resultish = tp === 'damage' || tp === 'heal' || tp === 'status' || tp === 'revive' || (tp === 'miss' && e.target && (e.value == null || (e.value !== 'mp' && e.value !== 'flee' && e.value !== 'rejected')));
+        if (open && resultish) { open.results.push(e); return; }
+        if (open && tp === 'ko') { open.kos.push(e); return; }
+        if (open && tp === 'limitReady') { open.after.push(beatFor('limitReady', e, BEAT_MS.limitReady)); return; }
+        close();
+        if (tp === 'action' || tp === 'item') { open = actionBeat(e); return; }
+        if (tp === 'ready') queue.push(beatFor('ready', e, BEAT_MS.ready));
+        else if (tp === 'command') queue.push(beatFor('command', e, BEAT_MS.command));
+        else if (tp === 'damage' || tp === 'heal' || tp === 'miss' && e.target && resultish) queue.push(beatFor('result', e, BEAT_MS.result));
+        else if (tp === 'status') queue.push(beatFor('result', e, BEAT_MS.status));
+        else if (tp === 'revive') queue.push(beatFor('revive', e, BEAT_MS.revive));
+        else if (tp === 'ko') { var last = queue[queue.length - 1]; if (last && last.kind === 'ko' && !last.started) last.list.push(e); else queue.push({ kind: 'ko', list: [e], dur: 120, t: 0 }); }
+        else if (tp === 'limitReady') queue.push(beatFor('limitReady', e, BEAT_MS.limitReady));
+        else if (tp === 'miss') { if (e.value === 'rejected') return; var mb = beatFor('message', e, BEAT_MS.message); mb.text = e.value === 'mp' ? 'Not enough MP' : e.name || 'Cannot escape'; queue.push(mb); }
+        else if (tp === 'end') queue.push(beatFor('end', e, BEAT_MS.end));
+      });
+      close();
+      if (state) {
+        if (queue.length > before) queue[queue.length - 1].apply = state;
+        else if (!queue.length) applyState(state, false);
+        else queue[queue.length - 1].apply = state;
+      }
+      return queue.length - before;
+    }
+    // Unstarted action and KO beats learn their length when they start; until then they count at an estimate.
+    function estimate(b) {
+      if (b.started) return b.dur;
+      if (b.kind === 'action') {
+        var a = A[b.ev.actor], look = abilityRecord(b.ev), ck = !a ? null : a.side === 'party' ? 'battle.' + (look.item ? 'item' : EA_CASTER(look.anm.caster)) : 'enemy.attack';
+        return abilityTimeline(look.anm, a && ck ? animKey(a, ck) : null).duration + 160;
+      }
+      if (b.kind === 'ko') return 760;
+      return b.dur || 0;
+    }
+    function backlog() { return queue.reduce(function (s, b) { return s + Math.max(0, estimate(b) - (b.t || 0)); }, 0); }
+    function rate() {
+      var k = speedK;
+      if (pacing === 'active') { var bl = backlog(); if (bl > BACKLOG_MS) { k *= bl / BACKLOG_MS; stats.compressed++; } }
+      return k;
+    }
+    function update(dt) {
+      dt = Math.max(0, Math.min(100, Number(dt) || 0));
+      var k = rate(), vt = dt * k, budget = vt;
+      now += vt;
+      while (budget > 0 && queue.length) {
+        var b = queue[0];
+        if (!b.started) start(b);
+        var step = Math.min(budget, Math.max(0, b.dur - b.t));
+        if (b.kind === 'action' && pb) {
+          pb.step(step).forEach(function (m) {
+            if (m.type === 'hit') landHit(b, m.arg | 0);
+            else if (m.type === 'sfx') emit('sfx', m.arg, { marker: true });
+            else if (m.type === 'flash') flashScreen = 1;
+          });
+          var ca = pb.casterAt(), cst = b.caster;
+          if (cst) { cst.animT = ca.t; cst.off = [ca.off[0] * (cst.dir === 'left' ? -1 : 1), 0]; }
+        }
+        b.t += step; budget -= step;
+        if (b.t >= b.dur) { finish(b); queue.shift(); }
+        else break;
+        if (b.dur === 0 && !queue.length) break;
+      }
+      order.forEach(function (key) {
+        var a = A[key], busy = pbBeat && pbBeat.caster === a;
+        if (!busy) a.animT += vt;
+        if (a.death) { a.death.t += vt; if (a.death.t >= a.death.ms) { a.gone = true; } }
+        if (a.roll) { a.roll.t += vt; var p = Math.min(1, a.roll.t / 400); a.shownHp = Math.round(a.roll.from + (a.roll.to - a.roll.from) * p); if (p >= 1) { a.roll = null; a.shownHp = a.hp; } }
+        // Back to the resting pose once a one shot ends, or when the resting pose itself changes (low HP, ready, victory).
+        if (!busy && !a.death) {
+          var oneShotDone = a.anim && !a.anim.loop && a.animKey !== 'battle.ko' && duration(a.anim) <= a.animT;
+          if (!a.anim || oneShotDone || BASE_KEYS[a.animKey]) settle(a);
+        }
+        a.flash = Math.max(0, a.flash - vt); a.glow = Math.max(0, a.glow - vt); a.highlight = Math.max(0, a.highlight - vt);
+        if (a.flee) a.off = [Math.min(W, a.off[0] + vt * 0.18 * (a.dir === 'left' ? -1 : 1) * -1), 0];
+      });
+      popups.forEach(function (p) { p.age += vt; });
+      popups = popups.filter(function (p) { return p.age < POPUP_MS; });
+      if (banner) { banner.t += vt; }
+      if (message) message.t += vt;
+      flashScreen = Math.max(0, flashScreen - vt / 160);
+      if (weather) weatherStep(weather, vt);
+      return k;
+    }
+    function isIdle() { return !queue.length; }
+
+    // ---- drawing
+    function hudColors() { return { back: '#101018', fill: '#e8c040', light: '#fff0a0' }; }
+    function drawActor(k, shake) {
+      var a = A[k], p = pos[k];
+      if (!p || a.gone) return;
+      var x = p.x + a.off[0] + shake[0], y = p.y + a.off[1] + shake[1];
+      if (!a.spr || !cache) {
+        ctx.fillStyle = a.side === 'party' ? '#c0a040' : '#a04040';
+        if (!a.ko || a.side === 'party') ctx.fillRect(Math.round(x - 6 * u), Math.round(y - 20 * u), 12 * u, 20 * u);
+        return;
+      }
+      if (a.death) { drawSprite(ctx, cache, a.spr.id, a.death.anm, a.death.t, x, y, { dir: a.dir, pose: 'idle', seed: hash32(a.uid) }); return; }
+      var fl = a.flash > 0 && Math.floor(a.flash / 45) % 2 === 0;
+      drawSprite(ctx, cache, a.spr.id, a.anim, a.animT, x, y, { dir: a.dir, pose: 'idle', flash: fl });
+      if (a.statuses.length && cfg.icons) {
+        var sid = a.statuses[Math.floor(now / 900) % a.statuses.length], ico = cfg.icons[sid], r = rectOf(k);
+        var f = ico ? cache.icon(ico) : null;
+        if (f && r) { blitFrame(ctx, f, Math.round(r.x + r.w / 2 - f.w / 2 + shake[0]), Math.round(r.y - f.h - 1 + shake[1])); }
+      }
+    }
+    function draw(target) {
+      var g = target || ctx;
+      if (!g) return;
+      var prev = ctx; ctx = g;
+      var sc = pb ? pb.screen() : { shake: [0, 0], darken: 0, wave: 0, flash: 0 };
+      if (cfg.bgd) bgDraw(ctx, cfg.bgd, now, W, fieldH, { entries: ent });
+      else { ctx.fillStyle = '#203048'; ctx.fillRect(0, 0, W, fieldH); ctx.fillStyle = '#304830'; ctx.fillRect(0, Math.round(fieldH * 0.56), W, fieldH - Math.round(fieldH * 0.56)); }
+      var foes = order.filter(function (k) { return A[k].side === 'foe'; }).sort(function (a, b) { return (pos[a] || {}).y - (pos[b] || {}).y; });
+      var party = order.filter(function (k) { return A[k].side === 'party'; }).sort(function (a, b) { return (pos[a] || {}).y - (pos[b] || {}).y; });
+      foes.forEach(function (k) { drawActor(k, sc.shake); });
+      party.forEach(function (k) { drawActor(k, sc.shake); });
+      order.forEach(function (k) {
+        var a = A[k], r = rectOf(k);
+        if (!r || a.gone) return;
+        if (a.glow > 0) { ctx.globalAlpha = 0.35 * (a.glow / 500); ctx.fillStyle = '#ffffff'; ctx.fillRect(r.x - u, r.y - u, r.w + 2 * u, r.h + 2 * u); ctx.globalAlpha = 1; }
+        if (a.highlight > 0 && a.side === 'party') { ctx.fillStyle = '#f8f0a0'; ctx.fillRect(Math.round(r.x + r.w / 2 - u), Math.round(r.y - 3 * u), 2 * u, 2 * u); }
+      });
+      if (pb) pb.draw(ctx);
+      if (sc.wave && ctx.canvas) applyWave(ctx, sc.wave, now, W, fieldH);
+      if (weather) weatherDraw(ctx, weather);
+      if (sc.darken > 0) { ctx.globalAlpha = sc.darken; ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, W, fieldH); ctx.globalAlpha = 1; }
+      var fl = Math.max(sc.flash || 0, flashScreen * 0.6);
+      if (fl > 0) { ctx.globalAlpha = fl; ctx.fillStyle = sc.flashColor || '#ffffff'; ctx.fillRect(0, 0, W, fieldH); ctx.globalAlpha = 1; }
+      // popups over everything on the field
+      popups.forEach(function (p) {
+        var fade = p.age > POPUP_MS - 150 ? clamp((POPUP_MS - p.age) / 150, 0, 1) : 1;
+        ctx.globalAlpha = fade;
+        drawText(ctx, font, p.text, p.x, p.y + p.dy + popupOffset(p.age, u), { color: p.color, shadow: '#000000', scale: u, align: 'center' });
+        ctx.globalAlpha = 1;
+      });
+      if (cursor && pos[cursor] && !A[cursor].gone) { var cr = rectOf(cursor); if (cr) drawCursor(ctx, uiRec.cursor, A[cursor].side === 'party' && side === 'right' ? cr.x : cr.x, cr.y + Math.round(cr.h / 2), now, { entries: ent, unit: u }); }
+      // banner (the ability name) and messages at the top
+      var lh = font.line * u, pad = 4 * u;
+      if (banner && banner.text) {
+        var bw = Math.min(W - 8 * u, measure(font, banner.text, u) + 2 * pad + 4 * u), bx = Math.round((W - bw) / 2);
+        drawWindow(ctx, uiRec.window, bx, 2 * u, bw, lh + 2 * pad, { entries: ent, unit: u, open: Math.min(1, banner.t / 80) });
+        drawText(ctx, font, banner.text, W / 2, 2 * u + pad + u, { color: '#ffffff', shadow: '#000000', scale: u, align: 'center' });
+      }
+      if (message && message.text) {
+        var mw = Math.min(W - 8 * u, measure(font, message.text, u) + 2 * pad + 8 * u), mx = Math.round((W - mw) / 2), my = Math.round(fieldH * 0.36);
+        drawWindow(ctx, uiRec.window, mx, my, mw, lh + 2 * pad, { entries: ent, unit: u, open: Math.min(1, message.t / 100) });
+        drawText(ctx, font, message.text, W / 2, my + pad + u, { color: '#ffffff', shadow: '#000000', scale: u, align: 'center' });
+      }
+      drawHud();
+      ctx = prev;
+    }
+    function drawHud() {
+      var lh = font.line * u, pad = 4 * u, hh = H - hudY, foeW = Math.round(W * 0.36);
+      var foes = order.filter(function (k) { return A[k].side === 'foe'; }), party = order.filter(function (k) { return A[k].side === 'party'; });
+      var left = side === 'right' ? 0 : W - foeW, right = side === 'right' ? foeW : 0;
+      drawWindow(ctx, uiRec.window, left, hudY, foeW, hh, { entries: ent, unit: u });
+      drawWindow(ctx, uiRec.window, right, hudY, W - foeW, hh, { entries: ent, unit: u });
+      var rows = Math.max(1, Math.floor((hh - 2 * pad) / lh)), seen = {}, names = [];
+      foes.forEach(function (k) { var a = A[k]; if (a.gone || a.ko) return; var base = a.name.replace(/ [A-Z]$/, ''); if (seen[base]) seen[base].n++; else { seen[base] = { n: 1 }; names.push(base); } });
+      names.slice(0, rows).forEach(function (nm, i) {
+        var n = seen[nm].n, label = nm + (n > 1 ? ' x' + n : ''), maxW = foeW - 2 * pad - 2 * u;
+        while (label.length > 3 && measure(font, label, u) > maxW) label = label.slice(0, -1);
+        drawText(ctx, font, label, left + pad + u, hudY + pad + u + i * lh, { color: '#ffffff', shadow: '#000000', scale: u });
+      });
+      var pw = W - foeW - 2 * pad, gaugeW = Math.max(12 * u, Math.round(pw * 0.2)), nameW = Math.round(pw * 0.32);
+      var digits = party.reduce(function (m, k) { return Math.max(m, String(A[k].maxHp).length); }, 1), hpW = measure(font, new Array(digits * 2 + 2).join('9'), u);
+      var mpW = measure(font, '999', u), gaugeX = right + (W - foeW) - pad - gaugeW - u;
+      party.slice(0, rows).forEach(function (k, i) {
+        var a = A[k], y = hudY + pad + u + i * lh, x = right + pad + u, low = a.shownHp <= a.maxHp / 4;
+        var col = a.ko ? '#d05050' : low ? '#f0c040' : '#ffffff', label = a.name;
+        while (label.length > 3 && measure(font, label, u) > nameW - 2 * u) label = label.slice(0, -1);
+        if (cursor === k) drawCursor(ctx, uiRec.cursor, x + 2 * u, y + Math.round(font.h * u / 2), now, { entries: ent, unit: u });
+        drawText(ctx, font, label, x, y, { color: a.ready ? '#f8f0a0' : col, shadow: '#000000', scale: u });
+        var hpRight = x + nameW + hpW, mpRight = hpRight + 3 * u + mpW;
+        drawText(ctx, font, a.shownHp + '/' + a.maxHp, hpRight, y, { color: col, shadow: '#000000', scale: u, align: 'right' });
+        if (a.maxMp && mpRight + 2 * u <= gaugeX) drawText(ctx, font, String(a.mp), mpRight, y, { color: '#a0c8f8', shadow: '#000000', scale: u, align: 'right' });
+        drawGauge(ctx, gaugeX, y + u, gaugeW, Math.max(3, font.h * u - 2 * u), a.ko ? 0 : a.gauge, a.gauge >= 1 ? { back: '#101018', fill: '#f8f0a0', light: '#ffffff' } : hudColors());
+      });
+    }
+    function targets() {
+      var out = {};
+      order.forEach(function (k) { var r = rectOf(k); if (r && !A[k].gone) out[k] = r; });
+      return out;
+    }
+    function display() {
+      var out = {};
+      order.forEach(function (k) { var a = A[k]; out[k] = { name: a.name, side: a.side, hp: a.shownHp, hpTarget: a.hp, maxHp: a.maxHp, mp: a.mp, maxMp: a.maxMp, ko: a.ko, gone: a.gone, statuses: a.statuses.slice(), atb: a.gauge, ready: a.ready, anim: a.animKey || (a.death ? 'death' : null) }; });
+      return out;
+    }
+    return {
+      feed: feed, update: update, draw: draw, isIdle: isIdle, backlog: backlog, targets: targets, display: display,
+      setPacing: function (m) { pacing = m === 'active' ? 'active' : 'wait'; return pacing; },
+      setSpeed: function (k) { speedK = Math.max(0.25, Number(k) || 1); return speedK; },
+      setCursor: function (uid) { cursor = uid && A[uid] ? uid : null; },
+      setMessage: function (text) { message = text ? { text: String(text), t: 1000, ms: 1e9 } : null; },
+      pacing: function () { return pacing; }, ended: function () { return ended; },
+      stats: function () { return Object.assign({ queued: queue.length, backlog: backlog(), now: Math.round(now), popupsLive: popups.length }, stats); },
+      beats: function () { return queue.map(function (b) { return { kind: b.kind, dur: b.dur, t: b.t, results: b.results ? b.results.length : 0 }; }); },
+      layout: function () { var o = {}; Object.keys(pos).forEach(function (k) { o[k] = { x: pos[k].x, y: pos[k].y }; }); return o; },
+      field: { w: W, h: H, fieldH: fieldH, unit: u }
+    };
+  }
+
+  R.ui = {
+    FONT: DEFAULT_FONT, CORNERS: WIN_CORNERS, OPEN_STYLES: OPEN_STYLES, CURSORS: Object.keys(CURSOR_SHAPES), CURSOR_SHAPES: CURSOR_SHAPES,
+    SCHEMES: SCHEMES, TITLE_STYLES: TITLE_STYLES, TITLE_LAYOUTS: TITLE_LAYOUTS, POPUP_MS: POPUP_MS,
+    font: fontOf, measure: measure, text: drawText, wrap: wrapText, window: drawWindow, cursor: drawCursor, gauge: drawGauge, color: colOf,
+    touch: { layout: touchLayout, hit: touchHit, draw: drawTouch }, title: drawTitle
+  };
+  R.presenter = { BEAT_MS: BEAT_MS, BACKLOG_MS: BACKLOG_MS };
+  R.createPresenter = createPresenter;
+
   // ---------------------------------------------------------------- later phases insert sections above this line
   Object.keys(R).forEach(function (k) { if (R[k] && typeof R[k] === 'object') Object.freeze(R[k]); });
   return Object.freeze(R);
@@ -8432,7 +9311,7 @@ var ENGINE_RENDER = (function () {
 // === WS:INTERFACE BEGIN ===
 (function () {
   'use strict';
-  // The Interface tab. Phase 2 delivers Icons; Window and font, Cursor, Touch skin, and Title arrive in Phase 5.
+  // The Interface tab. Phase 2 delivered Icons; Phase 5 adds Window and font, Cursor, Touch skin, and Title.
   var U = Kit.util, el = U.el, esc = U.esc, EI = ENGINE_RENDER.icon, S = ART.sprites, P = ART.palette, W = ART.ui;
   ART.WS = ART.WS || {};
   var SUBS = [['icons', 'Icons'], ['window', 'Window and font'], ['cursor', 'Cursor'], ['touch', 'Touch skin'], ['title', 'Title']];
@@ -8527,21 +9406,229 @@ var ENGINE_RENDER = (function () {
       host.appendChild(p);
     });
   }
-  function later(title, lead) { return function (host) { host.appendChild(Kit.ui.stub({ title: title, lead: lead, status: 'Arrives in Phase 5.', icon: 'slots' })); }; }
+  // ---------------------------------------------------------------- Phase 5: the interface kit
+  // ART:UI and WS:MOTION load after this fence, so the kit and the stage helper are picked up when a view first paints.
+  var ER = ENGINE_RENDER, EU = ER.ui, I = null, M = null;
+  function late() { I = ART.iface; M = ART.motion; }
+  function res() { var r = (cur().charter.specs || {}).resolution || {}; return { w: Number(r.w) || 256, h: Number(r.h) || 224 }; }
+  function kScale() { return Math.max(2, Math.min(6, Math.floor(720 / res().w))); }
+  function unit() { return Math.max(1, Math.round(S.tileSize(cur()) / 16)); }
+  function needKit(host, key) {
+    var r = I.get(cur(), key);
+    if (r) return r;
+    var p = el('section', 'panel');
+    var retired = (cur().art.settings.retired || []).indexOf('ui:' + key) >= 0;
+    p.innerHTML = '<h3 class="section-h">No ' + esc(key) + ' record</h3><p class="muted">' + (retired ? 'This record was deleted. Restore it to bring back the default.' : 'Quick Build makes the window, font, cursor, touch skin, and title records.') + '</p>';
+    p.appendChild(retired ? W.button('Restore default', 'check', 'btn-primary', function () { I.restore(cur(), key); touch('ui-restore'); Kit.rerender(); }) : W.button('Quick Build', 'spark', 'btn-primary', function () { ART.openQuickBuild(); }));
+    host.appendChild(p);
+    return null;
+  }
+  function recHead(host, r, key, lead) {
+    var p = el('section', 'panel' + (ui.focus === r.id ? ' a7-hit' : ''));
+    p.dataset.rid = r.id;
+    p.innerHTML = '<h3 class="section-h">' + esc(r.name) + ' ' + W.origin(r) + '</h3><p class="muted">' + esc(lead) + '</p><p class="muted a7-small"><code class="id">' + esc(r.id) + '</code></p>';
+    var row = el('div', 'btn-row');
+    row.appendChild(W.button('Reset to default', 'check', 'btn-ghost', function () { I.reset(cur(), key); touch('ui-reset'); Kit.rerender(); }));
+    row.appendChild(W.button('Delete', 'trash', 'btn-ghost', function () {
+      Kit.ui.dialog({ title: 'Delete ' + r.name + '?', body: 'Interface previews fall back to the built in look until you restore it. Quick Build will not recreate it.', actions: [{ label: 'Cancel' }, { label: 'Delete', kind: 'danger', onClick: function () { I.remove(cur(), key); touch('ui-delete'); Kit.rerender(); } }] });
+    }));
+    p.appendChild(row);
+    host.appendChild(p);
+    return p;
+  }
+  function colorRow(r, key, after) {
+    var box = el('div', 'a7-colors');
+    (I.COLOR_FIELDS[key] || []).forEach(function (f) {
+      var o = f[0].split('.').reduce(function (x, k) { return x && x[k]; }, r) || {}, now = EU.color(o, P.entries(cur()), '#ffffff');
+      var id = 'a7c' + U.rand36(6), lab = el('label'); lab.htmlFor = id;
+      var inp = el('input'); inp.type = 'color'; inp.id = id; inp.value = now;
+      inp.addEventListener('change', function () { if (I.setColor(cur(), r, f[0], inp.value)) { touch('ui-color'); if (after) after(); } });
+      lab.appendChild(inp); lab.appendChild(el('span', null, esc(f[1])));
+      box.appendChild(lab);
+    });
+    return box;
+  }
+  function textField(label, value, placeholder, onChange) {
+    var id = 'a7x' + U.rand36(6), w = el('label', 'a7-text'); w.htmlFor = id; w.innerHTML = '<span>' + esc(label) + '</span>';
+    var inp = el('input', 'inp'); inp.type = 'text'; inp.id = id; inp.value = value == null ? '' : value; if (placeholder) inp.placeholder = placeholder; inp.maxLength = 80;
+    inp.addEventListener('change', function () { onChange(inp.value); });
+    w.appendChild(inp); return w;
+  }
+  function stage(paint, label) {
+    var R = res(), wrap = el('div', 'a7-bt-stage'), cv = M.stage(R.w, R.h, kScale(), paint, label);
+    cv.classList.add('a7-bt-cv'); wrap.appendChild(cv);
+    return { wrap: wrap, cv: cv };
+  }
+  function backdrop(ctx, t) {
+    var b = cur(), R = res(), bg = I.titleBg(b, I.get(b, 'title'));
+    if (bg) ER.bg.draw(ctx, bg, t, R.w, R.h, { entries: P.entries(b) }); else { ctx.fillStyle = '#203048'; ctx.fillRect(0, 0, R.w, R.h); }
+  }
+  var specimen = ['The quick brown fox jumps', 'over the lazy dog. 0123456789', 'HP 120/240  MP 18  Lv 12', '!?.,:;()[]{}+-*/=<>@#$%&_~'];
+  var fontUi = { code: 65 };
+  function viewWindowFont(host) {
+    late();
+    var b = cur(), win = needKit(host, 'window');
+    if (win) {
+      var p = recHead(host, win, 'window', 'The frame every menu, message, and battle window uses: a gradient body, an outer line, a border, and a corner. Opening plays as it appears.');
+      var R = res(), st = stage(function (ctx, t) {
+        backdrop(ctx, t);
+        var u = unit(), kit = I.kit(cur()), font = EU.font(kit.font), lh = font.line * u, pad = 5 * u, ms = win.open ? Math.max(1, win.open.ms) : 1;
+        var o = win.open && win.open.style === 'none' ? 1 : Math.min(1, (t % 2600) / ms);
+        var w = Math.round(R.w * 0.8), h = specimen.length * lh + 2 * pad, x = Math.round((R.w - w) / 2), y = Math.round((R.h - h) / 2);
+        EU.window(ctx, win, x, y, w, h, { entries: P.entries(cur()), unit: u, open: o });
+        if (o >= 1) specimen.forEach(function (ln, i) { EU.text(ctx, font, ln, x + pad + u, y + pad + u + i * lh, { color: '#ffffff', shadow: '#000000', scale: u }); });
+      }, 'Window preview with the font specimen');
+      p.appendChild(st.wrap);
+      p.appendChild(colorRow(win, 'window'));
+      var ctl = el('div', 'a7-ctl');
+      ctl.appendChild(W.select('Corner', win.corner, EU.CORNERS.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { win.corner = v; win.origin = 'user'; touch('ui-window'); }));
+      ctl.appendChild(W.select('Border', String(win.thickness), [['1', 'Thin'], ['2', 'Medium'], ['3', 'Thick']], function (v) { win.thickness = Number(v); win.origin = 'user'; touch('ui-window'); }));
+      ctl.appendChild(W.slider('Opacity', win.alpha == null ? 1 : win.alpha, 0.2, 1, 0.05, function (v) { win.alpha = v; win.origin = 'user'; touch('ui-window'); }));
+      win.open = win.open || { ms: 140, style: 'grow' };
+      ctl.appendChild(W.select('Opening', win.open.style, EU.OPEN_STYLES.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { win.open.style = v; win.origin = 'user'; touch('ui-window'); }));
+      ctl.appendChild(W.slider('Opening ms', win.open.ms, 0, 600, 10, function (v) { win.open.ms = v; win.origin = 'user'; touch('ui-window'); }));
+      p.appendChild(ctl);
+    }
+    var font = needKit(host, 'font');
+    if (!font) return;
+    var fp = recHead(host, font, 'font', 'An original 5 by 7 pixel font with one descender row, for every printable character. Pick a character and toggle its pixels; the dashed row is the descender.');
+    var grid = el('div', 'a7-glyphs'); grid.setAttribute('role', 'group'); grid.setAttribute('aria-label', 'Characters');
+    for (var code = 33; code <= 126; code++) (function (cc) {
+      var bt = el('button', 'btn', esc(String.fromCharCode(cc))); bt.type = 'button'; bt.setAttribute('aria-pressed', cc === fontUi.code ? 'true' : 'false'); bt.setAttribute('aria-label', 'Edit glyph ' + String.fromCharCode(cc));
+      bt.addEventListener('click', function () { fontUi.code = cc; Kit.rerender(); });
+      grid.appendChild(bt);
+    })(code);
+    fp.appendChild(grid);
+    var row = el('div', 'a7-room-below');
+    var ed = el('div', 'a7-gedit'); ed.style.gridTemplateColumns = 'repeat(' + font.w + ', auto)';
+    var rows = I.glyphRows(font, fontUi.code);
+    rows.forEach(function (r, y) { r.forEach(function (on, x) {
+      var px = el('button', y >= font.h ? 'a7-desc' : null); px.type = 'button'; px.setAttribute('aria-pressed', on ? 'true' : 'false'); px.setAttribute('aria-label', 'Pixel ' + (x + 1) + ', row ' + (y + 1));
+      px.addEventListener('click', function () { rows[y][x] = !rows[y][x]; px.setAttribute('aria-pressed', rows[y][x] ? 'true' : 'false'); I.setGlyph(font, fontUi.code, rows); font.origin = 'user'; touch('ui-glyph'); });
+      ed.appendChild(px);
+    }); });
+    row.appendChild(ed);
+    var big = el('div', 'a7-grow');
+    big.innerHTML = '<p><strong>' + esc(String.fromCharCode(fontUi.code)) + '</strong> <span class="muted a7-small">code ' + fontUi.code + '</span></p>';
+    big.appendChild(W.button('Reset this glyph', 'check', 'btn-ghost', function () { var d = EU.FONT.glyphs[fontUi.code]; if (d) { font.glyphs[fontUi.code] = d; font.origin = 'user'; touch('ui-glyph'); Kit.rerender(); } }));
+    row.appendChild(big);
+    fp.appendChild(row);
+  }
+  function viewCursor(host) {
+    late();
+    var cr = needKit(host, 'cursor');
+    if (!cr) return;
+    var p = recHead(host, cr, 'cursor', 'The pointer that marks the chosen menu item or target. It bobs toward what it points at.');
+    var items = ['Fight', 'Magic', 'Item', 'Defend'];
+    var st = stage(function (ctx, t) {
+      backdrop(ctx, t);
+      var R = res(), u = unit(), kit = I.kit(cur()), font = EU.font(kit.font), lh = font.line * u, pad = 5 * u, w = EU.measure(font, 'Defend', u) + 2 * pad + 16 * u, h = items.length * lh + 2 * pad;
+      var x = Math.round((R.w - w) / 2), y = Math.round((R.h - h) / 2), sel = Math.floor(t / 1200) % items.length;
+      EU.window(ctx, kit.window, x, y, w, h, { entries: P.entries(cur()), unit: u });
+      items.forEach(function (it, i) { EU.text(ctx, font, it, x + pad + 12 * u, y + pad + i * lh, { color: '#ffffff', shadow: '#000000', scale: u }); });
+      EU.cursor(ctx, cr, x + pad + 11 * u, y + pad + sel * lh + Math.floor(font.h * u / 2), t, { entries: P.entries(cur()), unit: u });
+    }, 'Cursor preview on a battle menu');
+    p.appendChild(st.wrap);
+    p.appendChild(colorRow(cr, 'cursor'));
+    var ctl = el('div', 'a7-ctl');
+    ctl.appendChild(W.select('Shape', cr.style, EU.CURSORS.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { cr.style = v; cr.origin = 'user'; touch('ui-cursor'); }));
+    cr.bob = cr.bob || { amp: 2, ms: 600 };
+    ctl.appendChild(W.slider('Bob pixels', cr.bob.amp, 0, 8, 1, function (v) { cr.bob.amp = v; cr.origin = 'user'; touch('ui-cursor'); }));
+    ctl.appendChild(W.slider('Bob ms', cr.bob.ms, 100, 2000, 50, function (v) { cr.bob.ms = v; cr.origin = 'user'; touch('ui-cursor'); }));
+    p.appendChild(ctl);
+  }
+  var touchUi = { pressed: {}, last: 'nothing yet' };
+  function viewTouch(host) {
+    late();
+    var b = cur(), tk = needKit(host, 'touch');
+    if (!tk) return;
+    var ch = b.charter.specs && b.charter.specs.mobileControls, scheme = I.scheme(b, tk);
+    var p = recHead(host, tk, 'touch', 'The on screen controls a phone player sees. The Charter names the scheme (' + (ch || 'dpad') + '); you can override it here. Press the controls in the preview to try them.');
+    var R = res();
+    var st = stage(function (ctx, t) {
+      backdrop(ctx, t);
+      var kit = I.kit(cur()), lay = EU.touch.layout(I.scheme(cur(), tk), R.w, R.h, tk);
+      EU.touch.draw(ctx, lay, tk, { pressed: touchUi.pressed, entries: P.entries(cur()), font: kit.font });
+      if (touchUi.tap) { ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.6; ctx.fillRect(touchUi.tap[0] - 2, touchUi.tap[1] - 2, 5, 5); ctx.globalAlpha = 1; }
+    }, 'Touch skin preview. Press the controls to try them.');
+    st.cv.style.touchAction = 'none';
+    var out = el('p', 'muted a7-small'); out.setAttribute('aria-live', 'polite'); out.textContent = 'Last input: ' + touchUi.last;
+    function at(e) { var r = st.cv.getBoundingClientRect(); return [(e.clientX - r.left) / (r.width || 1) * R.w, (e.clientY - r.top) / (r.height || 1) * R.h]; }
+    function press(e) {
+      var xy = at(e), h = EU.touch.hit(EU.touch.layout(I.scheme(cur(), tk), R.w, R.h, tk), xy[0], xy[1]);
+      touchUi.pressed = {}; touchUi.tap = null;
+      if (!h) return;
+      if (h.key === 'tap') { touchUi.tap = [Math.round(xy[0]), Math.round(xy[1])]; touchUi.last = 'tap at ' + touchUi.tap.join(', '); }
+      else if (h.key === 'stick') { touchUi.pressed.stick = { vx: h.vx, vy: h.vy }; touchUi.last = 'stick ' + (h.dir || 'center'); }
+      else if (h.key === 'dpad') { touchUi.pressed.dpad = h.dir || true; touchUi.last = 'pad ' + (h.dir || 'center'); }
+      else { touchUi.pressed[h.key] = true; touchUi.last = 'button ' + h.key.toUpperCase(); }
+      out.textContent = 'Last input: ' + touchUi.last;
+    }
+    st.cv.addEventListener('pointerdown', function (e) { if (st.cv.setPointerCapture) try { st.cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } press(e); e.preventDefault(); });
+    st.cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') press(e); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { st.cv.addEventListener(n, function () { touchUi.pressed = {}; }); });
+    p.appendChild(st.wrap); p.appendChild(out);
+    p.appendChild(colorRow(tk, 'touch'));
+    var ctl = el('div', 'a7-ctl');
+    ctl.appendChild(W.select('Scheme', tk.scheme || '', [['', 'Follow the Charter (' + (ch || 'dpad') + ')']].concat(I.SCHEMES), function (v) { tk.scheme = v || null; tk.origin = 'user'; touch('ui-touch'); Kit.rerender(); }));
+    ctl.appendChild(W.select('Shape', tk.shape, [['round', 'Round'], ['square', 'Square']], function (v) { tk.shape = v; tk.origin = 'user'; touch('ui-touch'); }));
+    ctl.appendChild(W.slider('Opacity', tk.opacity, 0.1, 1, 0.05, function (v) { tk.opacity = v; tk.origin = 'user'; touch('ui-touch'); }));
+    var auto = Math.round(Math.min(R.w, R.h) * 0.2);
+    ctl.appendChild(W.slider('Size', tk.size || auto, 12, Math.round(Math.min(R.w, R.h) * 0.45), 1, function (v) { tk.size = v === auto ? null : v; tk.origin = 'user'; touch('ui-touch'); }));
+    p.appendChild(ctl);
+    var labs = el('div', 'a7-ctl');
+    tk.labels = tk.labels || {};
+    [['a', 'A button'], ['b', 'B button'], ['menu', 'Menu button']].forEach(function (x) {
+      labs.appendChild(textField(x[1] + ' label', tk.labels[x[0]], x[0] === 'menu' ? '=' : x[0].toUpperCase(), function (v) { tk.labels[x[0]] = String(v).slice(0, 2) || null; tk.origin = 'user'; touch('ui-touch'); }));
+    });
+    p.appendChild(labs);
+    p.appendChild(el('p', 'muted a7-small', 'Menu sounds (move, confirm, cancel, error) link here in Phase 6. Turn the skin on in Playtest, Test room, to walk with it.'));
+  }
+  function viewTitle(host) {
+    late();
+    var b = cur(), tt = needKit(host, 'title');
+    if (!tt) return;
+    var p = recHead(host, tt, 'title', 'The first screen a player sees: the logo, a background, and a blinking prompt. The text follows the Charter title unless you type your own.');
+    var R = res();
+    var st = stage(function (ctx, t) {
+      var bb = cur(), kit = I.kit(bb);
+      EU.title(ctx, tt, { entries: P.entries(bb), font: kit.font, bgd: I.titleBg(bb, tt), tMs: t, w: R.w, h: R.h, unit: unit(), text: I.titleText(bb, tt) });
+    }, 'Title screen preview');
+    p.appendChild(st.wrap);
+    var ctl = el('div', 'a7-ctl');
+    ctl.appendChild(textField('Logo text', tt.text, I.titleText(b, null), function (v) { tt.text = String(v).trim() || null; tt.origin = 'user'; touch('ui-title'); }));
+    ctl.appendChild(textField('Prompt', tt.prompt, 'Press Start', function (v) { tt.prompt = String(v); tt.origin = 'user'; touch('ui-title'); }));
+    ctl.appendChild(textField('Credit line', tt.credit, 'Optional', function (v) { tt.credit = String(v).trim() || null; tt.origin = 'user'; touch('ui-title'); }));
+    p.appendChild(ctl);
+    var ctl2 = el('div', 'a7-ctl');
+    ctl2.appendChild(W.select('Logo style', tt.style, EU.TITLE_STYLES.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { tt.style = v; tt.origin = 'user'; touch('ui-title'); }));
+    ctl2.appendChild(W.select('Layout', tt.layout, EU.TITLE_LAYOUTS.map(function (c) { return [c, c.charAt(0).toUpperCase() + c.slice(1)]; }), function (v) { tt.layout = v; tt.origin = 'user'; touch('ui-title'); }));
+    ctl2.appendChild(W.slider('Logo scale', tt.scale, 1, 8, 1, function (v) { tt.scale = v; tt.origin = 'user'; touch('ui-title'); }));
+    var bgs = ART.tiles ? ART.tiles.backgrounds(b) : [];
+    ctl2.appendChild(W.select('Background', tt.bg || '', [['', 'Automatic (grassland)']].concat(bgs.map(function (g) { return [g.id, g.name]; })), function (v) { tt.bg = v || null; tt.origin = 'user'; touch('ui-title'); }));
+    p.appendChild(ctl2);
+    p.appendChild(colorRow(tt, 'title'));
+  }
   var VIEWS = {
     icons: viewIcons,
-    window: later('Window and font', 'Classic window frames, the gradient, and the original 5 by 7 pixel font.'),
-    cursor: later('Cursor', 'The menu cursor and its bob animation.'),
-    touch: later('Touch skin', 'The on screen controls for the Charter\'s mobileControls scheme.'),
-    title: later('Title', 'The title screen: logo text, background, layout, and prompt.')
+    window: viewWindowFont,
+    cursor: viewCursor,
+    touch: viewTouch,
+    title: viewTitle
   };
   function render(host) {
     var head = el('section', 'panel');
-    head.innerHTML = '<h2 class="panel-title">Interface</h2><p class="muted">Icons now; the window, font, cursor, touch skin, and title screen arrive with the battle presenter in Phase 5.</p>';
+    head.innerHTML = '<h2 class="panel-title">Interface</h2><p class="muted">Icons, the window frame and pixel font, the cursor, the touch controls, and the title screen. Every preview draws at the Charter\'s resolution.</p>';
     host.appendChild(head);
     W.subtabs(host, SUBS, ui, VIEWS);
   }
-  function focus(rid) { ui.focus = rid; ui.sub = 'icons'; Kit.rerender(); }
+  function focus(rid) {
+    late();
+    ui.focus = rid;
+    var r = ART.records.get(rid), key = r && Kit.ids.prefixOf(rid) === 'uik_' ? I.keyOf(r) : null;
+    ui.sub = key === 'font' ? 'window' : key || 'icons';
+    Kit.rerender();
+  }
   ART.WS.interface = { render: render, focus: focus, ui: ui, views: VIEWS, openIcon: openIcon };
 })();
 // === WS:INTERFACE END ===
@@ -10395,12 +11482,13 @@ var ENGINE_RENDER = (function () {
   'use strict';
   // The Playtest tab. Phase 4 brings the test room: a small world generated from the bundle's own tilesets and climate
   // keys, with a town house and a dungeon ruin, walked by a party sprite. Collision, encounters, swimming, damage
-  // floors, and the above layer all come from tile flags. Battle and the window preview arrive in Phase 5.
+  // floors, and the above layer all come from tile flags. Phase 5 adds the touch skin here; WS:BATTLE adds the Battle
+  // and Window preview views.
   var U = Kit.util, el = U.el, esc = U.esc, ER = ENGINE_RENDER, ET = ER.tiles;
   var S = ART.sprites, P = ART.palette, M = ART.motion, TL = ART.tiles, W = ART.ui;
   ART.WS = ART.WS || {};
   var SUBS = [['room', 'Test room'], ['battle', 'Battle'], ['window', 'Window preview']];
-  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false };
+  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false };
   var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
   var STEP_MS = 190;
@@ -10454,10 +11542,11 @@ var ENGINE_RENDER = (function () {
     }
     var T = S.tileSize(b), R = res(), map = TL.room(b, ui.seed, Math.max(24, Math.ceil(R.w / T) + 16), Math.max(20, Math.ceil(R.h / T) + 12));
     var spr = sprite(b), walkAnm = spr ? M.animFor(spr, 'walk', b) : null, wov = ui.weather ? ART.records.get(ui.weather, b) : null;
-    var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null };
+    var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null, pressed: {} };
+    var EU = ER.ui, tkRec = ART.iface ? ART.iface.get(b, 'touch') : null, tkLayout = EU.touch.layout(ART.iface ? ART.iface.scheme(b, tkRec) : 'dpad', R.w, R.h, tkRec || {});
     var walker = createWalker(b.art, map, map.start, { arrive: function (w, flags) {
       if (flags & ET.FLAGS.damage) { st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
-      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! (Battles arrive in Phase 5.)'); } }
+      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
       hud();
     } });
     room = { map: map, walker: walker, state: st };
@@ -10470,6 +11559,7 @@ var ENGINE_RENDER = (function () {
     var wovs = M.overlays(b);
     if (wovs.length) ctl.appendChild(W.select('Weather', ui.weather, [['', 'None']].concat(wovs.map(function (o) { return [o.id, o.name.replace(/ overlay$/, '')]; })), function (v) { ui.weather = v; repaint(); }));
     ctl.appendChild(W.toggle('Show flags', ui.flags, function (on) { ui.flags = on; }));
+    ctl.appendChild(W.toggle('Touch skin', ui.touch, function (on) { ui.touch = on; st.pressed = {}; }));
     ctl.appendChild(W.button('New world', 'spark', 'btn-ghost', function () { ui.seed = (ui.seed * 7 + 13) % 100000 + 1; repaint(); }));
     panel.appendChild(ctl);
 
@@ -10497,6 +11587,7 @@ var ENGINE_RENDER = (function () {
           ctx.globalAlpha = 1;
         }
       }
+      if (ui.touch) EU.touch.draw(ctx, tkLayout, tkRec || {}, { pressed: st.pressed, entries: P.entries(b), font: ART.iface ? ART.iface.get(b, 'font') : null });
       if (st.flash > 0) { ctx.globalAlpha = Math.min(0.5, st.flash * 0.5); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, R.w, R.h); ctx.globalAlpha = 1; st.flash = Math.max(0, st.flash - dt / 300); }
     }, 'Test room. Use the arrow keys, WASD, the direction pad, or hold a finger on the map to walk.');
     cv.tabIndex = 0;
@@ -10512,9 +11603,20 @@ var ENGINE_RENDER = (function () {
       var dx = lx - (px - cx), dy = ly - (py - cy);
       st.held = Math.abs(dx) < T / 2 && Math.abs(dy) < T / 2 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
     }
-    cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); aim(e); e.preventDefault(); });
-    cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (st.held !== null || e.buttons) aim(e); } });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { cv.addEventListener(n, function () { st.held = null; }); });
+    // With the touch skin on, presses go to its controls: the pad or stick walks, A and B and Menu report, and a tap
+    // elsewhere (tap and hybrid schemes) walks toward the finger.
+    function skin(e) {
+      var r = cv.getBoundingClientRect(), lx = (e.clientX - r.left) / (r.width || 1) * R.w, ly = (e.clientY - r.top) / (r.height || 1) * R.h, h = EU.touch.hit(tkLayout, lx, ly);
+      st.pressed = {};
+      if (!h) { st.held = null; return; }
+      if (h.key === 'tap') { aim(e); return; }
+      if (h.key === 'dpad' || h.key === 'stick') { st.held = h.dir || null; st.pressed[h.key] = h.key === 'stick' ? { vx: h.vx, vy: h.vy } : (h.dir || true); return; }
+      st.held = null; st.pressed[h.key] = true;
+      if (st.lastBtn !== h.key) { st.lastBtn = h.key; say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
+    }
+    cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); if (ui.touch) skin(e); else aim(e); e.preventDefault(); });
+    cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (ui.touch) { if (st.held !== null || e.buttons || Object.keys(st.pressed).length) skin(e); } else if (st.held !== null || e.buttons) aim(e); } });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { cv.addEventListener(n, function () { st.held = null; st.pressed = {}; st.lastBtn = null; }); });
 
     var below = el('div', 'a7-room-below');
     var pad = el('div', 'a7-dpad');
@@ -10557,10 +11659,8 @@ var ENGINE_RENDER = (function () {
   });
   document.addEventListener('keyup', function (e) { if (room && KEYS[e.key] === room.state.keyHeld) room.state.keyHeld = null; });
 
-  function viewLater(what) {
-    return function (host) { host.appendChild(Kit.ui.stub({ title: what, lead: what === 'Battle' ? 'A dressed battle from the bundle, played through the presenter with hit timing, popups, and cues.' : 'Windows, the font, the cursor, and the touch skin at the Charter\'s resolution.', status: 'Arrives in Phase 5.', icon: what === 'Battle' ? 'sword' : 'slots' })); };
-  }
-  var VIEWS = { room: viewRoom, battle: viewLater('Battle'), window: viewLater('Window preview') };
+  // WS:BATTLE fills in battle and window.
+  var VIEWS = { room: viewRoom };
   function render(host) {
     var head = el('section', 'panel'), R = res();
     head.innerHTML = '<h2 class="panel-title">Playtest</h2><p class="muted">Try the art the way a player meets it, at ' + R.w + ' by ' + R.h + ' and ' + S.tileSize(cur()) + ' pixel tiles.</p>';
@@ -10570,6 +11670,887 @@ var ENGINE_RENDER = (function () {
   ART.WS.playtest = { render: render, ui: ui, views: VIEWS, createWalker: createWalker, room: function () { return room; } };
 })();
 // === WS:PLAYTEST END ===
+// === ART:UI BEGIN ===
+(function () {
+  'use strict';
+  // The interface kit as records. Five uik_ records, one per role subject, made once by Quick Build with origin default
+  // and edited on the Interface tab like anything else:
+  //   ui:window  {gradient {top, bottom}, border, light, corner, thickness, alpha, open {ms, style}}
+  //   ui:font    {w, h, rows, advance, line, glyphs {code: hex rows}} (codes 32 to 126, two hex digits per row)
+  //   ui:cursor  {style, fill, light, outline, bob {amp, ms}}
+  //   ui:touch   {scheme (null follows the Charter), shape, opacity, size (logical px, null for automatic), color, ink,
+  //               labels {a, b, menu}, sfx {move, confirm, cancel, error} (sfx_ ids, linked in Phase 6)}
+  //   ui:title   {text (null reads the Charter title), style, scale, color, shadow, light, layout, bg (bgd_ id), prompt, credit}
+  // A color field is {hex, m}: hex is the source, m its nearest master index. Master rebuilds refit generated records
+  // from hex and move edited ones to the nearest new color, the same rule every other art record follows.
+  var U = Kit.util, ER = ENGINE_RENDER, EU = ER.ui, PE = ER.palette, H = ER.util.hash32;
+  var P = ART.palette, S = ART.sprites, I = ART.iface = {};
+  function cur() { return Kit.bundle.current(); }
+  function bump(report, k) { report[k] = (report[k] || 0) + 1; }
+  var KEEP = { user: 1, claude: 1 };
+  function kept(r) { return !!(r && KEEP[r.origin]); }
+  I.isKept = kept;
+  I.ROLES = [
+    { key: 'window', label: 'Window', name: 'Window frame' },
+    { key: 'font', label: 'Font', name: 'Pixel font' },
+    { key: 'cursor', label: 'Cursor', name: 'Menu cursor' },
+    { key: 'touch', label: 'Touch skin', name: 'Touch skin' },
+    { key: 'title', label: 'Title', name: 'Title screen' }
+  ];
+  I.SCHEMES = [['dpad', 'D pad and buttons'], ['stick', 'Virtual stick and buttons'], ['tap', 'Tap to move'], ['hybrid', 'Hybrid: stick, tap, and buttons']];
+  function c(hex) { return { hex: hex }; }
+  I.DEFAULTS = {
+    window: function () { return { gradient: { top: c('#2a4aa8'), bottom: c('#0c1450') }, border: c('#000000'), light: c('#e8e8f0'), corner: 'round', thickness: 1, alpha: 1, open: { ms: 140, style: 'grow' } }; },
+    font: function () { var f = EU.FONT; return { w: f.w, h: f.h, rows: f.rows, advance: f.advance, line: f.line, glyphs: U.clone(f.glyphs) }; },
+    cursor: function () { return { style: 'triangle', fill: c('#f0f0f0'), light: c('#ffffff'), outline: c('#101010'), bob: { amp: 2, ms: 600 } }; },
+    touch: function () { return { scheme: null, shape: 'round', opacity: 0.55, size: null, color: c('#d8d8e0'), ink: c('#202028'), labels: { a: 'A', b: 'B', menu: '=' }, sfx: { move: null, confirm: null, cancel: null, error: null } }; },
+    title: function () { return { text: null, style: 'outline', scale: 3, color: c('#f0d070'), shadow: c('#201008'), light: c('#ffffff'), layout: 'center', bg: null, prompt: 'Press Start', credit: null }; }
+  };
+  I.COLOR_FIELDS = {
+    window: [['gradient.top', 'Top of the gradient'], ['gradient.bottom', 'Bottom of the gradient'], ['border', 'Outer line'], ['light', 'Border']],
+    cursor: [['fill', 'Fill'], ['light', 'Highlight'], ['outline', 'Outline']],
+    touch: [['color', 'Controls'], ['ink', 'Ink']],
+    title: [['color', 'Logo'], ['shadow', 'Logo shadow'], ['light', 'Prompt']],
+    font: []
+  };
+  function getPath(o, p) { return p.split('.').reduce(function (x, k) { return x && typeof x === 'object' ? x[k] : undefined; }, o); }
+  function colorObjs(r) { var key = I.keyOf(r); return (I.COLOR_FIELDS[key] || []).map(function (f) { return getPath(r, f[0]); }).filter(U.isObj); }
+  I.keyOf = function (r) { var ref = r && r.subject && r.subject.ref; return typeof ref === 'string' && ref.indexOf('ui:') === 0 ? ref.slice(3) : null; };
+  I.all = function (b) { return ART.records.list('uik_', b || cur()); };
+  I.get = function (b, key) { return ART.bySubject('uik_', 'role', 'ui:' + key, b || cur()); };
+  I.kit = function (b) { b = b || cur(); return { window: I.get(b, 'window'), font: I.get(b, 'font'), cursor: I.get(b, 'cursor'), touch: I.get(b, 'touch'), title: I.get(b, 'title') }; };
+  I.fit = function (b, r) { var ent = P.entries(b); colorObjs(r).forEach(function (o) { if (o.hex && ent.length) o.m = PE.nearest(ent, o.hex); }); };
+  I.setColor = function (b, r, path, hex) {
+    var o = getPath(r, path), h = ER.color && ER.color.normHex ? ER.color.normHex(hex) : String(hex).toLowerCase();
+    if (!U.isObj(o) || !h) return false;
+    o.hex = h; var ent = P.entries(b); if (ent.length) o.m = PE.nearest(ent, h);
+    r.origin = 'user';
+    return true;
+  };
+  I.scheme = function (b, rec) { b = b || cur(); var own = rec && rec.scheme, ch = b.charter && b.charter.specs && b.charter.specs.mobileControls; return EU.SCHEMES.indexOf(own) >= 0 ? own : EU.SCHEMES.indexOf(ch) >= 0 ? ch : 'dpad'; };
+  I.titleText = function (b, rec) { b = b || cur(); var sec = b.charter && b.charter.sections && b.charter.sections.premise; return (rec && rec.text) || (sec && sec.title) || (b.kit && b.kit.title) || 'Untitled Saga'; };
+  // The title background: the record's own, else the grassland battle background, else any background.
+  I.titleBg = function (b, rec) {
+    b = b || cur();
+    var own = rec && rec.bg ? ART.records.get(rec.bg, b) : null;
+    if (own) return own;
+    var g = ART.tiles && ART.tiles.biome(b, 'grassland');
+    return (g && ART.tiles.bgFor(b, g)) || (ART.tiles ? ART.tiles.backgrounds(b)[0] : null) || null;
+  };
+  function retired(b) { ART.ensure(b); var st = b.art.settings; if (!Array.isArray(st.retired)) st.retired = []; return st.retired; }
+  I.build = function (b, report) {
+    var ret = retired(b);
+    I.ROLES.forEach(function (d) {
+      if (ret.indexOf('ui:' + d.key) >= 0) return;
+      var r = I.get(b, d.key);
+      if (r) {
+        // Fill a missing master index without touching anything the user chose.
+        var before = U.canonical(r);
+        colorObjs(r).forEach(function (o) { if (o.hex && typeof o.m !== 'number' && P.entries(b).length) o.m = PE.nearest(P.entries(b), o.hex); });
+        bump(report, U.canonical(r) === before ? 'kept' : 'refreshed');
+        return;
+      }
+      var body = I.DEFAULTS[d.key]();
+      r = ART.envelope('uik_', d.name, { kind: 'role', ref: 'ui:' + d.key }, 'default', H('uik|' + d.key), body);
+      I.fit(b, r);
+      ART.records.put(r, b);
+      bump(report, 'created');
+    });
+  };
+  I.reset = function (b, key) {
+    var r = I.get(b, key);
+    if (!r) return null;
+    var body = I.DEFAULTS[key]();
+    Object.keys(body).forEach(function (k) { r[k] = body[k]; });
+    r.origin = 'default';
+    I.fit(b, r);
+    return r;
+  };
+  I.remove = function (b, key) { var r = I.get(b, key); if (!r) return false; ART.records.del(r.id, b); var ret = retired(b); if (ret.indexOf('ui:' + key) < 0) ret.push('ui:' + key); return true; };
+  I.restore = function (b, key) { var ret = retired(b), i = ret.indexOf('ui:' + key); if (i >= 0) ret.splice(i, 1); I.build(b, {}); return I.get(b, key); };
+  // Glyph helpers for the font editor: rows as arrays of booleans and back.
+  I.glyphRows = function (font, code) {
+    var f = EU.font(font), bits = f.bits[code] || [], out = [];
+    for (var r = 0; r < f.rows; r++) { var row = []; for (var x = 0; x < f.w; x++) row.push(!!((bits[r] || 0) & (1 << (f.w - 1 - x)))); out.push(row); }
+    return out;
+  };
+  I.setGlyph = function (font, code, rows) {
+    var w = font.w, hex = rows.map(function (row) { var v = 0; row.forEach(function (on, x) { if (on) v |= 1 << (w - 1 - x); }); return (v < 16 ? '0' : '') + v.toString(16); }).join('');
+    font.glyphs = font.glyphs || {}; font.glyphs[code] = hex;
+    return hex;
+  };
+  P.onRebuild(function (b, map) {
+    I.all(b).forEach(function (r) {
+      colorObjs(r).forEach(function (o) { if (kept(r)) { if (typeof o.m === 'number' && map[o.m] !== undefined) o.m = map[o.m]; } else if (o.hex) o.m = PE.nearest(P.entries(b), o.hex); });
+    });
+  });
+
+  // ---------------------------------------------------------------- Quick Build
+  ART.quickBuild.register({ key: 'interface', label: 'Window, font, cursor, touch skin, and title', order: 50, run: function (b, r) {
+    if (!P.master(b)) return;
+    I.build(b, r);
+  } });
+
+  // ---------------------------------------------------------------- validation
+  var HEXROW = /^[0-9a-f]*$/i;
+  Kit.validate.register('art.ui', function (b, ctx) {
+    var recs = b.art && U.isObj(b.art.records) && U.isObj(b.art.records.uik_) ? b.art.records.uik_ : {};
+    var n = P.entries(b).length, seen = {};
+    function add(id, path, msg, level) { ctx.add({ recordId: id, fieldPath: path, message: msg, level: level || 'error' }); }
+    function color(r, path) {
+      var o = getPath(r, path);
+      if (o == null) return;
+      if (!U.isObj(o) || (o.m != null && !(typeof o.m === 'number' && o.m >= 0 && o.m < n && o.m === Math.floor(o.m))) || (o.hex != null && !/^#[0-9a-f]{6}$/i.test(String(o.hex)))) add(r.id, path, 'A color is {hex, m} with a six digit hex and a master palette index.');
+    }
+    Object.keys(recs).forEach(function (id) {
+      var r = recs[id];
+      if (!U.isObj(r)) return;
+      var key = I.keyOf(r);
+      if (!key || !I.DEFAULTS[key]) { add(r.id, 'subject.ref', 'An interface record needs a role of ui:window, ui:font, ui:cursor, ui:touch, or ui:title.'); return; }
+      if (seen[key]) add(r.id, 'subject.ref', 'There is already a ' + key + ' record (' + seen[key] + '). Only the first one is used.', 'warning');
+      else seen[key] = r.id;
+      (I.COLOR_FIELDS[key] || []).forEach(function (f) { color(r, f[0]); });
+      if (key === 'window') {
+        if (EU.CORNERS.indexOf(r.corner) < 0) add(r.id, 'corner', 'Corner must be square, round, or notch.');
+        if (!(r.thickness >= 1 && r.thickness <= 3)) add(r.id, 'thickness', 'Border thickness runs from 1 to 3.');
+        if (r.alpha != null && !(r.alpha >= 0.2 && r.alpha <= 1)) add(r.id, 'alpha', 'Window opacity runs from 0.2 to 1.');
+        if (r.open && (EU.OPEN_STYLES.indexOf(r.open.style) < 0 || !(r.open.ms >= 0 && r.open.ms <= 2000))) add(r.id, 'open', 'Opening is {style: grow, fade, or none, ms 0 to 2000}.');
+      } else if (key === 'font') {
+        if (!(r.w >= 1 && r.w <= 8)) add(r.id, 'w', 'Glyph width runs from 1 to 8.');
+        if (!(r.rows >= 1 && r.rows <= 16)) add(r.id, 'rows', 'Glyph rows run from 1 to 16.');
+        var g = U.isObj(r.glyphs) ? r.glyphs : {}, missing = 0;
+        for (var code = 32; code <= 126; code++) if (g[code] == null) missing++;
+        if (missing) add(r.id, 'glyphs', missing + ' of the 95 printable characters have no glyph; they draw as a question mark.', 'warning');
+        Object.keys(g).forEach(function (k) { var v = String(g[k]); if (!HEXROW.test(v) || v.length !== (r.rows || 8) * 2) add(r.id, 'glyphs.' + k, 'Glyph ' + k + ' needs ' + (r.rows || 8) + ' rows of two hex digits.'); });
+      } else if (key === 'cursor') {
+        if (EU.CURSORS.indexOf(r.style) < 0) add(r.id, 'style', 'Cursor style must be ' + EU.CURSORS.join(', ') + '.');
+        if (r.bob && !(r.bob.amp >= 0 && r.bob.amp <= 8 && r.bob.ms >= 100 && r.bob.ms <= 4000)) add(r.id, 'bob', 'The bob is {amp 0 to 8, ms 100 to 4000}.');
+      } else if (key === 'touch') {
+        if (r.scheme != null && EU.SCHEMES.indexOf(r.scheme) < 0) add(r.id, 'scheme', 'Scheme must be dpad, stick, tap, hybrid, or empty to follow the Charter.');
+        if (['round', 'square'].indexOf(r.shape) < 0) add(r.id, 'shape', 'Control shape must be round or square.');
+        if (!(r.opacity >= 0.1 && r.opacity <= 1)) add(r.id, 'opacity', 'Opacity runs from 0.1 to 1.');
+        if (r.size != null && !(r.size >= 12 && r.size <= 200)) add(r.id, 'size', 'Control size runs from 12 to 200 logical pixels.');
+        Object.keys(U.isObj(r.sfx) ? r.sfx : {}).forEach(function (k) { var s = r.sfx[k]; if (s && !(b.art.records.sfx_ && b.art.records.sfx_[s])) add(r.id, 'sfx.' + k, 'Sound ' + s + ' does not exist.'); });
+      } else if (key === 'title') {
+        if (EU.TITLE_STYLES.indexOf(r.style) < 0) add(r.id, 'style', 'Logo style must be outline, shadow, or plain.');
+        if (EU.TITLE_LAYOUTS.indexOf(r.layout) < 0) add(r.id, 'layout', 'Layout must be center, upper, or lower.');
+        if (!(r.scale >= 1 && r.scale <= 8)) add(r.id, 'scale', 'Logo scale runs from 1 to 8.');
+        if (r.bg && !(b.art.records.bgd_ && b.art.records.bgd_[r.bg])) add(r.id, 'bg', 'Background ' + r.bg + ' does not exist.');
+      }
+    });
+  });
+  function goInterface(rid) { if (!Kit.go('interface')) return false; if (ART.WS.interface && ART.WS.interface.focus) ART.WS.interface.focus(rid); return true; }
+  Kit.jump.register({
+    test: function (rid) { return Kit.ids.prefixOf(rid) === 'uik_'; },
+    name: function (rid) { var r = ART.records.get(rid); return r ? r.name : rid; },
+    go: goInterface
+  });
+})();
+// === ART:UI END ===
+// === ART:BATTLE BEGIN ===
+(function () {
+  'use strict';
+  // Everything between the bundle, ENGINE_BATTLE, and the presenter. Day 147 does not carry the battle engine: the
+  // engine arrives at run time from Day 146 (the engine-battle.js it exports, or the live Saga Forge page), is loaded
+  // through a Blob URL inside a wrapper so it declares no global, and is accepted only when its version is 1.x and its
+  // API matches the contract in ART:CONTRACT. The scripted demo needs no engine at all.
+  var U = Kit.util, ER = ENGINE_RENDER, H = ER.util.hash32;
+  var B = ART.battle = {};
+  function cur() { return Kit.bundle.current(); }
+  function recs(b, p) { var o = b && b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(o).map(function (k) { return o[k]; }).filter(function (r) { return U.isObj(r) && r.id; }); }
+  function recOf(b, id) { var p = Kit.ids.prefixOf(id); return p && b.rules && U.isObj(b.rules[p]) && b.rules[p][id] ? b.rules[p][id] : null; }
+  function num(v, d) { return typeof v === 'number' && isFinite(v) ? v : (d === undefined ? 0 : d); }
+
+  // ---------------------------------------------------------------- the engine loader
+  B.SAGA_URL = 'https://augustineiacopelli.github.io/appaday-146-saga-forge/';
+  B.SAVE_KEY = 'art147:engine';
+  // Built from parts so this page never contains Day 146's fence markers itself.
+  B.FENCE = ['// === ENGINE:' + 'BATTLE BEGIN ===', '// === ENGINE:' + 'BATTLE END ==='];
+  var engine = null, status = { loaded: false, version: null, via: null, name: null, error: null, bytes: 0, loading: false };
+  B.engine = function () { return engine; };
+  B.status = function () { return Object.assign({}, status); };
+  // check(E) -> null when the object honors the contract, else the reason it does not.
+  B.check = function (E) {
+    if (!E || typeof E !== 'object') return 'The file did not define ENGINE_BATTLE.';
+    if (typeof E.version !== 'string' || !/^1\./.test(E.version)) return 'This forge reads ENGINE_BATTLE 1.x; the file is version ' + (E.version || 'unknown') + '.';
+    var need = ['init', 'advance', 'suggest', 'replay'].filter(function (k) { return typeof E[k] !== 'function'; });
+    if (need.length) return 'ENGINE_BATTLE is missing ' + need.join(', ') + '.';
+    if (!(E.gaugeMax > 0)) return 'ENGINE_BATTLE has no gaugeMax.';
+    return null;
+  };
+  // Pulls the ENGINE:BATTLE fence out of a whole Day 146 page; a bare engine-battle.js passes through unchanged.
+  B.extract = function (text) {
+    text = String(text || '');
+    var a = text.indexOf(B.FENCE[0]), z = text.indexOf(B.FENCE[1]);
+    if (a >= 0 && z > a) return text.slice(a, z + B.FENCE[1].length);
+    return /var\s+ENGINE_BATTLE\s*=/.test(text) ? text : null;
+  };
+  function wrap(src) { return '(function () {\n' + src + '\n;window.__art147Engine = (typeof ENGINE_BATTLE !== "undefined") ? ENGINE_BATTLE : null;\n})();\n'; }
+  // Evaluates the wrapped source. mode 'blob' (the default) loads it as a script from a Blob URL; mode 'function'
+  // evaluates it with the Function constructor (tests and hosts without script loading).
+  function evaluate(src, mode) {
+    return new Promise(function (resolve, reject) {
+      try { delete window.__art147Engine; } catch (e) { window.__art147Engine = undefined; }
+      if (mode === 'function') {
+        try { (new Function(wrap(src)))(); resolve(window.__art147Engine || null); } catch (e) { reject(e); }
+        return;
+      }
+      var url = null, done = false, s = document.createElement('script');
+      function end(err) {
+        if (done) return; done = true;
+        if (url && typeof URL !== 'undefined' && URL.revokeObjectURL) URL.revokeObjectURL(url);
+        if (s.parentNode) s.parentNode.removeChild(s);
+        if (err) reject(err); else resolve(window.__art147Engine || null);
+      }
+      try { url = URL.createObjectURL(new Blob([wrap(src)], { type: 'text/javascript' })); } catch (e) { reject(e); return; }
+      s.src = url; s.async = true;
+      s.onload = function () { end(null); };
+      s.onerror = function () { end(new Error('The engine file could not run.')); };
+      document.head.appendChild(s);
+      setTimeout(function () { end(new Error('The engine did not load in time.')); }, 8000);
+    });
+  }
+  // install(src, {via: file|saga|saved, name, mode, save}) -> Promise of the status.
+  B.install = function (text, o) {
+    o = o || {};
+    var src = B.extract(text);
+    if (!src) return Promise.reject(new Error('That file does not contain ENGINE_BATTLE.'));
+    status.loading = true;
+    return evaluate(src, o.mode).then(function (E) {
+      var why = B.check(E);
+      status.loading = false;
+      if (why) { status.error = why; throw new Error(why); }
+      engine = E;
+      status = { loaded: true, version: E.version, via: o.via || 'file', name: o.name || 'engine-battle.js', error: null, bytes: src.length, loading: false };
+      if (o.save !== false) { try { localStorage.setItem(B.SAVE_KEY, JSON.stringify({ src: src, via: status.via, name: status.name, at: new Date().toISOString() })); } catch (e) { /* quota: the engine just reloads next visit */ } }
+      Kit.emit && Kit.emit('art:engine', B.status());
+      return B.status();
+    }, function (e) { status.loading = false; status.error = e.message || String(e); throw e; });
+  };
+  B.fromFile = function (file) {
+    return (file.text ? file.text() : new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result)); }; r.onerror = rej; r.readAsText(file); }))
+      .then(function (t) { return B.install(t, { via: 'file', name: file.name }); });
+  };
+  B.fromSaga = function () {
+    return fetch(B.SAGA_URL, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('Saga Forge answered ' + r.status + '.'); return r.text(); })
+      .then(function (t) { return B.install(t, { via: 'saga', name: 'Saga Forge (live)' }); });
+  };
+  B.restore = function (mode) {
+    var raw = null;
+    try { raw = localStorage.getItem(B.SAVE_KEY); } catch (e) { raw = null; }
+    if (!raw) return Promise.resolve(null);
+    var o; try { o = JSON.parse(raw); } catch (e) { return Promise.resolve(null); }
+    return B.install(o.src, { via: o.via || 'saved', name: o.name, mode: mode, save: false }).catch(function () { return null; });
+  };
+  B.forget = function () { engine = null; status = { loaded: false, version: null, via: null, name: null, error: null, bytes: 0, loading: false }; try { localStorage.removeItem(B.SAVE_KEY); } catch (e) { /* ok */ } };
+  B.use = function (E, via) { var why = B.check(E); if (why) throw new Error(why); engine = E; status = { loaded: true, version: E.version, via: via || 'host', name: 'ENGINE_BATTLE', error: null, bytes: 0, loading: false }; return B.status(); };
+
+  // ---------------------------------------------------------------- party building (mirrors Day 146 WS.arena.buildParty)
+  var PARTY_MAX = 4;
+  function rs(b) { return (b && b.charter && b.charter.ruleset) || {}; }
+  function epsFor(b, chId) { var l = recs(b, 'eps_'); for (var i = 0; i < l.length; i++) if (l[i].chapter === chId) return l[i]; return null; }
+  function bestGear(b, slot, weaponClass, tier) {
+    var best = null;
+    recs(b, 'eqp_').forEach(function (e) {
+      if (e.slot !== slot) return;
+      if (slot === 'weapon' && e.weaponClass && weaponClass && String(e.weaponClass).toLowerCase() !== String(weaponClass).toLowerCase()) return;
+      var t = num(e.tier, 1);
+      if (t > tier) return;
+      if (!best || t > num(best.tier, 1) || (t === num(best.tier, 1) && num(e.price) > num(best.price))) best = e;
+    });
+    return best;
+  }
+  function placeMateria(b, members, matIds) {
+    var slots = [];
+    members.forEach(function (m, mi) {
+      (m.equipment || []).forEach(function (eid) {
+        var e = recOf(b, eid), lay = e && U.isObj(e.slotLayout) ? e.slotLayout : null, n = lay ? Math.max(0, Math.min(8, num(lay.count))) : 0;
+        for (var i = 0; i < n; i++) slots.push({ mi: mi, eqp: eid, slot: i, links: (lay.links || []).filter(function (l) { return Array.isArray(l) && (l[0] === i || l[1] === i); }), used: false });
+      });
+    });
+    var mats = (matIds || []).map(function (id) { return recOf(b, id); }).filter(Boolean);
+    var supports = mats.filter(function (m) { return m.kind === 'support'; }), others = mats.filter(function (m) { return m.kind !== 'support'; });
+    function free(eqp, mi, s) { for (var i = 0; i < slots.length; i++) if (slots[i].mi === mi && slots[i].eqp === eqp && slots[i].slot === s && !slots[i].used) return slots[i]; return null; }
+    function put(sl, m) { sl.used = true; members[sl.mi].materia.push({ eqp: sl.eqp, slot: sl.slot, mat: m.id, ap: 0 }); }
+    supports.forEach(function (sm) {
+      var partner = others[0], done = false;
+      slots.forEach(function (sl) {
+        if (done || sl.used) return;
+        sl.links.forEach(function (l) {
+          if (done) return;
+          var o = l[0] === sl.slot ? l[1] : l[0], os = free(sl.eqp, sl.mi, o);
+          if (!os) return;
+          put(sl, sm); done = true;
+          if (partner) { put(os, partner); others.shift(); }
+        });
+      });
+      if (!done) others.push(sm);
+    });
+    var mi = 0;
+    others.forEach(function (m) {
+      var tries = 0, sl = null;
+      while (!sl && tries < members.length) {
+        for (var i = 0; i < slots.length; i++) if (!slots[i].used && slots[i].mi === (mi + tries) % members.length) { sl = slots[i]; break; }
+        tries++;
+      }
+      if (!sl) for (var j = 0; j < slots.length; j++) if (!slots[j].used) { sl = slots[j]; break; }
+      if (sl) { put(sl, m); mi = (sl.mi + 1) % Math.max(1, members.length); }
+    });
+    return members;
+  }
+  // cfg = {chars, source: 'custom' | chp id, level, gearTier, materia, rows}
+  B.buildParty = function (b, cfg) {
+    b = b || cur(); cfg = cfg || {};
+    var prog = rs(b).progression, eps = cfg.source && cfg.source !== 'custom' ? epsFor(b, cfg.source) : null;
+    var level = eps ? num(eps.targetLevel, 1) : num(cfg.level, 10), tier = eps ? num(eps.gearTier, 1) : num(cfg.gearTier, 1);
+    var chars = (cfg.chars && cfg.chars.length ? cfg.chars : recs(b, 'chr_').slice(0, PARTY_MAX).map(function (c) { return c.id; })).map(function (id) { return recOf(b, id); }).filter(Boolean).slice(0, PARTY_MAX);
+    var members = chars.map(function (c, i) {
+      var eq = ['weapon', 'armor', 'accessory'].map(function (s) { return bestGear(b, s, c.weaponClass, tier); }).filter(Boolean).map(function (e) { return e.id; });
+      var m = { chr: c.id, level: Math.max(1, Math.min(99, Math.round(level))), equipment: eq, materia: [], abilities: eps && Array.isArray(eps.abilities) ? eps.abilities.slice() : [], row: (cfg.rows && cfg.rows[c.id]) || 'front' };
+      if (prog === 'jobs') { var js = eps && Array.isArray(eps.jobSet) && eps.jobSet.length ? eps.jobSet : null; m.job = js ? js[i % js.length] : null; m.jobLevel = m.level; }
+      if (prog === 'classes') { var cs = eps && Array.isArray(eps.classSet) && eps.classSet.length ? eps.classSet : null; m.cls = cs ? cs[i % cs.length] : null; }
+      return m;
+    });
+    if (prog === 'materia') placeMateria(b, members, eps ? (eps.materiaSet || []) : (cfg.materia || recs(b, 'mat_').map(function (m) { return m.id; })));
+    return members;
+  };
+  B.dataFor = function (b, troopId, party, weatherId) { b = b || cur(); return { ruleset: rs(b), records: b.rules || {}, party: party, troopId: troopId, weatherId: weatherId || null }; };
+  // Battle codes are Day 146's: base64 JSON {v, troopId, party, seed, inputs [{t, input}], weatherId, opts, end}.
+  B.encodeCode = function (o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); };
+  B.decodeCode = function (code) {
+    var o = JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/\s+/g, '')))));
+    if (!U.isObj(o) || !o.troopId || !Array.isArray(o.party) || typeof o.seed !== 'number' || !Array.isArray(o.inputs)) throw new Error('That is not a Saga Forge battle code.');
+    return o;
+  };
+
+  // ---------------------------------------------------------------- what the presenter is given
+  // Background: the troop's chapter biome when the Charter names one, else grassland, else the first background.
+  B.backgroundFor = function (b, troopId, pick) {
+    b = b || cur();
+    if (pick) { var p = ART.records.get(pick, b); if (p) return p; }
+    var TL = ART.tiles; if (!TL) return null;
+    var g = TL.biome(b, 'grassland');
+    return (g && TL.bgFor(b, g)) || TL.backgrounds(b)[0] || null;
+  };
+  B.statusIcons = function (b) { var out = {}; (ART.sprites ? ART.sprites.icons(b) : []).forEach(function (i) { if (i.subject && i.subject.kind === 'sta') out[i.subject.ref] = i.id; }); return out; };
+  B.presenterConfig = function (b, snapshot, o) {
+    o = o || {};
+    var R = (b.charter.specs || {}).resolution || {}, w = Number(R.w) || 256, h = Number(R.h) || 224, kit = ART.iface ? ART.iface.kit(b) : {};
+    var wov = o.weatherId && ART.motion ? ART.motion.overlayFor(b, o.weatherId) : null;
+    var cache = o.cache || (b === cur() ? ART.sprites.cache() : ER.createCache(b.art, { size: ART.sprites.tileSize(b), entries: ART.palette.entries(b), budget: 12e6 }));
+    return { art: b.art, cache: cache, w: w, h: h, snapshot: snapshot, pacing: o.pacing || 'wait', speed: o.speed || 1, cue: o.cue,
+      layout: { partySide: 'right' }, entries: ART.palette.entries(b), bgd: B.backgroundFor(b, o.troopId, o.bg), wov: wov, ui: { window: kit.window, font: kit.font, cursor: kit.cursor },
+      seed: o.seed || 1, icons: B.statusIcons(b) };
+  };
+
+  // ---------------------------------------------------------------- the scripted event demo (no engine needed)
+  // script(b) -> {snapshot, feeds: [{events, state}]}: a short battle written in ENGINE_BATTLE's event shapes from the
+  // bundle's own party, enemies, abilities, and statuses. It walks every beat the presenter knows: ready, command,
+  // a melee crit, an area spell with a status, an enemy attack, a Limit filling, a heal, a failed cast, the item beat
+  // (behind its feature check, since engine 1.0.0 has no item event), a multi hit Limit, a KO and a revive, a status
+  // wearing off, deaths, and victory.
+  B.script = function (b) {
+    b = b || cur();
+    var chars = recs(b, 'chr_').slice(0, 3), abl = recs(b, 'abl_'), sta = recs(b, 'sta_'), itm = recs(b, 'itm_');
+    var foesFrom = [], tr = recs(b, 'trp_')[0];
+    if (tr && Array.isArray(tr.members)) tr.members.slice(0, 3).forEach(function (m) { var e = recOf(b, m.enm); if (e) foesFrom.push({ e: e, row: m.row }); });
+    if (!foesFrom.length) recs(b, 'enm_').slice(0, 2).forEach(function (e) { foesFrom.push({ e: e, row: 'front' }); });
+    var units = [], db = { abl: {}, sta: {} }, L = 5;
+    chars.forEach(function (c, i) {
+      var bs = c.baseStats || {}, gr = c.growth || {}, hp = Math.max(60, Math.round(num(bs.hp, 100) + num(gr.hp, 15) * L)), mp = Math.max(0, Math.round(num(bs.mp, 20) + num(gr.mp, 3) * L));
+      units.push({ uid: 'p' + i, side: 'party', ref: c.id, name: c.name || c.id, hp: hp, maxHp: hp, mp: mp, maxMp: mp, row: 'front', gauge: 0, statuses: [], ko: false });
+    });
+    if (!units.length) [['Hero', 180], ['Mage', 130], ['Knight', 220]].forEach(function (x, i) { units.push({ uid: 'p' + i, side: 'party', ref: null, name: x[0], hp: x[1], maxHp: x[1], mp: 30, maxMp: 30, row: 'front', gauge: 0, statuses: [], ko: false }); });
+    var seen = {};
+    foesFrom.forEach(function (f, i) {
+      var nm = f.e.name || f.e.id; seen[nm] = (seen[nm] || 0) + 1;
+      var hp = Math.max(30, num(f.e.stats && f.e.stats.hp, 60));
+      units.push({ uid: 'e' + i, side: 'foe', ref: f.e.id, fam: f.e.family || null, name: nm, hp: hp, maxHp: hp, mp: 0, maxMp: 0, row: f.row === 'back' ? 'back' : 'front', gauge: 0, statuses: [], ko: false, isBoss: !!f.e.isBoss });
+    });
+    if (!units.some(function (u) { return u.side === 'foe'; })) units.push({ uid: 'e0', side: 'foe', ref: null, fam: null, name: 'Shade', hp: 90, maxHp: 90, mp: 0, maxMp: 0, row: 'front', gauge: 0, statuses: [], ko: false });
+    var counts = {}, tally = {};
+    units.forEach(function (u) { if (u.side === 'foe') counts[u.name] = (counts[u.name] || 0) + 1; });
+    units.forEach(function (u) { if (u.side === 'foe' && counts[u.name] > 1) { tally[u.name] = (tally[u.name] || 0) + 1; u.name = u.name + ' ' + String.fromCharCode(64 + tally[u.name]); } });
+    abl.forEach(function (a) { db.abl[a.id] = { id: a.id, name: a.name || a.id, kind: a.kind, element: a.element || null }; });
+    sta.forEach(function (s) { db.sta[s.id] = { name: s.name || s.id }; });
+    db.abl._attack = { id: '_attack', name: 'Attack', kind: 'attack' };
+    function pick(pred) { for (var i = 0; i < abl.length; i++) if (pred(abl[i])) return abl[i]; return null; }
+    var area = pick(function (a) { return a.kind === 'magic' && a.targeting && a.targeting.scope === 'all'; }) || pick(function (a) { return a.kind === 'magic'; });
+    var heal = pick(function (a) { return a.kind === 'heal'; }), limit = pick(function (a) { return a.kind === 'limit'; }), foeAbl = pick(function (a) { return a.kind === 'enemy'; });
+    var st0 = sta[0] || null, item = itm[0] || null;
+    var party = units.filter(function (u) { return u.side === 'party'; }), foes = units.filter(function (u) { return u.side === 'foe'; });
+    var P0 = party[0].uid, P1 = (party[1] || party[0]).uid, P2 = (party[2] || party[party.length - 1]).uid, E0 = foes[0].uid, E1 = (foes[1] || foes[0]).uid;
+    var hp = {}, gauge = {}, mp = {}, ko = {};
+    units.forEach(function (u) { hp[u.uid] = u.hp; gauge[u.uid] = 0; mp[u.uid] = u.mp; });
+    var t = 0, feeds = [];
+    function ev(type, o) { var e = Object.assign({ type: type, t: t, actor: null, target: null, value: null, element: null, crit: false }, o || {}); return e; }
+    function dmg(actor, target, v, o) { v = Math.min(hp[target], v); hp[target] -= v; return ev('damage', Object.assign({ actor: actor, target: target, value: v }, o || {})); }
+    function healEv(actor, target, v, abl0) { var mx = units.filter(function (u) { return u.uid === target; })[0].maxHp; v = Math.min(mx - hp[target], v); hp[target] += v; return ev('heal', { actor: actor, target: target, value: v, abl: abl0 }); }
+    function state(acted, spent) {
+      t += 40;
+      units.forEach(function (u) { gauge[u.uid] = ko[u.uid] ? 0 : u.uid === acted ? 0 : Math.min(65536, gauge[u.uid] + 21000 + (H(u.uid + t) % 6000)); });
+      if (acted && spent) mp[acted] = Math.max(0, mp[acted] - spent);
+      return { t: t, gaugeMax: 65536, units: units.map(function (u) { return { uid: u.uid, hp: hp[u.uid], maxHp: u.maxHp, mp: mp[u.uid], maxMp: u.maxMp, gauge: gauge[u.uid], ko: !!ko[u.uid] }; }) };
+    }
+    function feed(events, acted, spent) { feeds.push({ events: [ev('tick', { value: 40 })].concat(events), state: state(acted, spent) }); }
+    var bigFoe = Math.max(1, Math.round(foes[0].maxHp * 0.3));
+    feed([ev('ready', { actor: P0 })]);
+    feed([ev('command', { actor: P0, abl: '_attack', name: 'Attack', targets: [E0] }), ev('action', { actor: P0, abl: '_attack', name: 'Attack', targets: [E0] }), dmg(P0, E0, bigFoe, { abl: '_attack', crit: true })], P0);
+    if (area) {
+      var tg = area.targeting && area.targeting.scope === 'all' ? foes.map(function (f) { return f.uid; }) : [E1];
+      var evs = [ev('ready', { actor: P1 }), ev('command', { actor: P1, abl: area.id, name: area.name, targets: tg }), ev('action', { actor: P1, abl: area.id, name: area.name, element: area.element || null, targets: tg })];
+      tg.forEach(function (k) { evs.push(dmg(P1, k, Math.max(1, Math.round(units.filter(function (u) { return u.uid === k; })[0].maxHp * 0.2)), { abl: area.id, element: area.element || null })); });
+      if (st0) evs.push(ev('status', { target: tg[tg.length - 1], value: st0.id }));
+      feed(evs, P1, 6);
+    }
+    var hitP2 = Math.round(party[party.length - 1].maxHp * 0.55);
+    feed([ev('action', { actor: E0, abl: foeAbl ? foeAbl.id : '_attack', name: foeAbl ? foeAbl.name : 'Attack', targets: [P2] }), dmg(E0, P2, hitP2, { abl: foeAbl ? foeAbl.id : '_attack' }), ev('limitReady', { target: P2, value: 'full' })], E0);
+    if (heal) feed([ev('ready', { actor: P1 }), ev('command', { actor: P1, abl: heal.id, name: heal.name, targets: [P2] }), ev('action', { actor: P1, abl: heal.id, name: heal.name, targets: [P2] }), healEv(P1, P2, Math.round(hitP2 * 0.6), heal.id)], P1, 5);
+    feed([ev('ready', { actor: P1 }), ev('miss', { actor: P1, value: 'mp', name: 'Not enough MP' })], P1);
+    if (item) feed([ev('ready', { actor: P0 }), ev('item', { actor: P0, abl: item.id, name: item.name, targets: [P2] }), healEv(P0, P2, 40, item.id)], P0);
+    if (limit && foes.length) {
+      var share = Math.max(1, Math.ceil(hp[E0] / 3)), le = [ev('ready', { actor: P2 }), ev('command', { actor: P2, abl: limit.id, name: limit.name, targets: [E0] }), ev('action', { actor: P2, abl: limit.id, name: limit.name, targets: [E0] })];
+      for (var k = 0; k < 3; k++) le.push(dmg(P2, E0, share, { abl: limit.id }));
+      if (hp[E0] <= 0) { le.push(ev('ko', { actor: P2, target: E0 })); ko[E0] = true; }
+      feed(le, P2);
+    }
+    if (E1 !== E0 || !ko[E0]) {
+      var foeNow = ko[E0] ? E1 : E0;
+      feed([ev('action', { actor: foeNow, abl: '_attack', name: 'Attack', targets: [P1] }), dmg(foeNow, P1, hp[P1], { abl: '_attack' }), ev('ko', { actor: foeNow, target: P1 })], foeNow);
+      ko[P1] = true;
+      if (heal) { feed([ev('ready', { actor: P0 }), ev('action', { actor: P0, abl: heal.id, name: heal.name, targets: [P1] }), ev('revive', { actor: P0, target: P1, abl: heal.id, value: Math.round(units.filter(function (u) { return u.uid === P1; })[0].maxHp * 0.3) })], P0, 5); ko[P1] = false; hp[P1] = Math.round(units.filter(function (u) { return u.uid === P1; })[0].maxHp * 0.3); }
+      if (st0) feed([ev('status', { target: E1, value: '-' + st0.id, name: 'wore off' }), ev('action', { actor: foeNow, abl: '_attack', name: 'Attack', targets: [P0] }), ev('miss', { actor: foeNow, target: P0, abl: '_attack' })], foeNow);
+    }
+    var finale = [];
+    foes.forEach(function (f) { if (ko[f.uid]) return; finale.push(ev('action', { actor: P0, abl: '_attack', name: 'Attack', targets: [f.uid] })); finale.push(dmg(P0, f.uid, hp[f.uid], { abl: '_attack' })); finale.push(ev('ko', { actor: P0, target: f.uid })); ko[f.uid] = true; });
+    finale.push(ev('end', { value: 'win' }));
+    feed(finale, P0);
+    return { snapshot: { v: 1, seed: 1, t: 0, gaugeMax: 65536, db: db, units: units }, feeds: feeds };
+  };
+
+  // ---------------------------------------------------------------- the scripted player (Wait pacing)
+  // playScript(presenter, script) -> {step(dt), done(), fed}. Feeds the next scripted advance whenever the presenter
+  // is idle, exactly as a Wait mode host does with the real engine.
+  B.playScript = function (presenter, sc) {
+    var i = 0, p = { fed: 0 };
+    p.step = function (dt) {
+      presenter.update(dt);
+      if (presenter.isIdle() && i < sc.feeds.length) { presenter.feed(sc.feeds[i].events, sc.feeds[i].state); i++; p.fed = i; }
+      return p.done();
+    };
+    p.done = function () { return i >= sc.feeds.length && presenter.isIdle(); };
+    return p;
+  };
+
+  // ---------------------------------------------------------------- a real battle
+  // session(b, cfg) runs ENGINE_BATTLE against the presenter. cfg: {E, troopId, party, weatherId, seed, pacing,
+  // speed, auto, code (a decoded battle code to replay), cue, bg, ctx}. step(dt) is the host loop; give(input) sends a
+  // command; awaiting() is what the menu shows. In Wait pacing the engine advances only while the presenter is idle.
+  B.session = function (b, cfg) {
+    b = b || cur(); cfg = cfg || {};
+    var E = cfg.E || engine;
+    if (!E) throw new Error('Load the battle engine first.');
+    var code = cfg.code || null, pacing = code ? (code.opts && code.opts.waitMode === false ? 'active' : 'wait') : (cfg.pacing === 'active' ? 'active' : 'wait');
+    var troopId = code ? code.troopId : cfg.troopId, party = code ? code.party : cfg.party, weatherId = code ? code.weatherId || null : cfg.weatherId || null;
+    var seed = code ? code.seed : (num(cfg.seed, 0) || 1), opts = code ? (code.opts || {}) : { waitMode: pacing === 'wait' };
+    if (!recOf(b, troopId)) throw new Error('Choose a troop first.');
+    if (!party || !party.length) throw new Error('Pick at least one character for the party.');
+    var data = B.dataFor(b, troopId, party, weatherId), S = E.init(data, seed, opts);
+    var pc = B.presenterConfig(b, S, { pacing: pacing, speed: cfg.speed, cue: cfg.cue, weatherId: weatherId, troopId: troopId, bg: cfg.bg, seed: seed });
+    pc.ctx = cfg.ctx || null;
+    var P = ER.createPresenter(pc);
+    var s = { S: S, P: P, data: data, seed: seed, opts: opts, troopId: troopId, party: party, weatherId: weatherId, inputs: [], auto: !!cfg.auto && !code, pacing: pacing, acc: 0, ended: false, warnings: (S.db.warnings || []).slice(),
+      playback: code ? { inputs: code.inputs.slice(), i: 0, expect: code.end || null } : null, match: null, events: 0 };
+    var tickRate = num((rs(b).battle || {}).tickRate, 30);
+    function feedR(r) { s.S = r.state; s.events += (r.events || []).length; P.feed(r.events || [], r.state); }
+    s.give = function (input) {
+      if (s.S.result) return false;
+      var t = s.S.t, r = E.advance(s.S, input);
+      var rej = (r.events || []).filter(function (e) { return e.type === 'miss' && e.value === 'rejected'; })[0];
+      if (rej) { s.lastReject = rej.name || 'That command was rejected.'; return false; }
+      s.inputs.push({ t: t, input: input });
+      feedR(r);
+      return true;
+    };
+    s.awaiting = function () { return s.S.result || s.playback ? null : s.S.awaiting; };
+    s.menuOpen = function () { return !!s.awaiting() && !s.auto && (pacing === 'active' || P.isIdle()); };
+    s.setPacing = function (m) { pacing = s.pacing = P.setPacing(m); };
+    s.step = function (dt) {
+      dt = Math.max(0, Math.min(100, Number(dt) || 0));
+      P.update(dt);
+      var S0 = s.S, pb = s.playback;
+      if (S0.result) { if (!s.ended && P.isIdle()) end(); return s; }
+      if (pacing === 'wait' && !P.isIdle()) return s;
+      if (pb && pb.i < pb.inputs.length && S0.t >= pb.inputs[pb.i].t) { var rec = pb.inputs[pb.i++]; s.inputs.push(rec); feedR(E.advance(S0, rec.input)); return s; }
+      if (S0.awaiting && !pb) {
+        if (s.auto) { var sug = E.suggest(S0, null); if (sug && s.give(sug)) return s; }
+        if (S0.waitMode || S0.sched !== 'atb') return s;
+      }
+      if (S0.sched === 'atb') {
+        s.acc += dt * num(cfg.speed, 1) * tickRate / 1000;
+        var n = Math.floor(s.acc);
+        if (n < 1) return s;
+        s.acc -= n;
+        if (pb && pb.i < pb.inputs.length) n = Math.min(n, pb.inputs[pb.i].t - S0.t);
+        if (n < 1) return s;
+        feedR(E.advance(S0, { type: 'step', ticks: n }));
+      } else {
+        s.acc += dt * num(cfg.speed, 1);
+        if (s.acc < 380) return s;
+        s.acc = 0;
+        if (pb && pb.i < pb.inputs.length && S0.t >= pb.inputs[pb.i].t) return s;
+        feedR(E.advance(S0, { type: 'step', ticks: 1 }));
+      }
+      return s;
+    };
+    function end() {
+      s.ended = true;
+      var r = s.S.result;
+      s.end = { outcome: r.outcome, ticks: r.ticks, turns: r.turns, rngCalls: r.rngCalls };
+      if (s.playback && s.playback.expect) { var x = s.playback.expect; s.match = x.outcome === r.outcome && x.ticks === r.ticks && x.turns === r.turns && (x.rngCalls == null || x.rngCalls === r.rngCalls); }
+      s.code = B.encodeCode({ v: 1, troopId: troopId, party: party, seed: seed, inputs: s.inputs.slice(), weatherId: weatherId, opts: opts, end: s.end });
+    }
+    // Runs the whole battle headless at a fixed frame time (tests and the self test). Auto plays the party.
+    s.runOut = function (frameMs, cap) { var g = 0; while (!s.ended && g++ < (cap || 200000)) s.step(frameMs || 16); return s; };
+    return s;
+  };
+
+  // Load the saved engine on boot, quietly. A failure only means the Battle view offers to load it again.
+  if (typeof document !== 'undefined' && document.readyState) setTimeout(function () { B.restore('blob'); }, 0);
+})();
+// === ART:BATTLE END ===
+// === WS:BATTLE BEGIN ===
+(function () {
+  'use strict';
+  // Playtest: Battle and Window preview. Battle plays the presenter three ways: a scripted demo built from the bundle
+  // (no engine needed), a real battle run by ENGINE_BATTLE from Day 146, and Day 146 battle codes played back tick for
+  // tick. Window preview shows the interface kit at the Charter's resolution with a cursor that moves.
+  var U = Kit.util, el = U.el, esc = U.esc, ER = ENGINE_RENDER, EU = ER.ui;
+  var S = ART.sprites, P = ART.palette, M = ART.motion, W = ART.ui, B = ART.battle, I = ART.iface;
+  var PT = ART.WS.playtest;
+  var ui = { mode: 'demo', troopId: null, weatherId: '', source: 'custom', chars: null, level: 10, gearTier: 1, seed: 7, pacing: 'wait', speed: 1, auto: false, bg: '', code: '' };
+  var live = null;
+  function cur() { return Kit.bundle.current(); }
+  function res() { var r = (cur().charter.specs || {}).resolution || {}; return { w: Number(r.w) || 256, h: Number(r.h) || 224 }; }
+  function scale() { return Math.max(2, Math.min(6, Math.floor(720 / res().w))); }
+  function rulesList(b, p) { var m = b.rules && U.isObj(b.rules[p]) ? b.rules[p] : {}; return Object.keys(m).map(function (k) { return m[k]; }).filter(function (r) { return U.isObj(r) && r.id; }); }
+  function chapters(b) { return (b.charter && b.charter.sections && Array.isArray(b.charter.sections.chapters)) ? b.charter.sections.chapters : []; }
+  var cueLog = [];
+  function cue(kind, id) { cueLog.push(kind + ':' + id); if (cueLog.length > 10) cueLog.shift(); }
+
+  // ---------------------------------------------------------------- the engine panel
+  function enginePanel(host, repaint) {
+    var st = B.status(), p = el('section', 'panel');
+    var row = el('div', 'a7-engine');
+    var info = el('div', 'a7-grow');
+    info.innerHTML = st.loaded
+      ? '<strong>Battle engine ' + esc(st.version) + '</strong> <span class="chip chip-ok">ready</span><div class="muted a7-small">From ' + esc(st.name || st.via) + (st.bytes ? ', ' + esc(U.fmtSize(st.bytes)) : '') + '. Kept in this browser for next time.</div>'
+      : '<strong>Battle engine</strong> <span class="chip chip-muted">not loaded</span><div class="muted a7-small">Real battles run Day 146\'s ENGINE_BATTLE. Load the engine-battle.js that Saga Forge exports, or fetch it from the live Saga Forge page. The scripted demo needs neither.</div>' +
+        (st.error ? '<div class="msg msg-error">' + esc(st.error) + '</div>' : '');
+    row.appendChild(info);
+    var file = el('input'); file.type = 'file'; file.accept = '.js,.html,text/javascript,text/html'; file.hidden = true;
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0]; if (!f) return;
+      B.fromFile(f).then(function (s) { Kit.ui.toast('Battle engine ' + s.version + ' loaded.', 'ok'); repaint(); }, function (e) { Kit.ui.toast(e.message || 'The engine could not load.', 'error', 6000); repaint(); });
+    });
+    row.appendChild(file);
+    if (!st.loaded) {
+      row.appendChild(W.button('Load engine-battle.js', 'import', 'btn-primary', function () { file.click(); }));
+      row.appendChild(W.button('Fetch from Saga Forge', 'arena', '', function () {
+        Kit.ui.toast('Fetching the engine from Saga Forge...', 'info');
+        B.fromSaga().then(function (s) { Kit.ui.toast('Battle engine ' + s.version + ' loaded from Saga Forge.', 'ok'); repaint(); }, function (e) { Kit.ui.toast((e && e.message) || 'Saga Forge could not be reached.', 'error', 6000); repaint(); });
+      }));
+    } else {
+      row.appendChild(W.button('Load another', 'import', 'btn-ghost', function () { file.click(); }));
+      row.appendChild(W.button('Forget', 'x', 'btn-ghost', function () { B.forget(); live = null; repaint(); }));
+    }
+    p.appendChild(row);
+    host.appendChild(p);
+  }
+
+  // ---------------------------------------------------------------- the command menu (real battles)
+  function menuFor(host, sess) {
+    var m = el('div', 'a7-menu'); m.hidden = true; m.setAttribute('aria-label', 'Battle commands');
+    host.appendChild(m);
+    var st = { key: '', level: 'root', cmd: null, abl: null };
+    function names() { return sess.P.display(); }
+    function paint() {
+      var aw = sess.awaiting();
+      U.clear(m);
+      if (!aw || !sess.menuOpen()) { m.hidden = true; sess.P.setCursor(null); return; }
+      m.hidden = false;
+      var cmd = st.cmd ? aw.commands.filter(function (c) { return c.key === st.cmd; })[0] : null;
+      if (st.level !== 'root' && !cmd) st.level = 'root';
+      var nm = names(), head = el('div', 'a7-menu-head');
+      head.appendChild(el('span', 'who', esc((nm[aw.actor] || {}).name || aw.actor) + (cmd && st.level !== 'root' ? ' &middot; ' + esc(cmd.label) : '')));
+      if (st.level !== 'root') head.appendChild(W.button('Back', 'up', 'btn-ghost', function () { st.level = st.level === 'targets' && cmd.abls.length > 1 ? 'abls' : 'root'; st.abl = null; paint(); }));
+      m.appendChild(head);
+      var grid = el('div', 'a7-menu-grid');
+      m.appendChild(grid);
+      function b(label, sub, fn, o) {
+        var x = el('button', 'btn', '<span>' + esc(label) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : ''));
+        x.type = 'button'; if (o && o.disabled) x.disabled = true;
+        x.addEventListener('click', fn);
+        if (o && o.uid) { x.dataset.uid = o.uid; ['focus', 'pointerenter'].forEach(function (n) { x.addEventListener(n, function () { sess.P.setCursor(o.uid); }); }); }
+        grid.appendChild(x); return x;
+      }
+      function fire(x, uid) { var tgt = uid || (x.side === 'ally' ? aw.targets.party[0] : aw.targets.foe[0]); if (!sess.give({ type: 'command', actor: aw.actor, abl: x.id, target: tgt })) Kit.ui.toast(sess.lastReject || 'That command was rejected.', 'warn'); st.level = 'root'; st.cmd = null; sess.P.setCursor(null); paint(); }
+      if (st.level === 'root') {
+        sess.P.setCursor(aw.actor);
+        aw.commands.forEach(function (c) {
+          if (c.key === 'flee') { b('Flee', '', function () { sess.give({ type: 'flee', actor: aw.actor }); paint(); }); return; }
+          b(c.label, c.abls.length > 1 ? c.abls.length + ' abilities' : (c.abls[0] && c.abls[0].mp ? c.abls[0].mp + ' MP' : ''), function () {
+            st.cmd = c.key;
+            if (c.abls.length === 1) { st.abl = c.abls[0].id; st.level = 'targets'; if (c.abls[0].side === 'self') { fire(c.abls[0], null); return; } } else st.level = 'abls';
+            paint();
+          }, { disabled: !c.abls.some(function (x) { return x.ok; }) });
+        });
+      } else if (st.level === 'abls') {
+        cmd.abls.forEach(function (x) {
+          b(x.name, (x.mp ? x.mp + ' MP' : 'Free') + (x.scope === 'all' ? ' | all' : '') + (x.element ? ' | ' + x.element : ''), function () { st.abl = x.id; if (x.side === 'self') { fire(x, null); return; } st.level = 'targets'; paint(); }, { disabled: !x.ok });
+        });
+      } else {
+        var ab = cmd.abls.filter(function (x) { return x.id === st.abl; })[0];
+        if (!ab) { st.level = 'root'; paint(); return; }
+        var order = ab.side === 'ally' ? ['party', 'foe'] : ['foe', 'party'];
+        if (ab.scope === 'all') {
+          order.forEach(function (side) { if (aw.targets[side].length) b(side === 'foe' ? 'All foes' : 'All allies', aw.targets[side].length + ' targets', function () { fire(ab, aw.targets[side][0]); }); });
+          return;
+        }
+        order.forEach(function (side) { aw.targets[side].forEach(function (uid) { var d = nm[uid] || {}; b(d.name || uid, d.hpTarget + ' / ' + d.maxHp + ' HP', function () { fire(ab, uid); }, { uid: uid }); }); });
+      }
+    }
+    return {
+      poll: function () {
+        var aw = sess.awaiting(), open = !!aw && sess.menuOpen();
+        var key = open ? aw.actor + '|' + aw.commands.map(function (c) { return c.key + ':' + c.abls.map(function (x) { return x.id + (x.ok ? 1 : 0); }).join(','); }).join(';') + '|' + aw.targets.foe.join(',') + '|' + aw.targets.party.join(',') : '';
+        if (key === st.key) return;
+        if (!open || (st.key.split('|')[0] !== key.split('|')[0])) { st.level = 'root'; st.cmd = null; st.abl = null; }
+        st.key = key; paint();
+      },
+      el: m
+    };
+  }
+
+  // ---------------------------------------------------------------- the battle view
+  function setupDefaults(b) {
+    var troops = rulesList(b, 'trp_');
+    if (!ui.troopId || !troops.some(function (t) { return t.id === ui.troopId; })) ui.troopId = troops[0] ? troops[0].id : null;
+    var chars = rulesList(b, 'chr_');
+    if (!ui.chars) ui.chars = chars.slice(0, 4).map(function (c) { return c.id; });
+    ui.chars = ui.chars.filter(function (id) { return chars.some(function (c) { return c.id === id; }); });
+  }
+  function seg(host, items, value, fn) {
+    var g = el('div', 'a7-seg'); g.setAttribute('role', 'group');
+    items.forEach(function (it) {
+      var bt = el('button', 'btn', '<span>' + esc(it[1]) + '</span>'); bt.type = 'button'; bt.setAttribute('aria-pressed', it[0] === value ? 'true' : 'false');
+      if (it[2]) bt.disabled = true;
+      bt.addEventListener('click', function () { fn(it[0]); });
+      g.appendChild(bt);
+    });
+    host.appendChild(g);
+    return g;
+  }
+  function viewBattle(host, repaint) {
+    var b = cur(), R = res();
+    setupDefaults(b);
+    enginePanel(host, repaint);
+    var hasEngine = !!B.engine(), troops = rulesList(b, 'trp_');
+    var panel = el('section', 'panel');
+    seg(panel, [['demo', 'Scripted demo'], ['battle', 'Battle', !hasEngine || !troops.length], ['code', 'Battle code', !hasEngine]], ui.mode, function (v) { ui.mode = v; live = null; repaint(); });
+    if (ui.mode !== 'demo' && !hasEngine) ui.mode = 'demo';
+    var ctl = el('div', 'a7-ctl');
+    var bgs = ART.tiles ? ART.tiles.backgrounds(b) : [];
+    if (ui.mode === 'battle') {
+      ctl.appendChild(W.select('Troop', ui.troopId, troops.map(function (t) { return [t.id, t.name || t.id]; }), function (v) { ui.troopId = v; live = null; repaint(); }));
+      var wths = rulesList(b, 'wth_');
+      ctl.appendChild(W.select('Weather', ui.weatherId, [['', 'None']].concat(wths.map(function (w) { return [w.id, w.name || w.id]; })), function (v) { ui.weatherId = v; live = null; repaint(); }));
+      var chs = chapters(b).filter(function (c) { return rulesList(b, 'eps_').some(function (e) { return e.chapter === c.id; }); });
+      ctl.appendChild(W.select('Party', ui.source, [['custom', 'Custom']].concat(chs.map(function (c) { return [c.id, 'Expected: ' + (c.title || c.name || c.id)]; })), function (v) { ui.source = v; live = null; repaint(); }));
+      if (ui.source === 'custom') {
+        ctl.appendChild(W.slider('Level', ui.level, 1, 99, 1, function (v) { ui.level = v; live = null; repaint(); }));
+        ctl.appendChild(W.slider('Gear tier', ui.gearTier, 1, 5, 1, function (v) { ui.gearTier = v; live = null; repaint(); }));
+      }
+    }
+    if (ui.mode !== 'code') {
+      ctl.appendChild(W.select('Pacing', ui.pacing, [['wait', 'Wait'], ['active', 'Active']], function (v) { ui.pacing = v; if (live && live.sess) live.sess.setPacing(v); else if (live && live.P) live.P.setPacing(v); if (ui.mode === 'battle') { live = null; repaint(); } }));
+    }
+    ctl.appendChild(W.select('Speed', String(ui.speed), [['1', '1x'], ['2', '2x'], ['4', '4x']], function (v) { ui.speed = Number(v); if (live && live.P) live.P.setSpeed(ui.speed); }));
+    if (bgs.length) ctl.appendChild(W.select('Background', ui.bg, [['', 'Automatic']].concat(bgs.map(function (g) { return [g.id, g.name]; })), function (v) { ui.bg = v; live = null; repaint(); }));
+    panel.appendChild(ctl);
+    if (ui.mode === 'battle') {
+      var cs = el('div', 'a7-chars'), chars = rulesList(b, 'chr_');
+      if (ui.source === 'custom') {
+        chars.forEach(function (c) {
+          cs.appendChild(W.toggle(c.name || c.id, ui.chars.indexOf(c.id) >= 0, function (on) {
+            var i = ui.chars.indexOf(c.id);
+            if (on && i < 0) { if (ui.chars.length >= 4) { Kit.ui.toast('A party holds four at most.', 'warn'); repaint(); return; } ui.chars.push(c.id); }
+            if (!on && i >= 0) ui.chars.splice(i, 1);
+            live = null; repaint();
+          }));
+        });
+        panel.appendChild(cs);
+      }
+      var row2 = el('div', 'a7-ctl');
+      var seedL = el('label', 'a7-num'); seedL.innerHTML = '<span>Seed</span>';
+      var seedI = el('input', 'inp'); seedI.type = 'number'; seedI.min = 1; seedI.value = ui.seed; seedI.addEventListener('change', function () { ui.seed = Math.max(1, Math.round(Number(seedI.value) || 1)); live = null; repaint(); });
+      seedL.appendChild(seedI); row2.appendChild(seedL);
+      row2.appendChild(W.button('Random seed', 'spark', 'btn-ghost', function () { ui.seed = Math.floor(Math.random() * 2147483646) + 1; live = null; repaint(); }));
+      row2.appendChild(W.toggle('Auto battle', ui.auto, function (on) { ui.auto = on; if (live && live.sess) live.sess.auto = on; }));
+      panel.appendChild(row2);
+    }
+    if (ui.mode === 'code') {
+      var ta = el('textarea', 'inp a7-code'); ta.placeholder = 'Paste a Saga Forge battle code'; ta.value = ui.code; ta.setAttribute('aria-label', 'Battle code');
+      ta.addEventListener('change', function () { ui.code = ta.value.trim(); });
+      panel.appendChild(ta);
+      panel.appendChild(W.button('Play battle code', 'arena', 'btn-primary', function () { ui.code = ta.value.trim(); live = null; repaint(); }));
+    }
+    host.appendChild(panel);
+
+    // build what plays
+    if (!live) {
+      try { live = start(b); } catch (e) { live = { error: e.message || String(e) }; }
+    }
+    if (live.error) { host.appendChild(el('div', 'msg msg-warning', esc(live.error))); return; }
+    var stagePanel = el('section', 'panel');
+    var wrap = el('div', 'a7-bt-stage');
+    var menu = live.sess ? menuFor(stagePanel, live.sess) : null;
+    var cv = M.stage(R.w, R.h, scale(), function (ctx, t, dt) {
+      if (!live || live.cv !== cv) return;
+      live.step(dt);
+      live.P.draw(ctx);
+    }, 'Battle preview');
+    cv.classList.add('a7-bt-cv'); cv.tabIndex = 0;
+    live.cv = cv;
+    wrap.appendChild(cv);
+    stagePanel.insertBefore(wrap, stagePanel.firstChild);
+    var bar = el('div', 'btn-row');
+    bar.appendChild(W.button(ui.mode === 'demo' ? 'Replay demo' : ui.mode === 'code' ? 'Replay code' : 'New battle', 'spark', '', function () { live = null; repaint(); }));
+    if (ui.mode === 'battle') bar.appendChild(W.button('Same seed again', 'check', 'btn-ghost', function () { live = null; repaint(); }));
+    stagePanel.appendChild(bar);
+    var info = el('div', 'a7-room-hud'); info.setAttribute('aria-live', 'polite');
+    stagePanel.appendChild(info);
+    var cues = el('div', 'a7-cues'); cues.setAttribute('aria-label', 'Sound cues (Phase 6 plays them)');
+    stagePanel.appendChild(cues);
+    host.appendChild(stagePanel);
+    var lastInfo = '', lastCues = '';
+    var poll = setInterval(function () {
+      if (!cv.isConnected || !live || live.cv !== cv) { clearInterval(poll); return; }
+      if (menu) menu.poll();
+      var txt = live.describe();
+      if (txt !== lastInfo) { lastInfo = txt; info.innerHTML = txt; }
+      var cl = cueLog.join(' ');
+      if (cl !== lastCues) { lastCues = cl; cues.innerHTML = cueLog.map(function (c) { return W.chip(c, 'muted'); }).join(' '); }
+    }, 120);
+  }
+  // start(b) -> {P, step(dt), describe(), sess?}
+  function start(b) {
+    cueLog = [];
+    if (ui.mode === 'demo') {
+      var sc = B.script(b), pc = B.presenterConfig(b, sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 }), P0 = ER.createPresenter(pc);
+      var player = B.playScript(P0, sc), rest = 0, o = { P: P0, script: sc };
+      o.step = function (dt) {
+        player.step(dt);
+        if (player.done()) { rest += dt; if (rest > 1800) { cueLog = []; var P1 = ER.createPresenter(B.presenterConfig(cur(), sc.snapshot, { pacing: ui.pacing, speed: ui.speed, cue: cue, bg: ui.bg, seed: 3 })); o.P = P1; player = B.playScript(P1, sc); rest = 0; } }
+      };
+      o.describe = function () { var s = o.P.stats(); return '<span class="muted a7-small">Scripted demo, ' + player.fed + ' of ' + sc.feeds.length + ' advances shown, ' + s.beats + ' beats. It loops. No engine is involved: the events are written in ENGINE_BATTLE\'s shapes from your own records.</span>'; };
+      return o;
+    }
+    var E = B.engine();
+    if (!E) throw new Error('Load the battle engine first.');
+    var cfg = { E: E, cue: cue, speed: ui.speed, bg: ui.bg };
+    if (ui.mode === 'code') {
+      if (!ui.code) throw new Error('Paste a battle code above, then play it.');
+      cfg.code = B.decodeCode(ui.code);
+    } else {
+      cfg.troopId = ui.troopId; cfg.weatherId = ui.weatherId || null; cfg.seed = ui.seed; cfg.pacing = ui.pacing; cfg.auto = ui.auto;
+      cfg.party = B.buildParty(b, { chars: ui.chars, source: ui.source, level: ui.level, gearTier: ui.gearTier });
+    }
+    var sess = B.session(b, cfg), out = { sess: sess, P: sess.P };
+    out.step = function (dt) { sess.step(dt); };
+    out.describe = function () {
+      var S0 = sess.S, r = S0.result, tr = S0.db && S0.db.troop ? S0.db.troop.name : '';
+      var head = '<div class="a7-name"><strong>' + esc(tr) + '</strong> <span class="muted a7-small">seed ' + sess.seed + ', ' + esc(S0.sched) + (S0.sched === 'atb' ? (S0.waitMode ? ' wait' : ' active') : '') + ', tick ' + S0.t + (sess.playback ? ', playing back ' + sess.playback.i + ' of ' + sess.playback.inputs.length + ' inputs' : '') + '</span></div>';
+      if (!sess.ended) return head + (sess.warnings.length ? '<div class="msg msg-warning">' + esc(sess.warnings[0]) + '</div>' : '');
+      var label = { win: 'Victory', lose: 'Defeat', flee: 'Escaped', timeout: 'Time out' }[r.outcome] || r.outcome;
+      var match = sess.match == null ? '' : sess.match ? '<p class="msg msg-forward">Playback matched the original battle exactly.</p>' : '<p class="msg msg-error">Playback diverged from the original. The records may have changed since the code was made.</p>';
+      return head + '<div class="btn-row"><span class="chip ' + ({ win: 'chip-ok', lose: 'chip-error' }[r.outcome] || 'chip-muted') + '">' + esc(label) + '</span> <span class="muted a7-small">' + r.ticks + ' ticks, ' + r.turns + ' turns, ' + sess.inputs.length + ' inputs</span> <button class="btn btn-ghost" type="button" data-copy="1">' + Kit.icon('export') + '<span>Copy battle code</span></button></div>' + match;
+    };
+    return out;
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-copy]') : null;
+    if (!t || !live || !live.sess || !live.sess.code) return;
+    var code = live.sess.code;
+    function shown() { Kit.ui.dialog({ title: 'Battle code', body: function (bd) { var ta = el('textarea', 'inp a7-code'); ta.readOnly = true; ta.value = code; bd.appendChild(el('p', 'muted', 'Paste it into Saga Forge or this forge with the same records to replay the fight tick for tick.')); bd.appendChild(ta); }, actions: [{ label: 'Done', kind: 'primary' }] }); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(function () { Kit.ui.toast('Battle code copied.', 'ok'); }, shown); else shown();
+  });
+
+  // ---------------------------------------------------------------- window preview
+  var wp = { cursor: 0, openT: 0 };
+  function viewWindow(host) {
+    var b = cur(), R = res(), kit = I.kit(b), ent = P.entries(b), T = S.tileSize(b), u = Math.max(1, Math.round(T / 16)), font = EU.font(kit.font);
+    var party = S.sprites(b).filter(function (s) { return s.kind === 'character' && s.mode === 'field'; }).slice(0, 3);
+    var pors = S.portraits(b);
+    var items = ['Items', 'Magic', 'Equip', 'Status', 'Save'], prem = (b.charter.sections && b.charter.sections.premise) || {};
+    var lineText = prem.premise || 'A small company of travelers sets out at dawn.';
+    var panel = el('section', 'panel');
+    panel.appendChild(el('p', 'muted', esc('The window frame, font, and cursor at ' + R.w + ' by ' + R.h + '. Arrow keys or a tap on the menu move the cursor. Edit them on the Interface tab.')));
+    var wrap = el('div', 'a7-bt-stage');
+    var cv = M.stage(R.w, R.h, scale(), function (ctx, t, dt) {
+      wp.openT += dt;
+      var op = kit.window && kit.window.open ? Math.max(1, Number(kit.window.open.ms) || 1) : 140, o = kit.window && kit.window.open && kit.window.open.style === 'none' ? 1 : Math.min(1, wp.openT / op);
+      ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, R.w, R.h);
+      var bgd = I.titleBg(b, kit.title);
+      if (bgd) ER.bg.draw(ctx, bgd, t, R.w, R.h, { entries: ent });
+      var lh = font.line * u, pad = 5 * u, menuW = EU.measure(font, 'Status', u) + 2 * pad + 14 * u;
+      // menu window at the right with the cursor
+      var mx = R.w - menuW - 4 * u, my = 4 * u, mh = items.length * lh + 2 * pad;
+      var mw = EU.window(ctx, kit.window, mx, my, menuW, mh, { entries: ent, unit: u, open: o });
+      if (o >= 1) items.forEach(function (it, i) { EU.text(ctx, font, it, mx + pad + 10 * u, my + pad + i * lh, { color: '#ffffff', shadow: '#000000', scale: u }); });
+      if (o >= 1) EU.cursor(ctx, kit.cursor, mx + pad + 9 * u, my + pad + wp.cursor * lh + Math.floor(font.h * u / 2), t, { entries: ent, unit: u });
+      // party window at the left
+      var pw = mx - 8 * u, ph = Math.max(lh * 3 + 2 * pad, party.length * (T + 6 * u) + 2 * pad);
+      EU.window(ctx, kit.window, 4 * u, my, pw, ph, { entries: ent, unit: u, open: o });
+      if (o >= 1) party.forEach(function (s, i) {
+        var y = my + pad + i * (T + 6 * u), f = S.cache().sprite(s.id, 'stand', 'down');
+        if (f) ER.draw.frame(ctx, f, 4 * u + pad, y);
+        EU.text(ctx, font, s.name.replace(/ \(field\)$/, ''), 4 * u + pad + T + 6 * u, y + 2 * u, { color: '#ffffff', shadow: '#000000', scale: u });
+        EU.gauge(ctx, 4 * u + pad + T + 6 * u, y + lh, Math.min(60 * u, pw - T - 2 * pad - 12 * u), 4 * u, 0.4 + 0.2 * i, { back: '#101018', fill: '#60d080', light: '#c0f0c8' });
+      });
+      // dialogue window along the bottom, with a portrait
+      var dh = Math.round(R.h * 0.3), dy = R.h - dh - 4 * u, por = pors[0] ? S.cache().portrait(pors[0].id, 'neutral') : null;
+      EU.window(ctx, kit.window, 4 * u, dy, R.w - 8 * u, dh, { entries: ent, unit: u, open: o });
+      if (o >= 1) {
+        var tx = 4 * u + pad;
+        if (por && por.h <= dh - 2 * pad) { ER.draw.frame(ctx, por, tx, dy + pad); tx += por.w + 6 * u; }
+        var lines = EU.wrap(font, lineText, R.w - tx - 4 * u - pad, u), shown = Math.floor(t / 40);
+        var maxLines = Math.max(1, Math.floor((dh - 2 * pad) / lh));
+        lines.slice(0, maxLines).forEach(function (ln, i) {
+          var before = lines.slice(0, i).join('').length, vis = Math.max(0, Math.min(ln.length, shown - before));
+          EU.text(ctx, font, ln.slice(0, vis), tx, dy + pad + i * lh, { color: '#ffffff', shadow: '#000000', scale: u });
+        });
+      }
+    }, 'Window preview: a menu with a cursor, a party window, and a dialogue window.');
+    cv.classList.add('a7-bt-cv'); cv.tabIndex = 0;
+    function move(d) { wp.cursor = (wp.cursor + d + items.length) % items.length; }
+    cv.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 's') { move(1); e.preventDefault(); } else if (e.key === 'ArrowUp' || e.key === 'w') { move(-1); e.preventDefault(); } });
+    cv.addEventListener('pointerdown', function (e) { var r = cv.getBoundingClientRect(), ly = (e.clientY - r.top) / (r.height || 1) * R.h; move(ly < R.h / 2 ? -1 : 1); cv.focus(); });
+    wrap.appendChild(cv); panel.appendChild(wrap);
+    var row = el('div', 'btn-row');
+    row.appendChild(W.button('Up', 'up', '', function () { move(-1); }));
+    row.appendChild(W.button('Down', 'down', '', function () { move(1); }));
+    row.appendChild(W.button('Replay opening', 'spark', 'btn-ghost', function () { wp.openT = 0; cv.restart(); }));
+    panel.appendChild(row);
+    host.appendChild(panel);
+    wp.openT = 0;
+  }
+
+  PT.views.battle = viewBattle;
+  PT.views.window = viewWindow;
+  ART.WS.battle = { ui: ui, live: function () { return live; }, reset: function () { live = null; }, start: start, cues: function () { return cueLog.slice(); } };
+})();
+// === WS:BATTLE END ===
 // === WS:ART147 BEGIN ===
 (function () {
   'use strict';
@@ -10837,8 +12818,8 @@ var ENGINE_RENDER = (function () {
       var rows = ART_DEMO.selfTest();
       window.ART_LAST_SELFTEST = rows;
       var t = el('table', 'tbl');
-      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
-        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
+      t.innerHTML = '<thead><tr><th scope="col">Fixture</th><th scope="col">Hash</th><th scope="col" class="num">Records</th><th scope="col">Validation</th><th scope="col" class="num">Roles</th><th scope="col" class="num">Size</th><th scope="col" class="num">Build ms</th><th scope="col">Quick Build</th><th scope="col">Motion</th><th scope="col">Tiles</th><th scope="col">Battle</th><th scope="col">Coverage</th><th scope="col">Bake</th></tr></thead><tbody>' +
+        rows.map(function (r) { var v = r.validation; return '<tr><th scope="row">' + esc(r.key) + '</th><td>' + (r.hashOk ? '<span class="chip chip-ok">ok</span>' : '<span class="chip chip-error">bad</span>') + '</td><td class="num">' + r.records + '</td><td>' + v.errors + ' err, ' + v.broken + ' broken, ' + v.forward + ' fwd</td><td class="num">' + r.roles + '</td><td class="num">' + esc(U.fmtSize(r.size)) + '</td><td class="num">' + r.buildMs + '</td><td class="muted">' + esc(r.quickBuild + (r.palette ? '; master ' + r.palette.master + '/' + r.palette.want + ', ' + r.palette.locals + ' colorways, ' + r.palette.tiers + ' tiers (' + r.palette.offset + ' shifted, ' + r.palette.collapsed + ' same), ' + r.palette.effects + ' effects' : '')) + '</td><td class="muted">' + esc(r.motion ? r.motion.anims + ' animations, ' + r.motion.abilities + ' ability, ' + r.motion.overlays + ' weather' + (r.motion.generic ? ' (' + r.motion.generic + ' generic)' : '') + '; ' + r.motion.steps + ' steps in ' + r.motion.ms + ' ms' : 'none') + '</td><td class="muted">' + esc(r.tiles ? r.tiles.biomes + ' biomes, ' + r.tiles.interiors + ' interiors, ' + r.tiles.backgrounds + ' backgrounds; ' + r.tiles.tiles + ' tiles in ' + r.tiles.ms + ' ms, ' + U.fmtSize(r.tiles.bytes) + ' if all kept; room ' + r.tiles.walkable + '/' + r.tiles.cells + ' walkable' : 'none') + '</td><td class="muted">' + esc(r.battle ? r.battle.beats + ' beats, ' + r.battle.hits + ' hits in ' + r.battle.ms + ' ms, ' + (r.battle.ended || 'open') + (r.battle.real ? '; engine: ' + r.battle.real.outcome + ', ' + r.battle.real.beats + ' beats' : '; engine not loaded') : 'none') + '</td><td class="muted">' + esc(r.coverage) + '</td><td class="muted">' + esc(r.bakeMs + (r.bake ? ', ' + U.fmtSize(r.bake.bytes) : '')) + '</td></tr>'; }).join('') + '</tbody>';
       var w = el('div', 'tbl-wrap'); w.appendChild(t); out.appendChild(w);
     });
     p.appendChild(run); p.appendChild(out);

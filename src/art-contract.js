@@ -44,5 +44,10 @@
  *      until a later engine version adds one, so Phase 5 builds the beat behind a feature check on the event type.
  *   4. Replays stay deterministic: the state is a pure function of seed plus inputs, so reading it does not break the rule
  *      that beat timing never feeds back into the engine.
+ *
+ * Resolved in Phase 5: feed(events, state) is the presenter's input. Gauges and MP ride on the last beat of each feed and
+ *   apply when it finishes. The item beat plays for an 'item' event or an action whose abl is an itm_ id; engine 1.0.0
+ *   emits neither, so only the scripted demo exercises it today. Day 147 never ships ENGINE:BATTLE: ART:BATTLE loads it
+ *   at run time and accepts version 1.x with init, advance, suggest, replay, and gaugeMax.
  */
 // === ART:CONTRACT END ===

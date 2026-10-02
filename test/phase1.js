@@ -22,7 +22,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   const at = fences.map((f) => script.indexOf('// === ' + f + ' BEGIN ==='));
   check('fences present in order', at.every((x, i) => x >= 0 && (i === 0 || x > at[i - 1])), at);
   const eng = script.slice(script.indexOf('// === ENGINE:RENDER BEGIN ==='), script.indexOf('// === ENGINE:RENDER END ==='));
-  check('ENGINE:RENDER reads no host globals', !/\b(Kit|ART|window|document|localStorage|ENGINE_AUDIO|ENGINE_BATTLE)\b/.test(eng.replace(/\/\/.*$/gm, '')));
+  check('ENGINE:RENDER reads no host globals', !/(?<![.\w$])(Kit|ART|window|document|localStorage|ENGINE_AUDIO|ENGINE_BATTLE)\b(?!\s*:)/.test(eng.replace(/\/\/.*$/gm, '')));
 
   let { win, errors } = boot(APP147, { url: 'https://augustineiacopelli.github.io/appaday/147/?dev=1' });
   await wait(60);

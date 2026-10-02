@@ -3,12 +3,13 @@
   'use strict';
   // The Playtest tab. Phase 4 brings the test room: a small world generated from the bundle's own tilesets and climate
   // keys, with a town house and a dungeon ruin, walked by a party sprite. Collision, encounters, swimming, damage
-  // floors, and the above layer all come from tile flags. Battle and the window preview arrive in Phase 5.
+  // floors, and the above layer all come from tile flags. Phase 5 adds the touch skin here; WS:BATTLE adds the Battle
+  // and Window preview views.
   var U = Kit.util, el = U.el, esc = U.esc, ER = ENGINE_RENDER, ET = ER.tiles;
   var S = ART.sprites, P = ART.palette, M = ART.motion, TL = ART.tiles, W = ART.ui;
   ART.WS = ART.WS || {};
   var SUBS = [['room', 'Test room'], ['battle', 'Battle'], ['window', 'Window preview']];
-  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false };
+  var ui = { sub: 'room', seed: 7, sprite: null, weather: '', flags: false, touch: false };
   var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
   var STEP_MS = 190;
@@ -62,10 +63,11 @@
     }
     var T = S.tileSize(b), R = res(), map = TL.room(b, ui.seed, Math.max(24, Math.ceil(R.w / T) + 16), Math.max(20, Math.ceil(R.h / T) + 12));
     var spr = sprite(b), walkAnm = spr ? M.animFor(spr, 'walk', b) : null, wov = ui.weather ? ART.records.get(ui.weather, b) : null;
-    var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null };
+    var st = { held: null, keyHeld: null, msg: '', msgT: 0, flash: 0, hp: 10, encounters: 0, wx: null, pressed: {} };
+    var EU = ER.ui, tkRec = ART.iface ? ART.iface.get(b, 'touch') : null, tkLayout = EU.touch.layout(ART.iface ? ART.iface.scheme(b, tkRec) : 'dpad', R.w, R.h, tkRec || {});
     var walker = createWalker(b.art, map, map.start, { arrive: function (w, flags) {
       if (flags & ET.FLAGS.damage) { st.flash = 1; st.hp = Math.max(0, st.hp - 1); say(st.hp ? 'Ouch. The floor hurts (' + st.hp + ' HP left).' : 'Down to 0 HP. In the game this would be a game over.'); }
-      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! (Battles arrive in Phase 5.)'); } }
+      if (flags & ET.FLAGS.encounter) { var roll = ENGINE_RENDER.util.hash32(ui.seed + ':' + w.steps + ':' + w.x + ':' + w.y) % 18; if (roll === 0) { st.encounters++; st.flash = 0.6; say('An encounter! Battle on the Battle view.'); } }
       hud();
     } });
     room = { map: map, walker: walker, state: st };
@@ -78,6 +80,7 @@
     var wovs = M.overlays(b);
     if (wovs.length) ctl.appendChild(W.select('Weather', ui.weather, [['', 'None']].concat(wovs.map(function (o) { return [o.id, o.name.replace(/ overlay$/, '')]; })), function (v) { ui.weather = v; repaint(); }));
     ctl.appendChild(W.toggle('Show flags', ui.flags, function (on) { ui.flags = on; }));
+    ctl.appendChild(W.toggle('Touch skin', ui.touch, function (on) { ui.touch = on; st.pressed = {}; }));
     ctl.appendChild(W.button('New world', 'spark', 'btn-ghost', function () { ui.seed = (ui.seed * 7 + 13) % 100000 + 1; repaint(); }));
     panel.appendChild(ctl);
 
@@ -105,6 +108,7 @@
           ctx.globalAlpha = 1;
         }
       }
+      if (ui.touch) EU.touch.draw(ctx, tkLayout, tkRec || {}, { pressed: st.pressed, entries: P.entries(b), font: ART.iface ? ART.iface.get(b, 'font') : null });
       if (st.flash > 0) { ctx.globalAlpha = Math.min(0.5, st.flash * 0.5); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, R.w, R.h); ctx.globalAlpha = 1; st.flash = Math.max(0, st.flash - dt / 300); }
     }, 'Test room. Use the arrow keys, WASD, the direction pad, or hold a finger on the map to walk.');
     cv.tabIndex = 0;
@@ -120,9 +124,20 @@
       var dx = lx - (px - cx), dy = ly - (py - cy);
       st.held = Math.abs(dx) < T / 2 && Math.abs(dy) < T / 2 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
     }
-    cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); aim(e); e.preventDefault(); });
-    cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (st.held !== null || e.buttons) aim(e); } });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { cv.addEventListener(n, function () { st.held = null; }); });
+    // With the touch skin on, presses go to its controls: the pad or stick walks, A and B and Menu report, and a tap
+    // elsewhere (tap and hybrid schemes) walks toward the finger.
+    function skin(e) {
+      var r = cv.getBoundingClientRect(), lx = (e.clientX - r.left) / (r.width || 1) * R.w, ly = (e.clientY - r.top) / (r.height || 1) * R.h, h = EU.touch.hit(tkLayout, lx, ly);
+      st.pressed = {};
+      if (!h) { st.held = null; return; }
+      if (h.key === 'tap') { aim(e); return; }
+      if (h.key === 'dpad' || h.key === 'stick') { st.held = h.dir || null; st.pressed[h.key] = h.key === 'stick' ? { vx: h.vx, vy: h.vy } : (h.dir || true); return; }
+      st.held = null; st.pressed[h.key] = true;
+      if (st.lastBtn !== h.key) { st.lastBtn = h.key; say(h.key === 'menu' ? 'Menu pressed.' : 'Button ' + h.key.toUpperCase() + ' pressed.'); }
+    }
+    cv.addEventListener('pointerdown', function (e) { if (cv.setPointerCapture) try { cv.setPointerCapture(e.pointerId); } catch (x) { /* ok */ } cv.focus(); if (ui.touch) skin(e); else aim(e); e.preventDefault(); });
+    cv.addEventListener('pointermove', function (e) { if (e.buttons || e.pointerType === 'touch') { if (ui.touch) { if (st.held !== null || e.buttons || Object.keys(st.pressed).length) skin(e); } else if (st.held !== null || e.buttons) aim(e); } });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { cv.addEventListener(n, function () { st.held = null; st.pressed = {}; st.lastBtn = null; }); });
 
     var below = el('div', 'a7-room-below');
     var pad = el('div', 'a7-dpad');
@@ -165,10 +180,8 @@
   });
   document.addEventListener('keyup', function (e) { if (room && KEYS[e.key] === room.state.keyHeld) room.state.keyHeld = null; });
 
-  function viewLater(what) {
-    return function (host) { host.appendChild(Kit.ui.stub({ title: what, lead: what === 'Battle' ? 'A dressed battle from the bundle, played through the presenter with hit timing, popups, and cues.' : 'Windows, the font, the cursor, and the touch skin at the Charter\'s resolution.', status: 'Arrives in Phase 5.', icon: what === 'Battle' ? 'sword' : 'slots' })); };
-  }
-  var VIEWS = { room: viewRoom, battle: viewLater('Battle'), window: viewLater('Window preview') };
+  // WS:BATTLE fills in battle and window.
+  var VIEWS = { room: viewRoom };
   function render(host) {
     var head = el('section', 'panel'), R = res();
     head.innerHTML = '<h2 class="panel-title">Playtest</h2><p class="muted">Try the art the way a player meets it, at ' + R.w + ' by ' + R.h + ' and ' + S.tileSize(cur()) + ' pixel tiles.</p>';

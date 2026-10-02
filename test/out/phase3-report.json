@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-02T00:43:53.165Z",
+  "date": "2026-10-02T01:36:38.754Z",
   "pass": 80,
   "total": 80,
   "results": [
@@ -20,18 +20,18 @@
         1,
         139593,
         160477,
-        225103,
-        229606,
-        400511,
-        420405,
-        445173,
-        477307,
-        488743,
-        530428,
-        538347,
-        566106,
-        695623,
-        717873
+        226525,
+        231028,
+        452896,
+        472790,
+        497558,
+        529692,
+        541128,
+        582813,
+        606782,
+        634541,
+        830582,
+        853146
       ]
     },
     {
@@ -129,7 +129,7 @@
           "created": 38,
           "refreshed": 3,
           "kept": 0,
-          "ms": 3
+          "ms": 4
         }
       }
     },
@@ -488,6 +488,7 @@
         "prt_": 42,
         "spr_": 24,
         "til_": 14,
+        "uik_": 5,
         "wov_": 3
       }
     },
@@ -500,7 +501,7 @@
       "name": "the self test bakes every battle and emote pose",
       "ok": true,
       "detail": {
-        "ms": 125,
+        "ms": 160,
         "frames": 420,
         "bytes": 1175040
       }
@@ -509,7 +510,7 @@
       "name": "F2 (32 px, eight characters, twenty families) bakes in under 3 s",
       "ok": true,
       "detail": {
-        "ms": 537,
+        "ms": 669,
         "frames": 911,
         "bytes": 13598720
       }
@@ -523,7 +524,7 @@
         "overlays": 3,
         "generic": 1,
         "steps": 775,
-        "ms": 9
+        "ms": 5
       }
     }
   ],
@@ -533,8 +534,8 @@
       "purpose": "Empty and sparse",
       "buildMs": 2,
       "hashOk": true,
-      "quickBuild": "130 new in 23 ms",
-      "quickBuildMs": 23,
+      "quickBuild": "135 new in 33 ms",
+      "quickBuildMs": 33,
       "palette": {
         "master": 64,
         "want": 64,
@@ -550,20 +551,28 @@
         "overlays": 0,
         "generic": 0,
         "steps": 497,
-        "ms": 2
+        "ms": 6
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 233,
+        "ms": 329,
         "bytes": 2048000,
-        "roomMs": 245,
+        "roomMs": 295,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 12,
+        "hits": 4,
+        "frames": 468,
+        "ms": 8,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -573,12 +582,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 78710,
+      "size": 82735,
       "records": 0,
-      "bakeMs": "261 frames in 103 ms",
+      "bakeMs": "261 frames in 137 ms",
       "cacheBytes": 581760,
       "bake": {
-        "ms": 103,
+        "ms": 137,
         "frames": 261,
         "bytes": 581760
       }
@@ -588,8 +597,8 @@
       "purpose": "Tiny, two colors",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "147 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "152 new in 15 ms",
+      "quickBuildMs": 15,
       "palette": {
         "master": 2,
         "want": 2,
@@ -612,13 +621,21 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 74,
+        "ms": 101,
         "bytes": 512000,
-        "roomMs": 209,
+        "roomMs": 327,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 9,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -628,12 +645,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 112950,
+      "size": 116972,
       "records": 17,
-      "bakeMs": "316 frames in 52 ms",
+      "bakeMs": "316 frames in 64 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 52,
+        "ms": 64,
         "frames": 316,
         "bytes": 192640
       }
@@ -641,10 +658,10 @@
     {
       "key": "F1b",
       "purpose": "Tiny, four colors",
-      "buildMs": 3,
+      "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "147 new in 11 ms",
-      "quickBuildMs": 11,
+      "quickBuild": "152 new in 15 ms",
+      "quickBuildMs": 15,
       "palette": {
         "master": 4,
         "want": 4,
@@ -667,13 +684,21 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 73,
+        "ms": 91,
         "bytes": 512000,
-        "roomMs": 217,
+        "roomMs": 266,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 6,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -683,12 +708,12 @@
         "warnings": 0
       },
       "roles": 9,
-      "size": 112965,
+      "size": 116984,
       "records": 17,
-      "bakeMs": "316 frames in 46 ms",
+      "bakeMs": "316 frames in 55 ms",
       "cacheBytes": 192640,
       "bake": {
-        "ms": 46,
+        "ms": 55,
         "frames": 316,
         "bytes": 192640
       }
@@ -698,8 +723,8 @@
       "purpose": "Large",
       "buildMs": 10,
       "hashOk": true,
-      "quickBuild": "411 new in 157 ms",
-      "quickBuildMs": 157,
+      "quickBuild": "416 new in 191 ms",
+      "quickBuildMs": 191,
       "palette": {
         "master": 256,
         "want": 256,
@@ -715,20 +740,28 @@
         "overlays": 5,
         "generic": 0,
         "steps": 1100,
-        "ms": 7
+        "ms": 8
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 648,
+        "ms": 882,
         "bytes": 8192000,
-        "roomMs": 198,
+        "roomMs": 282,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 10,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -738,12 +771,12 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 288415,
+      "size": 292446,
       "records": 262,
-      "bakeMs": "911 frames in 537 ms",
+      "bakeMs": "911 frames in 669 ms",
       "cacheBytes": 13598720,
       "bake": {
-        "ms": 537,
+        "ms": 669,
         "frames": 911,
         "bytes": 13598720
       }
@@ -751,10 +784,10 @@
     {
       "key": "F3",
       "purpose": "Budget stress",
-      "buildMs": 9,
+      "buildMs": 10,
       "hashOk": true,
-      "quickBuild": "408 new in 139 ms",
-      "quickBuildMs": 139,
+      "quickBuild": "413 new in 187 ms",
+      "quickBuildMs": 187,
       "palette": {
         "master": 256,
         "want": 256,
@@ -770,20 +803,28 @@
         "overlays": 2,
         "generic": 0,
         "steps": 1010,
-        "ms": 5
+        "ms": 6
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 2489,
+        "ms": 3289,
         "bytes": 32768000,
-        "roomMs": 199,
+        "roomMs": 284,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 25,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -793,12 +834,12 @@
         "warnings": 0
       },
       "roles": 16,
-      "size": 286369,
+      "size": 290404,
       "records": 259,
-      "bakeMs": "911 frames in 1613 ms",
+      "bakeMs": "911 frames in 2208 ms",
       "cacheBytes": 46929920,
       "bake": {
-        "ms": 1613,
+        "ms": 2208,
         "frames": 911,
         "bytes": 46929920
       }
@@ -806,10 +847,10 @@
     {
       "key": "F4",
       "purpose": "Optional fields missing",
-      "buildMs": 7,
+      "buildMs": 10,
       "hashOk": true,
-      "quickBuild": "177 new in 29 ms",
-      "quickBuildMs": 29,
+      "quickBuild": "182 new in 37 ms",
+      "quickBuildMs": 37,
       "palette": {
         "master": 64,
         "want": 64,
@@ -825,20 +866,28 @@
         "overlays": 3,
         "generic": 1,
         "steps": 775,
-        "ms": 9
+        "ms": 5
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 204,
+        "ms": 239,
         "bytes": 2048000,
-        "roomMs": 209,
+        "roomMs": 263,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 24,
+        "hits": 11,
+        "frames": 899,
+        "ms": 7,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -848,12 +897,12 @@
         "warnings": 1
       },
       "roles": 9,
-      "size": 132918,
+      "size": 136943,
       "records": 38,
-      "bakeMs": "416 frames in 119 ms",
+      "bakeMs": "416 frames in 129 ms",
       "cacheBytes": 1169920,
       "bake": {
-        "ms": 119,
+        "ms": 129,
         "frames": 416,
         "bytes": 1169920
       }
@@ -863,8 +912,8 @@
       "purpose": "Typical, dpad controls",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "181 new in 33 ms",
-      "quickBuildMs": 33,
+      "quickBuild": "186 new in 35 ms",
+      "quickBuildMs": 35,
       "palette": {
         "master": 64,
         "want": 64,
@@ -880,20 +929,28 @@
         "overlays": 3,
         "generic": 0,
         "steps": 784,
-        "ms": 2
+        "ms": 3
       },
       "tiles": {
         "biomes": 12,
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 189,
+        "ms": 322,
         "bytes": 2048000,
-        "roomMs": 260,
+        "roomMs": 331,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 15,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -903,12 +960,12 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142800,
+      "size": 146825,
       "records": 46,
-      "bakeMs": "420 frames in 125 ms",
+      "bakeMs": "420 frames in 160 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 125,
+        "ms": 160,
         "frames": 420,
         "bytes": 1175040
       }
@@ -918,8 +975,8 @@
       "purpose": "Typical, stick controls",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "181 new in 27 ms",
-      "quickBuildMs": 27,
+      "quickBuild": "186 new in 55 ms",
+      "quickBuildMs": 55,
       "palette": {
         "master": 64,
         "want": 64,
@@ -942,13 +999,21 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 181,
+        "ms": 235,
         "bytes": 2048000,
-        "roomMs": 195,
+        "roomMs": 265,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 13,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -958,12 +1023,12 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142857,
+      "size": 146889,
       "records": 46,
-      "bakeMs": "420 frames in 102 ms",
+      "bakeMs": "420 frames in 137 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 102,
+        "ms": 137,
         "frames": 420,
         "bytes": 1175040
       }
@@ -973,8 +1038,8 @@
       "purpose": "Typical, tap controls",
       "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "181 new in 33 ms",
-      "quickBuildMs": 33,
+      "quickBuild": "186 new in 67 ms",
+      "quickBuildMs": 67,
       "palette": {
         "master": 64,
         "want": 64,
@@ -997,13 +1062,21 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 179,
+        "ms": 236,
         "bytes": 2048000,
-        "roomMs": 193,
+        "roomMs": 267,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 9,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -1013,12 +1086,12 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142821,
+      "size": 146848,
       "records": 46,
-      "bakeMs": "420 frames in 117 ms",
+      "bakeMs": "420 frames in 127 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 117,
+        "ms": 127,
         "frames": 420,
         "bytes": 1175040
       }
@@ -1026,10 +1099,10 @@
     {
       "key": "F5h",
       "purpose": "Typical, hybrid controls",
-      "buildMs": 3,
+      "buildMs": 4,
       "hashOk": true,
-      "quickBuild": "181 new in 27 ms",
-      "quickBuildMs": 27,
+      "quickBuild": "186 new in 36 ms",
+      "quickBuildMs": 36,
       "palette": {
         "master": 64,
         "want": 64,
@@ -1052,13 +1125,21 @@
         "interiors": 2,
         "backgrounds": 14,
         "tiles": 1600,
-        "ms": 182,
+        "ms": 238,
         "bytes": 2048000,
-        "roomMs": 210,
+        "roomMs": 268,
         "walkable": 649,
         "cells": 1200,
         "town": true,
         "ruin": true
+      },
+      "battle": {
+        "beats": 28,
+        "hits": 15,
+        "frames": 1071,
+        "ms": 8,
+        "ended": "win",
+        "real": null
       },
       "coverage": "pending (Phase 8)",
       "validation": {
@@ -1068,12 +1149,12 @@
         "warnings": 0
       },
       "roles": 11,
-      "size": 142867,
+      "size": 146897,
       "records": 46,
-      "bakeMs": "420 frames in 96 ms",
+      "bakeMs": "420 frames in 124 ms",
       "cacheBytes": 1175040,
       "bake": {
-        "ms": 96,
+        "ms": 124,
         "frames": 420,
         "bytes": 1175040
       }

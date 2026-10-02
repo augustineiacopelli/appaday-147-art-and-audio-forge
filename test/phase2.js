@@ -25,7 +25,7 @@ function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
   check('fences present in order', at.every((x, i) => x >= 0 && (i === 0 || x > at[i - 1])), at);
   check('every fence opens and closes once', fences.every((f) => script.split('// === ' + f + ' BEGIN ===').length === 2 && script.split('// === ' + f + ' END ===').length === 2));
   const eng = script.slice(script.indexOf('// === ENGINE:RENDER BEGIN ==='), script.indexOf('// === ENGINE:RENDER END ==='));
-  check('ENGINE:RENDER reads no host globals', !/\b(Kit|ART|window|document|localStorage|indexedDB|ENGINE_AUDIO|ENGINE_BATTLE)\b/.test(eng.replace(/\/\/.*$/gm, '')));
+  check('ENGINE:RENDER reads no host globals', !/(?<![.\w$])(Kit|ART|window|document|localStorage|indexedDB|ENGINE_AUDIO|ENGINE_BATTLE)\b(?!\s*:)/.test(eng.replace(/\/\/.*$/gm, '')));
   check('no forbidden APIs (roundRect, ellipse, confirm, bare remove)', !/\.roundRect\(|\.ellipse\(|window\.confirm|\bconfirm\(\s*['"]|[^a-zA-Z.]remove\(\)|\)\.remove\(\)/.test(script.replace(/\/\/.*$/gm, '')));
 
   const fake = require(path.join(__dirname, 'node_modules', 'fake-indexeddb'));

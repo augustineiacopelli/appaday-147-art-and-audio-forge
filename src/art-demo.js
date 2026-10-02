@@ -189,10 +189,27 @@
         tiles = { biomes: ART.tiles.biomes(copy).length, interiors: ART.tiles.interiors(copy).length, backgrounds: ART.tiles.backgrounds(copy).length,
           tiles: nT, ms: bakeMs, bytes: k3.stats().bytes, roomMs: Math.round(performance.now() - tr), walkable: walk, cells: room.w * room.h, town: !!room.town, ruin: !!room.ruin };
       }
+      // Phase 5: the scripted battle through the presenter (every beat kind, no engine), then, when the battle engine
+      // is loaded, one real auto battle against the first troop played to its end in Wait pacing.
+      var battle = null;
+      if (ART.battle && ART.palette.master(copy)) {
+        var tb5 = performance.now(), sc5 = ART.battle.script(copy), P5 = ENGINE_RENDER.createPresenter(ART.battle.presenterConfig(copy, sc5.snapshot, { seed: 3 }));
+        var pl5 = ART.battle.playScript(P5, sc5), fr5 = 0;
+        while (!pl5.done() && fr5 < 20000) { pl5.step(16); fr5++; }
+        var s5 = P5.stats();
+        battle = { beats: s5.beats, hits: s5.hits, frames: fr5, ms: Math.round(performance.now() - tb5), ended: P5.ended(), real: null };
+        var E5 = ART.battle.engine(), trp5 = copy.rules && copy.rules.trp_ ? Object.keys(copy.rules.trp_)[0] : null;
+        if (E5 && trp5 && copy.rules.chr_ && Object.keys(copy.rules.chr_).length) {
+          try {
+            var ss5 = ART.battle.session(copy, { E: E5, troopId: trp5, party: ART.battle.buildParty(copy, { level: 20, gearTier: 3 }), seed: 7, auto: true, pacing: 'wait' }).runOut(16, 60000);
+            battle.real = { outcome: ss5.S.result ? ss5.S.result.outcome : 'unfinished', beats: ss5.P.stats().beats, inputs: ss5.inputs.length };
+          } catch (e5) { battle.real = { outcome: 'error: ' + e5.message }; }
+        }
+      }
       var res = Kit.validate(copy), sz = ART.size(copy);
       return {
         key: f.key, purpose: f.purpose, buildMs: Math.round(built), hashOk: Kit.bundle.hash(b) === b.kit.contentHash,
-        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, coverage: 'pending (Phase 8)',
+        quickBuild: qb, quickBuildMs: qbMs, palette: pal, motion: motion, tiles: tiles, battle: battle, coverage: 'pending (Phase 8)',
         validation: Kit.validate.summary(res), roles: ART.musicRoles(copy).filter(function (r) { return r.required; }).length,
         size: sz.total, records: Object.keys(copy.rules || {}).reduce(function (s, p) { return s + Object.keys(copy.rules[p]).length; }, 0),
         bakeMs: bake ? bake.frames + ' frames in ' + bake.ms + ' ms' : 'no master palette', cacheBytes: bake ? bake.bytes : 0, bake: bake

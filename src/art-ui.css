@@ -1,0 +1,38 @@
+/* === ART:UI CSS BEGIN === */
+.a7-bt-stage { display: flex; justify-content: center; margin: 4px 0 10px; }
+.a7-bt-cv { width: 100%; touch-action: manipulation; outline: none; }
+.a7-bt-cv:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft); }
+.a7-seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.a7-seg .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.a7-engine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.a7-engine .a7-grow { min-width: 200px; }
+.a7-menu { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); margin-bottom: 10px; }
+.a7-menu[hidden] { display: none; }
+.a7-menu-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 800; }
+.a7-menu-head .who { flex: 1 1 auto; min-width: 0; }
+.a7-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 6px; }
+.a7-menu-grid .btn { min-height: 48px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; text-align: left; }
+.a7-menu-grid .btn small { font-size: .74rem; font-weight: 600; color: var(--ink3); }
+.a7-cues { display: flex; flex-wrap: wrap; gap: 4px; min-height: 26px; }
+.a7-chars { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.a7-code { width: 100%; min-height: 96px; font-family: var(--font-mono); font-size: .8rem; }
+.a7-glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.a7-glyphs .btn { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; font-family: var(--font-mono); font-weight: 700; }
+.a7-glyphs .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.a7-gedit { display: inline-grid; gap: 3px; padding: 6px; border: 1px solid var(--line2); border-radius: var(--radius-sm); background: var(--bg2); }
+.a7-gedit button { width: 44px; height: 44px; border: 1px solid var(--line2); border-radius: 6px; background: var(--bg); cursor: pointer; padding: 0; }
+.a7-gedit button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); }
+.a7-gedit button.a7-desc { border-style: dashed; }
+.a7-colors { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.a7-colors label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); }
+.a7-colors input[type="color"] { width: 44px; height: 44px; padding: 2px; border: 1px solid var(--line2); border-radius: 8px; background: var(--bg2); cursor: pointer; }
+.a7-text { display: flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--ink2); flex-wrap: wrap; }
+.a7-text input { min-height: 44px; min-width: 0; width: 22ch; max-width: 100%; }
+@media (max-width: 520px) {
+  .a7-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .a7-text input { width: 100%; }
+}
+/* Long record names (backgrounds, troops) must not push a select past the screen edge. */
+.a7-ctl .a7-sel { max-width: 100%; min-width: 0; }
+.a7-ctl .a7-sel select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+/* === ART:UI CSS END === */
