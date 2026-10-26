@@ -389,7 +389,7 @@
   });
 
   // ---------------------------------------------------------------- enemy body
-  function paramRange(dv) { return dv === 0 || dv === 1 ? [0, 1, 1] : dv >= 2 ? [0, Math.max(6, dv * 2), 1] : [0.3, 1.6, 0]; }
+  function paramRange(rig, key) { var sp = ART.sprites.rigSpec(rig, key); return [sp.min, sp.max, sp.kind !== 'num' ? 1 : 0]; }
   AI.register({
     key: 'enemy', button: 'Draft a body', title: 'Draft an enemy body with Claude', single: true, count: 3,
     blurb: 'Claude picks one of the enemy rigs and sets its parameters (size, limbs, eyes, and the rest). Tier families keep sharing this body in their own palettes.',
@@ -402,7 +402,7 @@
     },
     context: function (b, T) {
       var rigs = {};
-      ES.RIGS.forEach(function (k) { var p = ES.RIG_PARAMS[k] || {}, o = {}; Object.keys(p).forEach(function (n) { var r = paramRange(p[n]); o[n] = { default: p[n], min: r[0], max: r[1], whole: !!r[2] }; }); rigs[k] = o; });
+      ES.RIGS.forEach(function (k) { var p = ES.RIG_PARAMS[k] || {}, o = {}; Object.keys(p).forEach(function (n) { var r = paramRange(k, n); o[n] = { default: p[n], min: r[0], max: r[1], whole: !!r[2] }; }); rigs[k] = o; });
       return { family: subjectBrief(b, T.rec), rigs: rigs, note: 'Parameters not listed for the chosen rig are ignored. Toggles are 0 or 1.' };
     },
     current: function (b, T) { var rc = T.rec.recipe || {}, p = (rc.params || {}).body || {}; return { rig: rc.rig, params: Object.keys(p).map(function (k) { return { key: k, value: p[k] }; }) }; },
@@ -411,7 +411,7 @@
       var list = Array.isArray(o.params) ? o.params : U.isObj(o.params) ? Object.keys(o.params).map(function (k) { return { key: k, value: o.params[k] }; }) : [];
       var defs = ES.RIG_PARAMS[rig] || {};
       return { rig: rig, params: list.filter(U.isObj).map(function (x) {
-        var k = String(x.key || ''), r = paramRange(defs[k]);
+        var k = String(x.key || ''), r = paramRange(rig, k);
         return { key: k, value: defs[k] === undefined ? Number(x.value) || 0 : num(x.value, r[0], r[1], defs[k], !!r[2]) };
       }) };
     },

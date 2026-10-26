@@ -524,6 +524,16 @@ SESSION 8 / PHASE 8 (2026-10-02, Opus): COVERAGE AND EXPORT. COMPLETE. DAY 147 F
   Known limits: coverage checks that records exist, not that they look good. The in browser self test takes about 13 s
     across ten fixtures (F3 bakes everything at 64 px). Climate cells unmatched by the default biomes are advice only.
 === END SESSION 8 ===
+=== SESSION 9 (2026-10-26): explicit enemy rig controls ===
+  Problem: the Bestiary chose each rig setting's control from its engine default. Defaults of exactly 0 or 1 became
+    checkboxes, so wingspan, beak, tail (avian), bulk (construct, humanoid), and length (serpent) could only be 0 or 1,
+    and every other amount slider started at 0.3. Quick Build seeding used the same test, so a seed could set a hawk's
+    wingspan to 0 or a golem's bulk to 0. The Claude body drafter used the same ranges.
+  Fix: ART.sprites.rigSpec(rig, key) holds an explicit kind (bool, int, num), range, and step for every rig setting, and
+    ART.sprites.clampRig keeps stored values inside it. The Bestiary panel, rigParams seeding, and the enemy drafter all
+    read it. Amounts start at 0 where the generator allows it (legLen, neck, hunch, beak, tail). Engines are unchanged.
+  Tests: phases 0 to 6 and 8 pass as before; phase 7 fails at the same line (123) with and without this change.
+=== END SESSION 9 ===
 DECISIONS (2026-10-01, accepted by Stino before Phase 1):
   Slot map: local palettes use 16 slots. 0 transparent, 1 outline, 2 to 4 skin, 5 to 7 hair, 8 to 10 cloth A,
     11 to 13 cloth B, 14 and 15 a two step metal ramp. Accent is a colorway alias pointing at cloth B or metal.

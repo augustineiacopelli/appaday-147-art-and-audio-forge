@@ -140,10 +140,10 @@
             var prm = (rc.params = rc.params || {}).body = (rc.params.body || {}), defs = ES.RIG_PARAMS[rc.rig] || {};
             var ctl4 = el('div', 'a7-ctl');
             Object.keys(defs).forEach(function (k) {
-              var dv = defs[k], v = prm[k] != null ? prm[k] : dv;
-              if (dv === 0 || dv === 1) ctl4.appendChild(W.toggle(k, !!v, function (on) { prm[k] = on ? 1 : 0; spr.origin = 'user'; touch('sprite-param'); paint(); }));
-              else if (dv >= 2) ctl4.appendChild(W.slider(k, v, 0, Math.max(6, dv * 2), 1, function (n) { prm[k] = n; spr.origin = 'user'; touch('sprite-param'); paint(); }));
-              else ctl4.appendChild(W.slider(k, v, 0.3, 1.6, 0.05, function (n) { prm[k] = n; spr.origin = 'user'; touch('sprite-param'); paint(); }));
+              var sp = S.rigSpec(rc.rig, k), v = prm[k] != null ? prm[k] : defs[k];
+              function set(n) { prm[k] = S.clampRig(rc.rig, k, n); spr.origin = 'user'; touch('sprite-param'); paint(); }
+              if (sp.kind === 'bool') ctl4.appendChild(W.toggle(k, !!v, function (on) { set(on ? 1 : 0); }));
+              else ctl4.appendChild(W.slider(k, S.clampRig(rc.rig, k, v), sp.min, sp.max, sp.step, set));
             });
             body.appendChild(ctl4);
           }

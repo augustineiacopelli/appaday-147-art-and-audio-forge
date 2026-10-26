@@ -103,15 +103,43 @@
     for (var j = 0; j < TYPE_RIG.length; j++) if (TYPE_RIG[j][0].test(t)) return TYPE_RIG[j][1];
     return ES.RIGS[H(fam && fam.id || n) % ES.RIGS.length];
   };
+  // Each rig setting's control: [kind, min, max, step]. kind is 'bool' (a part that is on or off), 'int' (a count), or
+  // 'num' (an amount). Ranges follow what each ENGINE_RENDER rig generator draws well inside its 2 by 2 tile frame. A
+  // default of exactly 1 is not a toggle: wingspan, beak, tail, bulk, and length are amounts that default to 1.
+  var RIG_SPEC = {
+    ooze: { width: ['num', 0.4, 1.4, 0.05], height: ['num', 0.3, 1.2, 0.05], eyes: ['int', 0, 3, 1], drip: ['int', 0, 4, 1], crest: ['bool'] },
+    floater: { size: ['num', 0.3, 1.6, 0.05], tails: ['int', 0, 6, 1], eyes: ['int', 0, 3, 1] },
+    quadruped: { size: ['num', 0.4, 1.4, 0.05], legLen: ['num', 0, 1, 0.05], neck: ['num', 0, 1, 0.05], tail: ['bool'], ears: ['bool'], horns: ['bool'], mane: ['bool'] },
+    avian: { wingspan: ['num', 0.4, 1.6, 0.05], beak: ['num', 0, 2, 0.05], tail: ['num', 0, 2, 0.05] },
+    serpent: { coils: ['int', 0, 4, 1], length: ['num', 0.5, 1.5, 0.05], hood: ['bool'] },
+    construct: { bulk: ['num', 0.6, 1.4, 0.05], arms: ['bool'], glow: ['bool'] },
+    plant: { height: ['num', 0.4, 1.1, 0.05], petals: ['int', 0, 8, 1] },
+    humanoid: { bulk: ['num', 0.6, 1.3, 0.05], hunch: ['num', 0, 1, 0.05], weapon: ['bool'] }
+  };
+  // rigSpec(rig, key) -> {kind, min, max, step}. A setting missing from the table falls back to an amount from 0 to twice
+  // its default, so a rig added to the engine later still gets a usable slider.
+  S.rigSpec = function (rig, key) {
+    var t = RIG_SPEC[rig] && RIG_SPEC[rig][key];
+    if (t) return t[0] === 'bool' ? { kind: 'bool', min: 0, max: 1, step: 1 } : { kind: t[0], min: t[1], max: t[2], step: t[3] };
+    var dv = Number((ES.RIG_PARAMS[rig] || {})[key]) || 1;
+    return { kind: 'num', min: 0, max: Math.max(2, dv * 2), step: 0.05 };
+  };
+  S.clampRig = function (rig, key, v) {
+    var sp = S.rigSpec(rig, key), n = Number(v);
+    if (!isFinite(n)) n = Number((ES.RIG_PARAMS[rig] || {})[key]) || 0;
+    if (sp.kind === 'bool') return n ? 1 : 0;
+    n = Math.max(sp.min, Math.min(sp.max, n));
+    return sp.kind === 'int' ? Math.round(n) : Math.round(n * 100) / 100;
+  };
   // Seeded variation of a rig's default parameters, so two families on the same rig still look different.
   S.rigParams = function (rig, seed) {
     var r = rng(seed), base = U.clone(ES.RIG_PARAMS[rig] || {}), out = {};
     Object.keys(base).forEach(function (k) {
-      var v = base[k];
+      var v = base[k], kind = S.rigSpec(rig, k).kind;
       if (k === 'eyes') out[k] = 1 + Math.floor(r() * 2);
-      else if (k === 'tails' || k === 'petals' || k === 'coils') out[k] = Math.max(1, Math.round(v + (r() - 0.5) * 2));
-      else if (v === 0 || v === 1) out[k] = r() < (v ? 0.8 : 0.3) ? 1 : 0;
-      else out[k] = Math.round((v * (0.85 + r() * 0.3)) * 100) / 100;
+      else if (kind === 'int') out[k] = S.clampRig(rig, k, Math.max(1, Math.round(v + (r() - 0.5) * 2)));
+      else if (kind === 'bool') out[k] = r() < (v ? 0.8 : 0.3) ? 1 : 0;
+      else out[k] = S.clampRig(rig, k, v * (0.85 + r() * 0.3));
     });
     return out;
   };
