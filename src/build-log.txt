@@ -430,7 +430,7 @@ SESSION 7 / PHASE 7 (2026-10-02, Opus): CLAUDE DRAFTING AND FORWARD FIELDS. COMP
   ART:AI: ART.ai.register(def) drafters, each with a runtime only codex type (prefix null, section true) so the KIT:CORE
     review drawer validates and edits options. Kit.validate.record is wrapped once (like ART:STORE wraps Kit.store) to add
     each drafter's own checks; a field the drafter reports is not reported twice. Calls go through Kit.claude, so the
-    model is getModel(tier) (Settings override, then ../config.json, then fallback), thinking is disabled, and the
+    model is getModel(tier) (Settings override, then the portal models.js), thinking is disabled, and the
     anthropic-dangerous-direct-browser-access header is sent. System prompt: strict {"options":[...]}, exactly N, a
     summary per option, field keys only, no IDs, allowedValues only. Context: Charter summary, specs, the subject (ID
     free briefs of the rules record), current values in the draft shape, and the field vocabulary. ids in replies are
